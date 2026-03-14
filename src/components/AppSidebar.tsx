@@ -15,8 +15,7 @@ const navItems = [
   { title: 'Dashboard', icon: Home, url: '/' },
   { title: 'Árvore Mercadológica', icon: FolderTree, url: '/arvore' },
   { title: 'Gestão de Equipes', icon: Users, url: '/equipes' },
-  { title: 'Inventário Geral', icon: Package, url: '/#' },
-  { title: 'Relatórios', icon: BarChart3, url: '/#' },
+  { title: 'Relatórios', icon: BarChart3, url: '/relatorios' },
 ]
 
 export function AppSidebar() {

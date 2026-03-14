@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppStore } from '@/store/AppStore'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Image as ImageIcon, ExternalLink, Settings2 } from 'lucide-react'
+import { ArrowLeft, Plus, Settings2, Camera } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { AllocateDialog } from './AllocateDialog'
 import { UpdateDialog } from './UpdateDialog'
@@ -58,7 +57,7 @@ export default function TeamDetail() {
           </p>
         </div>
         <Button onClick={() => setAllocateOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Alocar Ferramenta
+          <Plus className="h-4 w-4 mr-2" /> Alocar Instâncias
         </Button>
       </div>
 
@@ -67,9 +66,9 @@ export default function TeamDetail() {
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="w-16 text-center">Foto</TableHead>
-                <TableHead>Item / Hierarquia</TableHead>
-                <TableHead className="text-center">Qtd.</TableHead>
+                <TableHead className="w-16 text-center">Fotos</TableHead>
+                <TableHead>Identificador</TableHead>
+                <TableHead>Item (Marca)</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -77,32 +76,38 @@ export default function TeamDetail() {
             <TableBody>
               {teamInventory.map((item) => {
                 const path = getNodePath(item.treeNodeId)
-                const nodeName = path[path.length - 1]?.name || 'Desconhecido'
-                const fullPath = path
-                  .slice(0, -1)
-                  .map((n) => n.name)
-                  .join(' > ')
+                const marcaNode = path.find((n) => n.level === 'marca')
+                const itemNode = path.find((n) => n.level === 'item')
+                const fullPath = path.map((n) => n.name).join(' > ')
                 const status = statusMap[item.condition]
+                const mainPhoto = item.photos?.[0]
 
                 return (
                   <TableRow key={item.id} className="group">
                     <TableCell className="text-center">
                       <Avatar className="h-10 w-10 mx-auto rounded-md border border-border/50">
-                        {item.photoUrl ? (
-                          <AvatarImage src={item.photoUrl} className="object-cover" />
+                        {mainPhoto ? (
+                          <AvatarImage src={mainPhoto} className="object-cover" />
                         ) : (
                           <AvatarFallback className="rounded-md bg-muted">
-                            <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+                            <Camera className="h-4 w-4 text-muted-foreground/50" />
                           </AvatarFallback>
                         )}
                       </Avatar>
                     </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{nodeName}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{fullPath}</div>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {item.id}
                     </TableCell>
-                    <TableCell className="text-center font-mono font-medium">
-                      {item.quantity}
+                    <TableCell>
+                      <div className="font-medium">
+                        {itemNode?.name || 'Item'} ({marcaNode?.name || 'Marca'})
+                      </div>
+                      <div
+                        className="text-xs text-muted-foreground mt-0.5 line-clamp-1"
+                        title={fullPath}
+                      >
+                        {fullPath}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <span
@@ -118,7 +123,7 @@ export default function TeamDetail() {
                         onClick={() => setUpdateItem(item)}
                         className="text-muted-foreground hover:text-foreground"
                       >
-                        <Settings2 className="h-4 w-4 mr-2" /> Atualizar
+                        <Settings2 className="h-4 w-4 mr-2" /> Perfil
                       </Button>
                     </TableCell>
                   </TableRow>

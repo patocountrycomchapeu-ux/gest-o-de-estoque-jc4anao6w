@@ -30,49 +30,49 @@ export function AllocateDialog({
   onOpenChange: (o: boolean) => void
 }) {
   const { nodes, addInventoryItem, getNodePath } = useAppStore()
-  const [selectedItemId, setSelectedItemId] = useState<string>('')
+  const [selectedMarcaId, setSelectedMarcaId] = useState<string>('')
   const [qty, setQty] = useState(1)
   const [condition, setCondition] = useState<Condition>('good')
 
-  const baseItems = useMemo(() => nodes.filter((n) => n.level === 'item'), [nodes])
+  const leafItems = useMemo(() => nodes.filter((n) => n.level === 'marca'), [nodes])
 
   const handleSave = () => {
-    if (!selectedItemId || qty < 1) return
+    if (!selectedMarcaId || qty < 1) return
     addInventoryItem({
       teamId,
-      treeNodeId: selectedItemId,
+      treeNodeId: selectedMarcaId,
       quantity: qty,
       condition,
     })
     onOpenChange(false)
-    setSelectedItemId('')
+    setSelectedMarcaId('')
     setQty(1)
+    setCondition('good')
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Alocar Nova Ferramenta</DialogTitle>
+          <DialogTitle>Alocar Ferramentas (Instâncias)</DialogTitle>
           <DialogDescription>
-            Associe um item base da árvore mercadológica a esta equipe.
+            Selecione a marca e item. O sistema criará instâncias únicas para cada unidade alocada.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label>Item Base (Ferramenta)</Label>
-            <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+            <Label>Item (Marca)</Label>
+            <Select value={selectedMarcaId} onValueChange={setSelectedMarcaId}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
-                {baseItems.map((item) => {
+                {leafItems.map((item) => {
                   const path = getNodePath(item.id)
-                    .map((n) => n.name)
-                    .join(' > ')
+                  const itemName = path.find((n) => n.level === 'item')?.name || '?'
                   return (
                     <SelectItem key={item.id} value={item.id}>
-                      {path}
+                      {itemName} ({item.name})
                     </SelectItem>
                   )
                 })}
@@ -108,7 +108,7 @@ export function AllocateDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={!selectedItemId}>
+          <Button onClick={handleSave} disabled={!selectedMarcaId || qty < 1}>
             Alocar
           </Button>
         </DialogFooter>

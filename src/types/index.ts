@@ -1,5 +1,5 @@
 export type Condition = 'good' | 'damaged' | 'repair'
-export type TreeLevel = 'marca' | 'departamento' | 'categoria' | 'subcategoria' | 'item'
+export type TreeLevel = 'departamento' | 'secao' | 'categoria' | 'item' | 'marca'
 
 export interface TreeNode {
   id: string
@@ -11,10 +11,9 @@ export interface TreeNode {
 export interface InventoryItem {
   id: string
   teamId: string
-  treeNodeId: string // References a TreeNode of level 'item'
+  treeNodeId: string // References a TreeNode of level 'marca'
   condition: Condition
-  quantity: number
-  photoUrl?: string
+  photos: string[]
   lastUpdated: string
 }
 

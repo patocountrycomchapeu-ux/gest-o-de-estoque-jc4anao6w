@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useAppStore } from '@/store/AppStore'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, Plus } from 'lucide-react'
@@ -15,11 +15,11 @@ import {
 import { Label } from '@/components/ui/label'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
-  root: 'marca',
-  marca: 'departamento',
-  departamento: 'categoria',
-  categoria: 'subcategoria',
-  subcategoria: 'item',
+  root: 'departamento',
+  departamento: 'secao',
+  secao: 'categoria',
+  categoria: 'item',
+  item: 'marca',
 }
 
 export default function TreePage() {
@@ -30,12 +30,8 @@ export default function TreePage() {
 
   const rootNodes = useMemo(() => {
     let filtered = nodes.filter((n) => n.parentId === null)
-    if (search) {
-      // Simplified search: if a node matches, we'd ideally show it and its parents.
-      // For this spec, we'll just filter visually if we can, or keep it simple.
-    }
     return filtered
-  }, [nodes, search])
+  }, [nodes])
 
   const handleAddSubmit = () => {
     if (!newNodeName.trim() || !addingTo) return
@@ -55,7 +51,7 @@ export default function TreePage() {
           <p className="text-muted-foreground">Gerencie a hierarquia de 5 níveis do seu estoque.</p>
         </div>
         <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
-          <Plus className="h-4 w-4 mr-2" /> Adicionar Marca
+          <Plus className="h-4 w-4 mr-2" /> Adicionar Departamento
         </Button>
       </div>
 
@@ -65,7 +61,7 @@ export default function TreePage() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Buscar marcas, categorias..."
+              placeholder="Buscar departamentos, categorias..."
               className="pl-8 bg-background"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -83,7 +79,9 @@ export default function TreePage() {
               />
             ))}
             {rootNodes.length === 0 && (
-              <p className="text-muted-foreground text-center py-8">Nenhuma marca cadastrada.</p>
+              <p className="text-muted-foreground text-center py-8">
+                Nenhum departamento cadastrado.
+              </p>
             )}
           </div>
         </CardContent>
@@ -101,7 +99,7 @@ export default function TreePage() {
                 id="name"
                 value={newNodeName}
                 onChange={(e) => setNewNodeName(e.target.value)}
-                placeholder="Ex: Makita, Furadeiras..."
+                placeholder="Nome da categoria/marca..."
                 autoFocus
               />
             </div>

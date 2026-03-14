@@ -1,6 +1,6 @@
 import { useAppStore } from '@/store/AppStore'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Activity, Package, Users, AlertTriangle, Wrench, ArrowRight } from 'lucide-react'
+import { Activity, Package, Users, AlertTriangle, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { ConditionChart } from './Dashboard/ConditionChart'
@@ -10,21 +10,22 @@ import { ptBR } from 'date-fns/locale'
 export default function Index() {
   const { inventory, teams, activities } = useAppStore()
 
-  const totalItems = inventory.reduce((acc, item) => acc + item.quantity, 0)
-  const damagedItems = inventory
-    .filter((i) => i.condition === 'damaged')
-    .reduce((acc, i) => acc + i.quantity, 0)
-  const repairItems = inventory
-    .filter((i) => i.condition === 'repair')
-    .reduce((acc, i) => acc + i.quantity, 0)
+  const totalItems = inventory.length
+  const damagedItems = inventory.filter((i) => i.condition === 'damaged').length
+  const repairItems = inventory.filter((i) => i.condition === 'repair').length
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total de Itens" value={totalItems} icon={Package} trend="+4 desde ontem" />
+        <StatCard
+          title="Total de Instâncias"
+          value={totalItems}
+          icon={Package}
+          trend="+4 desde ontem"
+        />
         <StatCard title="Equipes Ativas" value={teams.length} icon={Users} />
         <StatCard
-          title="Itens Danificados"
+          title="Instâncias Danificadas"
           value={damagedItems}
           icon={AlertTriangle}
           critical={damagedItems > 0}

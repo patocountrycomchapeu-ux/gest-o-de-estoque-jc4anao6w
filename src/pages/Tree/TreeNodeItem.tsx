@@ -11,18 +11,18 @@ interface TreeNodeItemProps {
 }
 
 const levelIcons: Record<string, any> = {
-  marca: Tag,
   departamento: Layers,
-  categoria: Folder,
-  subcategoria: FileBox,
+  secao: Folder,
+  categoria: FileBox,
   item: Wrench,
+  marca: Tag,
 }
 
 const nextLevel: Record<string, string> = {
-  marca: 'departamento',
-  departamento: 'categoria',
-  categoria: 'subcategoria',
-  subcategoria: 'item',
+  departamento: 'secao',
+  secao: 'categoria',
+  categoria: 'item',
+  item: 'marca',
 }
 
 export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) {

@@ -20,7 +20,7 @@ export function ConditionChart({ inventory }: { inventory: InventoryItem[] }) {
   const chartData = useMemo(() => {
     const counts = { good: 0, damaged: 0, repair: 0 }
     inventory.forEach((item) => {
-      counts[item.condition] += item.quantity
+      counts[item.condition] += 1
     })
     return [
       { name: 'good', value: counts.good, fill: 'var(--color-good)' },

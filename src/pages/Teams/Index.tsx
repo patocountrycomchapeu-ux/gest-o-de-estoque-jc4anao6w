@@ -13,7 +13,7 @@ export default function TeamsPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Gestão de Equipes</h2>
           <p className="text-muted-foreground">
-            Visualize e gerencie as ferramentas de cada equipe.
+            Visualize e gerencie as instâncias de ferramentas de cada equipe.
           </p>
         </div>
         <Button>Nova Equipe</Button>
@@ -22,7 +22,7 @@ export default function TeamsPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {teams.map((team) => {
           const teamItems = inventory.filter((i) => i.teamId === team.id)
-          const totalItems = teamItems.reduce((acc, i) => acc + i.quantity, 0)
+          const totalItems = teamItems.length
           const damagedItems = teamItems.filter((i) => i.condition !== 'good').length
 
           return (
@@ -42,7 +42,7 @@ export default function TeamsPage() {
                     <div className="flex items-center justify-between text-sm pt-3 border-t">
                       <div className="flex items-center">
                         <Package className="h-4 w-4 mr-1.5 text-blue-500" />
-                        <span className="font-medium">{totalItems} Ferramentas</span>
+                        <span className="font-medium">{totalItems} Instâncias</span>
                       </div>
                       {damagedItems > 0 && (
                         <div className="flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs">

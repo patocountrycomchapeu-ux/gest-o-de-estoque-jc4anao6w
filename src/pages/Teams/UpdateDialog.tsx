@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { InventoryItem, Condition } from '@/types'
-import { Camera, Image as ImageIcon } from 'lucide-react'
+import { Camera, Plus, X } from 'lucide-react'
 
 export function UpdateDialog({
   item,
@@ -32,18 +32,18 @@ export function UpdateDialog({
 }) {
   const { updateInventoryCondition } = useAppStore()
   const [condition, setCondition] = useState<Condition>('good')
-  const [photoUrl, setPhotoUrl] = useState<string>('')
+  const [photos, setPhotos] = useState<string[]>([])
 
   useEffect(() => {
     if (item) {
       setCondition(item.condition)
-      setPhotoUrl(item.photoUrl || '')
+      setPhotos(item.photos || [])
     }
   }, [item])
 
   const handleSave = () => {
     if (item) {
-      updateInventoryCondition(item.id, condition, photoUrl)
+      updateInventoryCondition(item.id, condition, photos)
     }
     onOpenChange(false)
   }
@@ -52,17 +52,21 @@ export function UpdateDialog({
     const file = e.target.files?.[0]
     if (file) {
       const url = URL.createObjectURL(file)
-      setPhotoUrl(url)
+      setPhotos((prev) => [...prev, url])
     }
+  }
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index))
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Atualizar Estado do Item</DialogTitle>
+          <DialogTitle>Perfil da Instância {item?.id}</DialogTitle>
           <DialogDescription>
-            Altere a condição ou adicione uma foto de comprovação.
+            Atualize a condição da unidade e gerencie sua galeria de evidências.
           </DialogDescription>
         </DialogHeader>
         {item && (
@@ -83,42 +87,47 @@ export function UpdateDialog({
 
             <div className="space-y-3 border rounded-md p-4 bg-muted/30">
               <Label className="flex items-center gap-2">
-                <Camera className="h-4 w-4" /> Foto de Evidência
+                <Camera className="h-4 w-4" /> Galeria de Evidências Visuais
               </Label>
-              {photoUrl ? (
-                <div className="relative aspect-video rounded-md overflow-hidden border">
-                  <img src={photoUrl} alt="Evidência" className="w-full h-full object-cover" />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="absolute bottom-2 right-2 opacity-80 hover:opacity-100"
-                    onClick={() => setPhotoUrl('')}
+              <div className="grid grid-cols-3 gap-2">
+                {photos.map((p, i) => (
+                  <div
+                    key={i}
+                    className="relative aspect-square rounded-md overflow-hidden border group bg-background"
                   >
-                    Remover
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-center w-full">
-                  <label
-                    htmlFor="dropzone-file"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/50 border-muted-foreground/40 transition-colors"
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <ImageIcon className="w-8 h-8 mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground font-medium">
-                        Clique para enviar
-                      </p>
-                    </div>
-                    <Input
-                      id="dropzone-file"
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
+                    <img
+                      src={p}
+                      alt={`Evidência ${i + 1}`}
+                      className="w-full h-full object-cover"
                     />
-                  </label>
-                </div>
-              )}
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removePhoto(i)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+
+                <label
+                  htmlFor="dropzone-file"
+                  className="flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/50 border-muted-foreground/40 transition-colors"
+                >
+                  <div className="flex flex-col items-center justify-center">
+                    <Plus className="w-6 h-6 text-muted-foreground mb-1" />
+                    <span className="text-[10px] text-muted-foreground font-medium">Adicionar</span>
+                  </div>
+                  <Input
+                    id="dropzone-file"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         )}

@@ -3,10 +3,17 @@ import { AppState, TreeNode, Team, InventoryItem, Activity, Condition } from '@/
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
 
+interface AddInventoryItemPayload {
+  teamId: string
+  treeNodeId: string
+  condition: Condition
+  quantity: number
+}
+
 interface AppContextType extends AppState {
   addNode: (node: Omit<TreeNode, 'id'>) => void
-  addInventoryItem: (item: Omit<InventoryItem, 'id' | 'lastUpdated'>) => void
-  updateInventoryCondition: (id: string, condition: Condition, photoUrl?: string) => void
+  addInventoryItem: (item: AddInventoryItemPayload) => void
+  updateInventoryCondition: (id: string, condition: Condition, photos: string[]) => void
   getNodePath: (nodeId: string) => TreeNode[]
 }
 
@@ -16,37 +23,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(initialData)
 
   const addNode = useCallback((nodeInfo: Omit<TreeNode, 'id'>) => {
-    const newNode: TreeNode = { ...nodeInfo, id: `n_${Date.now()}` }
+    const newNode: TreeNode = {
+      ...nodeInfo,
+      id: `n_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+    }
     setState((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }))
     toast({ title: 'Nó adicionado', description: `${nodeInfo.name} foi criado com sucesso.` })
   }, [])
 
-  const addInventoryItem = useCallback((itemInfo: Omit<InventoryItem, 'id' | 'lastUpdated'>) => {
-    const newItem: InventoryItem = {
-      ...itemInfo,
-      id: `inv_${Date.now()}`,
-      lastUpdated: new Date().toISOString(),
-    }
+  const addInventoryItem = useCallback((itemInfo: AddInventoryItemPayload) => {
     setState((prev) => {
+      const newItems: InventoryItem[] = []
+      for (let i = 0; i < itemInfo.quantity; i++) {
+        newItems.push({
+          id: `inv_${Date.now()}_${i}`,
+          teamId: itemInfo.teamId,
+          treeNodeId: itemInfo.treeNodeId,
+          condition: itemInfo.condition,
+          photos: [],
+          lastUpdated: new Date().toISOString(),
+        })
+      }
+
       const node = prev.nodes.find((n) => n.id === itemInfo.treeNodeId)
       const team = prev.teams.find((t) => t.id === itemInfo.teamId)
       const activity: Activity = {
         id: `act_${Date.now()}`,
         date: new Date().toISOString(),
-        description: `${itemInfo.quantity}x '${node?.name}' alocado(s) para ${team?.name}.`,
+        description: `${itemInfo.quantity}x instâncias de '${node?.name}' alocada(s) para ${team?.name}.`,
         type: 'allocation',
       }
       return {
         ...prev,
-        inventory: [...prev.inventory, newItem],
+        inventory: [...prev.inventory, ...newItems],
         activities: [activity, ...prev.activities],
       }
     })
-    toast({ title: 'Item Alocado', description: 'O item foi vinculado à equipe.' })
+    toast({
+      title: 'Instâncias Alocadas',
+      description: `${itemInfo.quantity} unidade(s) vinculada(s) à equipe.`,
+    })
   }, [])
 
   const updateInventoryCondition = useCallback(
-    (id: string, condition: Condition, photoUrl?: string) => {
+    (id: string, condition: Condition, photos: string[]) => {
       setState((prev) => {
         const currentItem = prev.inventory.find((i) => i.id === id)
         if (!currentItem) return prev
@@ -56,7 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ? {
                 ...item,
                 condition,
-                photoUrl: photoUrl || item.photoUrl,
+                photos,
                 lastUpdated: new Date().toISOString(),
               }
             : item,
@@ -69,13 +89,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const activity: Activity = {
           id: `act_${Date.now()}`,
           date: new Date().toISOString(),
-          description: `${team?.name} atualizou '${node?.name}' para ${condMap[condition]}.`,
+          description: `${team?.name} atualizou unidade de '${node?.name}' para ${condMap[condition]}.`,
           type: 'status_change',
         }
 
         return { ...prev, inventory: updatedInventory, activities: [activity, ...prev.activities] }
       })
-      toast({ title: 'Status Atualizado', description: 'A condição do item foi salva.' })
+      toast({ title: 'Status Atualizado', description: 'A condição e evidências foram salvas.' })
     },
     [],
   )
