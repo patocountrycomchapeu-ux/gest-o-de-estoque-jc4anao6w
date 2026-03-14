@@ -28,6 +28,7 @@ export interface InventoryItem {
   borrowedTo?: string
   photos: string[]
   lastUpdated: string
+  price?: number
 }
 
 export interface Team {

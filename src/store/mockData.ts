@@ -36,6 +36,7 @@ const initialInventory = [
     status: 'present',
     photos: ['https://img.usecurling.com/p/200/200?q=drill'],
     lastUpdated: new Date().toISOString(),
+    price: 450.0,
   },
   {
     id: 'inv2',
@@ -48,6 +49,7 @@ const initialInventory = [
     borrowedTo: 'Equipe Beta',
     photos: ['https://img.usecurling.com/p/200/200?q=screwdriver'],
     lastUpdated: new Date().toISOString(),
+    price: 85.5,
   },
   {
     id: 'inv3',
@@ -58,6 +60,7 @@ const initialInventory = [
     status: 'present',
     photos: [],
     lastUpdated: new Date().toISOString(),
+    price: 320.0,
   },
 ] as const
 
@@ -87,6 +90,15 @@ export const initialData: AppState = {
       type: 'allocation',
       description: 'Alocado inicialmente para a Equipe Tacha 1.',
       user: 'Sistema',
+    },
+    {
+      id: 'h2',
+      inventoryId: 'inv2',
+      date: new Date(Date.now() - 43200000).toISOString(),
+      type: 'status_change',
+      description:
+        'Condição alterada para damaged. Motivo: Ponta gasta pelo uso em superfícies duras.',
+      user: 'Carlos (Líder Tacha 1)',
     },
   ],
   checklists: [],

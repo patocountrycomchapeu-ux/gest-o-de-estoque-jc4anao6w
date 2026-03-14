@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { ChevronRight, Plus, Folder, FileBox, Tag, Wrench, Layers } from 'lucide-react'
 import { TreeNode } from '@/types'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/AppStore'
 
 interface TreeNodeItemProps {
   node: TreeNode
@@ -26,11 +27,22 @@ const nextLevel: Record<string, string> = {
 }
 
 export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
+  const { inventory } = useAppStore()
+
   const children = allNodes.filter((n) => n.parentId === node.id)
   const hasChildren = children.length > 0
   const canAddChild = !!nextLevel[node.level]
   const Icon = levelIcons[node.level] || Folder
+
+  const quantity = useMemo(() => {
+    const getQty = (nId: string): number => {
+      const direct = inventory.filter((i: any) => i.treeNodeId === nId).length
+      const childNodes = allNodes.filter((n) => n.parentId === nId)
+      return direct + childNodes.reduce((sum, child) => sum + getQty(child.id), 0)
+    }
+    return getQty(node.id)
+  }, [node.id, inventory, allNodes])
 
   return (
     <div className="flex flex-col select-none">
@@ -61,6 +73,11 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-border px-1.5 py-0.5 rounded-sm ml-2">
             {node.level}
           </span>
+          {quantity > 0 && (
+            <span className="ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
+              {quantity}
+            </span>
+          )}
         </div>
 
         {canAddChild && (

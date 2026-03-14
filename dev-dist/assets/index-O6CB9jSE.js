@@ -19157,20 +19157,6 @@ var ClipboardCheck = createLucideIcon("clipboard-check", [
 		key: "df797q"
 	}]
 ]);
-var Download = createLucideIcon("download", [
-	["path", {
-		d: "M12 15V3",
-		key: "m9g1x1"
-	}],
-	["path", {
-		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
-		key: "ih7n3h"
-	}],
-	["path", {
-		d: "m7 10 5 5 5-5",
-		key: "brsn70"
-	}]
-]);
 var EllipsisVertical = createLucideIcon("ellipsis-vertical", [
 	["circle", {
 		cx: "12",
@@ -19333,6 +19319,24 @@ var Plus = createLucideIcon("plus", [["path", {
 	d: "M12 5v14",
 	key: "s699le"
 }]]);
+var Printer = createLucideIcon("printer", [
+	["path", {
+		d: "M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2",
+		key: "143wyd"
+	}],
+	["path", {
+		d: "M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6",
+		key: "1itne7"
+	}],
+	["rect", {
+		x: "6",
+		y: "14",
+		width: "12",
+		height: "8",
+		rx: "1",
+		key: "1ue0tg"
+	}]
+]);
 var Search = createLucideIcon("search", [["path", {
 	d: "m21 21-4.34-4.34",
 	key: "14j7rj"
@@ -26587,7 +26591,8 @@ var initialInventory = [
 		condition: "good",
 		status: "present",
 		photos: ["https://img.usecurling.com/p/200/200?q=drill"],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+		price: 450
 	},
 	{
 		id: "inv2",
@@ -26599,7 +26604,8 @@ var initialInventory = [
 		status: "borrowed",
 		borrowedTo: "Equipe Beta",
 		photos: ["https://img.usecurling.com/p/200/200?q=screwdriver"],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+		price: 85.5
 	},
 	{
 		id: "inv3",
@@ -26609,7 +26615,8 @@ var initialInventory = [
 		condition: "good",
 		status: "present",
 		photos: [],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+		price: 320
 	}
 ];
 var initialData = {
@@ -26635,6 +26642,13 @@ var initialData = {
 		type: "allocation",
 		description: "Alocado inicialmente para a Equipe Tacha 1.",
 		user: "Sistema"
+	}, {
+		id: "h2",
+		inventoryId: "inv2",
+		date: (/* @__PURE__ */ new Date(Date.now() - 432e5)).toISOString(),
+		type: "status_change",
+		description: "Condição alterada para damaged. Motivo: Ponta gasta pelo uso em superfícies duras.",
+		user: "Carlos (Líder Tacha 1)"
 	}],
 	checklists: []
 };
@@ -26671,7 +26685,8 @@ function AppProvider({ children }) {
 				condition: info.condition,
 				status: "present",
 				photos: [],
-				lastUpdated: now
+				lastUpdated: now,
+				price: info.price || 0
 			}));
 			const newHistory = newItems.map((item) => ({
 				id: `h_${Date.now()}_${item.id}`,
@@ -26695,13 +26710,24 @@ function AppProvider({ children }) {
 	const updateInventoryItem = (0, import_react.useCallback)((id, updates) => {
 		setState((prev) => {
 			const now = (/* @__PURE__ */ new Date()).toISOString();
+			const item = prev.inventory.find((i) => i.id === id);
+			const newHistory = [];
+			if (item && updates.condition && updates.condition !== item.condition) newHistory.push({
+				id: `h_${Date.now()}_cond`,
+				inventoryId: id,
+				date: now,
+				type: "status_change",
+				description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ""}`,
+				user: prev.currentUser.name
+			});
 			return {
 				...prev,
 				inventory: prev.inventory.map((inv) => inv.id === id ? {
 					...inv,
 					...updates,
 					lastUpdated: now
-				} : inv)
+				} : inv),
+				history: [...newHistory, ...prev.history]
 			};
 		});
 		toast$1({ title: "Item Atualizado" });
@@ -26801,7 +26827,7 @@ function AppProvider({ children }) {
 		getNodePath
 	}), [state]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:211:10",
+		"data-uid": "src/store/AppStore.tsx:229:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
@@ -37568,7 +37594,7 @@ function locale_default(locale) {
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/d3-format@3.1.2/node_modules/d3-format/src/defaultLocale.js
 var locale$1;
-var format;
+var format$1;
 var formatPrefix;
 defaultLocale$1({
 	thousands: ",",
@@ -37577,7 +37603,7 @@ defaultLocale$1({
 });
 function defaultLocale$1(definition) {
 	locale$1 = locale_default(definition);
-	format = locale$1.format;
+	format$1 = locale$1.format;
 	formatPrefix = locale$1.formatPrefix;
 	return locale$1;
 }
@@ -37619,7 +37645,7 @@ function tickFormat(start, stop, count, specifier) {
 			if (specifier.precision == null && !isNaN(precision = precisionFixed_default(step))) specifier.precision = precision - (specifier.type === "%") * 2;
 			break;
 	}
-	return format(specifier);
+	return format$1(specifier);
 }
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/d3-scale@4.0.2/node_modules/d3-scale/src/linear.js
@@ -37788,7 +37814,7 @@ function loggish(transform) {
 		if (specifier == null) specifier = base === 10 ? "s" : ",";
 		if (typeof specifier !== "function") {
 			if (!(base % 1) && (specifier = formatSpecifier(specifier)).precision == null) specifier.trim = true;
-			specifier = format(specifier);
+			specifier = format$1(specifier);
 		}
 		if (count === Infinity) return specifier;
 		const k = Math.max(1, base * count / scale.ticks().length);
@@ -52011,6 +52037,18 @@ var daysInYear = 365.2425;
 Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
 /**
 * @constant
+* @name millisecondsInWeek
+* @summary Milliseconds in 1 week.
+*/
+var millisecondsInWeek = 6048e5;
+/**
+* @constant
+* @name millisecondsInDay
+* @summary Milliseconds in 1 day.
+*/
+var millisecondsInDay = 864e5;
+/**
+* @constant
 * @name minutesInMonth
 * @summary Minutes in 1 month.
 */
@@ -52134,6 +52172,123 @@ function getDefaultOptions() {
 	return defaultOptions;
 }
 //#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfWeek.js
+/**
+* The {@link startOfWeek} function options.
+*/
+/**
+* @name startOfWeek
+* @category Week Helpers
+* @summary Return the start of a week for the given date.
+*
+* @description
+* Return the start of a week for the given date.
+* The result will be in the local timezone.
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+*
+* @param date - The original date
+* @param options - An object with options
+*
+* @returns The start of a week
+*
+* @example
+* // The start of a week for 2 September 2014 11:55:00:
+* const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0))
+* //=> Sun Aug 31 2014 00:00:00
+*
+* @example
+* // If the week starts on Monday, the start of the week for 2 September 2014 11:55:00:
+* const result = startOfWeek(new Date(2014, 8, 2, 11, 55, 0), { weekStartsOn: 1 })
+* //=> Mon Sep 01 2014 00:00:00
+*/
+function startOfWeek(date, options) {
+	const defaultOptions = getDefaultOptions();
+	const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions.weekStartsOn ?? defaultOptions.locale?.options?.weekStartsOn ?? 0;
+	const _date = toDate(date, options?.in);
+	const day = _date.getDay();
+	const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+	_date.setDate(_date.getDate() - diff);
+	_date.setHours(0, 0, 0, 0);
+	return _date;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfISOWeek.js
+/**
+* The {@link startOfISOWeek} function options.
+*/
+/**
+* @name startOfISOWeek
+* @category ISO Week Helpers
+* @summary Return the start of an ISO week for the given date.
+*
+* @description
+* Return the start of an ISO week for the given date.
+* The result will be in the local timezone.
+*
+* ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+*
+* @param date - The original date
+* @param options - An object with options
+*
+* @returns The start of an ISO week
+*
+* @example
+* // The start of an ISO week for 2 September 2014 11:55:00:
+* const result = startOfISOWeek(new Date(2014, 8, 2, 11, 55, 0))
+* //=> Mon Sep 01 2014 00:00:00
+*/
+function startOfISOWeek(date, options) {
+	return startOfWeek(date, {
+		...options,
+		weekStartsOn: 1
+	});
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/getISOWeekYear.js
+/**
+* The {@link getISOWeekYear} function options.
+*/
+/**
+* @name getISOWeekYear
+* @category ISO Week-Numbering Year Helpers
+* @summary Get the ISO week-numbering year of the given date.
+*
+* @description
+* Get the ISO week-numbering year of the given date,
+* which always starts 3 days before the year's first Thursday.
+*
+* ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+*
+* @param date - The given date
+*
+* @returns The ISO week-numbering year
+*
+* @example
+* // Which ISO-week numbering year is 2 January 2005?
+* const result = getISOWeekYear(new Date(2005, 0, 2))
+* //=> 2004
+*/
+function getISOWeekYear(date, options) {
+	const _date = toDate(date, options?.in);
+	const year = _date.getFullYear();
+	const fourthOfJanuaryOfNextYear = constructFrom(_date, 0);
+	fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
+	fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
+	const startOfNextYear = startOfISOWeek(fourthOfJanuaryOfNextYear);
+	const fourthOfJanuaryOfThisYear = constructFrom(_date, 0);
+	fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
+	fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
+	const startOfThisYear = startOfISOWeek(fourthOfJanuaryOfThisYear);
+	if (_date.getTime() >= startOfNextYear.getTime()) return year + 1;
+	else if (_date.getTime() >= startOfThisYear.getTime()) return year;
+	else return year - 1;
+}
+//#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
 /**
 * Google Chrome as of 67.0.3396.87 introduced timezones with offset that includes seconds.
@@ -52157,6 +52312,119 @@ function getTimezoneOffsetInMilliseconds(date) {
 function normalizeDates(context, ...dates) {
 	const normalize = constructFrom.bind(null, context || dates.find((date) => typeof date === "object"));
 	return dates.map(normalize);
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfDay.js
+/**
+* The {@link startOfDay} function options.
+*/
+/**
+* @name startOfDay
+* @category Day Helpers
+* @summary Return the start of a day for the given date.
+*
+* @description
+* Return the start of a day for the given date.
+* The result will be in the local timezone.
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+*
+* @param date - The original date
+* @param options - The options
+*
+* @returns The start of a day
+*
+* @example
+* // The start of a day for 2 September 2014 11:55:00:
+* const result = startOfDay(new Date(2014, 8, 2, 11, 55, 0))
+* //=> Tue Sep 02 2014 00:00:00
+*/
+function startOfDay(date, options) {
+	const _date = toDate(date, options?.in);
+	_date.setHours(0, 0, 0, 0);
+	return _date;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/differenceInCalendarDays.js
+/**
+* The {@link differenceInCalendarDays} function options.
+*/
+/**
+* @name differenceInCalendarDays
+* @category Day Helpers
+* @summary Get the number of calendar days between the given dates.
+*
+* @description
+* Get the number of calendar days between the given dates. This means that the times are removed
+* from the dates and then the difference in days is calculated.
+*
+* @param laterDate - The later date
+* @param earlierDate - The earlier date
+* @param options - The options object
+*
+* @returns The number of calendar days
+*
+* @example
+* // How many calendar days are between
+* // 2 July 2011 23:00:00 and 2 July 2012 00:00:00?
+* const result = differenceInCalendarDays(
+*   new Date(2012, 6, 2, 0, 0),
+*   new Date(2011, 6, 2, 23, 0)
+* )
+* //=> 366
+* // How many calendar days are between
+* // 2 July 2011 23:59:00 and 3 July 2011 00:01:00?
+* const result = differenceInCalendarDays(
+*   new Date(2011, 6, 3, 0, 1),
+*   new Date(2011, 6, 2, 23, 59)
+* )
+* //=> 1
+*/
+function differenceInCalendarDays(laterDate, earlierDate, options) {
+	const [laterDate_, earlierDate_] = normalizeDates(options?.in, laterDate, earlierDate);
+	const laterStartOfDay = startOfDay(laterDate_);
+	const earlierStartOfDay = startOfDay(earlierDate_);
+	const laterTimestamp = +laterStartOfDay - getTimezoneOffsetInMilliseconds(laterStartOfDay);
+	const earlierTimestamp = +earlierStartOfDay - getTimezoneOffsetInMilliseconds(earlierStartOfDay);
+	return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfISOWeekYear.js
+/**
+* The {@link startOfISOWeekYear} function options.
+*/
+/**
+* @name startOfISOWeekYear
+* @category ISO Week-Numbering Year Helpers
+* @summary Return the start of an ISO week-numbering year for the given date.
+*
+* @description
+* Return the start of an ISO week-numbering year,
+* which always starts 3 days before the year's first Thursday.
+* The result will be in the local timezone.
+*
+* ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+*
+* @param date - The original date
+* @param options - An object with options
+*
+* @returns The start of an ISO week-numbering year
+*
+* @example
+* // The start of an ISO week-numbering year for 2 July 2005:
+* const result = startOfISOWeekYear(new Date(2005, 6, 2))
+* //=> Mon Jan 03 2005 00:00:00
+*/
+function startOfISOWeekYear(date, options) {
+	const year = getISOWeekYear(date, options);
+	const fourthOfJanuary = constructFrom(options?.in || date, 0);
+	fourthOfJanuary.setFullYear(year, 0, 4);
+	fourthOfJanuary.setHours(0, 0, 0, 0);
+	return startOfISOWeek(fourthOfJanuary);
 }
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/compareAsc.js
@@ -52230,6 +52498,79 @@ function compareAsc(dateLeft, dateRight) {
 */
 function constructNow(date) {
 	return constructFrom(date, Date.now());
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/isDate.js
+/**
+* @name isDate
+* @category Common Helpers
+* @summary Is the given value a date?
+*
+* @description
+* Returns true if the given value is an instance of Date. The function works for dates transferred across iframes.
+*
+* @param value - The value to check
+*
+* @returns True if the given value is a date
+*
+* @example
+* // For a valid date:
+* const result = isDate(new Date())
+* //=> true
+*
+* @example
+* // For an invalid date:
+* const result = isDate(new Date(NaN))
+* //=> true
+*
+* @example
+* // For some value:
+* const result = isDate('2014-02-31')
+* //=> false
+*
+* @example
+* // For an object:
+* const result = isDate({})
+* //=> false
+*/
+function isDate(value) {
+	return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/isValid.js
+/**
+* @name isValid
+* @category Common Helpers
+* @summary Is the given date valid?
+*
+* @description
+* Returns false if argument is Invalid Date and true otherwise.
+* Argument is converted to Date using `toDate`. See [toDate](https://date-fns.org/docs/toDate)
+* Invalid Date is a Date, whose time value is NaN.
+*
+* Time value of Date: http://es5.github.io/#x15.9.1.1
+*
+* @param date - The date to check
+*
+* @returns The date is valid
+*
+* @example
+* // For the valid date:
+* const result = isValid(new Date(2014, 1, 31))
+* //=> true
+*
+* @example
+* // For the value, convertible into a date:
+* const result = isValid(1393804800000)
+* //=> true
+*
+* @example
+* // For the invalid date:
+* const result = isValid(new Date(''))
+* //=> false
+*/
+function isValid(date) {
+	return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
 }
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/differenceInCalendarMonths.js
@@ -52453,6 +52794,39 @@ function differenceInMonths(laterDate, earlierDate, options) {
 function differenceInSeconds(laterDate, earlierDate, options) {
 	const diff = differenceInMilliseconds(laterDate, earlierDate) / 1e3;
 	return getRoundingMethod(options?.roundingMethod)(diff);
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfYear.js
+/**
+* The {@link startOfYear} function options.
+*/
+/**
+* @name startOfYear
+* @category Year Helpers
+* @summary Return the start of a year for the given date.
+*
+* @description
+* Return the start of a year for the given date.
+* The result will be in the local timezone.
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type, it is the type returned from the context function if it is passed, or inferred from the arguments.
+*
+* @param date - The original date
+* @param options - The options
+*
+* @returns The start of a year
+*
+* @example
+* // The start of a year for 2 September 2014 11:55:00:
+* const result = startOfYear(new Date(2014, 8, 2, 11, 55, 00))
+* //=> Wed Jan 01 2014 00:00:00
+*/
+function startOfYear(date, options) {
+	const date_ = toDate(date, options?.in);
+	date_.setFullYear(date_.getFullYear(), 0, 1);
+	date_.setHours(0, 0, 0, 0);
+	return date_;
 }
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
@@ -53022,6 +53396,1088 @@ var enUS = {
 		firstWeekContainsDate: 1
 	}
 };
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/getDayOfYear.js
+/**
+* The {@link getDayOfYear} function options.
+*/
+/**
+* @name getDayOfYear
+* @category Day Helpers
+* @summary Get the day of the year of the given date.
+*
+* @description
+* Get the day of the year of the given date.
+*
+* @param date - The given date
+* @param options - The options
+*
+* @returns The day of year
+*
+* @example
+* // Which day of the year is 2 July 2014?
+* const result = getDayOfYear(new Date(2014, 6, 2))
+* //=> 183
+*/
+function getDayOfYear(date, options) {
+	const _date = toDate(date, options?.in);
+	return differenceInCalendarDays(_date, startOfYear(_date)) + 1;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/getISOWeek.js
+/**
+* The {@link getISOWeek} function options.
+*/
+/**
+* @name getISOWeek
+* @category ISO Week Helpers
+* @summary Get the ISO week of the given date.
+*
+* @description
+* Get the ISO week of the given date.
+*
+* ISO week-numbering year: http://en.wikipedia.org/wiki/ISO_week_date
+*
+* @param date - The given date
+* @param options - The options
+*
+* @returns The ISO week
+*
+* @example
+* // Which week of the ISO-week numbering year is 2 January 2005?
+* const result = getISOWeek(new Date(2005, 0, 2))
+* //=> 53
+*/
+function getISOWeek(date, options) {
+	const _date = toDate(date, options?.in);
+	const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
+	return Math.round(diff / millisecondsInWeek) + 1;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/getWeekYear.js
+/**
+* The {@link getWeekYear} function options.
+*/
+/**
+* @name getWeekYear
+* @category Week-Numbering Year Helpers
+* @summary Get the local week-numbering year of the given date.
+*
+* @description
+* Get the local week-numbering year of the given date.
+* The exact calculation depends on the values of
+* `options.weekStartsOn` (which is the index of the first day of the week)
+* and `options.firstWeekContainsDate` (which is the day of January, which is always in
+* the first week of the week-numbering year)
+*
+* Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+*
+* @param date - The given date
+* @param options - An object with options.
+*
+* @returns The local week-numbering year
+*
+* @example
+* // Which week numbering year is 26 December 2004 with the default settings?
+* const result = getWeekYear(new Date(2004, 11, 26))
+* //=> 2005
+*
+* @example
+* // Which week numbering year is 26 December 2004 if week starts on Saturday?
+* const result = getWeekYear(new Date(2004, 11, 26), { weekStartsOn: 6 })
+* //=> 2004
+*
+* @example
+* // Which week numbering year is 26 December 2004 if the first week contains 4 January?
+* const result = getWeekYear(new Date(2004, 11, 26), { firstWeekContainsDate: 4 })
+* //=> 2004
+*/
+function getWeekYear(date, options) {
+	const _date = toDate(date, options?.in);
+	const year = _date.getFullYear();
+	const defaultOptions = getDefaultOptions();
+	const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions.firstWeekContainsDate ?? defaultOptions.locale?.options?.firstWeekContainsDate ?? 1;
+	const firstWeekOfNextYear = constructFrom(options?.in || date, 0);
+	firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
+	firstWeekOfNextYear.setHours(0, 0, 0, 0);
+	const startOfNextYear = startOfWeek(firstWeekOfNextYear, options);
+	const firstWeekOfThisYear = constructFrom(options?.in || date, 0);
+	firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
+	firstWeekOfThisYear.setHours(0, 0, 0, 0);
+	const startOfThisYear = startOfWeek(firstWeekOfThisYear, options);
+	if (+_date >= +startOfNextYear) return year + 1;
+	else if (+_date >= +startOfThisYear) return year;
+	else return year - 1;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/startOfWeekYear.js
+/**
+* The {@link startOfWeekYear} function options.
+*/
+/**
+* @name startOfWeekYear
+* @category Week-Numbering Year Helpers
+* @summary Return the start of a local week-numbering year for the given date.
+*
+* @description
+* Return the start of a local week-numbering year.
+* The exact calculation depends on the values of
+* `options.weekStartsOn` (which is the index of the first day of the week)
+* and `options.firstWeekContainsDate` (which is the day of January, which is always in
+* the first week of the week-numbering year)
+*
+* Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+*
+* @typeParam DateType - The `Date` type, the function operates on. Gets inferred from passed arguments. Allows to use extensions like [`UTCDate`](https://github.com/date-fns/utc).
+* @typeParam ResultDate - The result `Date` type.
+*
+* @param date - The original date
+* @param options - An object with options
+*
+* @returns The start of a week-numbering year
+*
+* @example
+* // The start of an a week-numbering year for 2 July 2005 with default settings:
+* const result = startOfWeekYear(new Date(2005, 6, 2))
+* //=> Sun Dec 26 2004 00:00:00
+*
+* @example
+* // The start of a week-numbering year for 2 July 2005
+* // if Monday is the first day of week
+* // and 4 January is always in the first week of the year:
+* const result = startOfWeekYear(new Date(2005, 6, 2), {
+*   weekStartsOn: 1,
+*   firstWeekContainsDate: 4
+* })
+* //=> Mon Jan 03 2005 00:00:00
+*/
+function startOfWeekYear(date, options) {
+	const defaultOptions = getDefaultOptions();
+	const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions.firstWeekContainsDate ?? defaultOptions.locale?.options?.firstWeekContainsDate ?? 1;
+	const year = getWeekYear(date, options);
+	const firstWeek = constructFrom(options?.in || date, 0);
+	firstWeek.setFullYear(year, 0, firstWeekContainsDate);
+	firstWeek.setHours(0, 0, 0, 0);
+	return startOfWeek(firstWeek, options);
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/getWeek.js
+/**
+* The {@link getWeek} function options.
+*/
+/**
+* @name getWeek
+* @category Week Helpers
+* @summary Get the local week index of the given date.
+*
+* @description
+* Get the local week index of the given date.
+* The exact calculation depends on the values of
+* `options.weekStartsOn` (which is the index of the first day of the week)
+* and `options.firstWeekContainsDate` (which is the day of January, which is always in
+* the first week of the week-numbering year)
+*
+* Week numbering: https://en.wikipedia.org/wiki/Week#The_ISO_week_date_system
+*
+* @param date - The given date
+* @param options - An object with options
+*
+* @returns The week
+*
+* @example
+* // Which week of the local week numbering year is 2 January 2005 with default options?
+* const result = getWeek(new Date(2005, 0, 2))
+* //=> 2
+*
+* @example
+* // Which week of the local week numbering year is 2 January 2005,
+* // if Monday is the first day of the week,
+* // and the first week of the year always contains 4 January?
+* const result = getWeek(new Date(2005, 0, 2), {
+*   weekStartsOn: 1,
+*   firstWeekContainsDate: 4
+* })
+* //=> 53
+*/
+function getWeek(date, options) {
+	const _date = toDate(date, options?.in);
+	const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
+	return Math.round(diff / millisecondsInWeek) + 1;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/addLeadingZeros.js
+function addLeadingZeros(number, targetLength) {
+	return (number < 0 ? "-" : "") + Math.abs(number).toString().padStart(targetLength, "0");
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/format/lightFormatters.js
+var lightFormatters = {
+	y(date, token) {
+		const signedYear = date.getFullYear();
+		const year = signedYear > 0 ? signedYear : 1 - signedYear;
+		return addLeadingZeros(token === "yy" ? year % 100 : year, token.length);
+	},
+	M(date, token) {
+		const month = date.getMonth();
+		return token === "M" ? String(month + 1) : addLeadingZeros(month + 1, 2);
+	},
+	d(date, token) {
+		return addLeadingZeros(date.getDate(), token.length);
+	},
+	a(date, token) {
+		const dayPeriodEnumValue = date.getHours() / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "a":
+			case "aa": return dayPeriodEnumValue.toUpperCase();
+			case "aaa": return dayPeriodEnumValue;
+			case "aaaaa": return dayPeriodEnumValue[0];
+			default: return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
+		}
+	},
+	h(date, token) {
+		return addLeadingZeros(date.getHours() % 12 || 12, token.length);
+	},
+	H(date, token) {
+		return addLeadingZeros(date.getHours(), token.length);
+	},
+	m(date, token) {
+		return addLeadingZeros(date.getMinutes(), token.length);
+	},
+	s(date, token) {
+		return addLeadingZeros(date.getSeconds(), token.length);
+	},
+	S(date, token) {
+		const numberOfDigits = token.length;
+		const milliseconds = date.getMilliseconds();
+		return addLeadingZeros(Math.trunc(milliseconds * Math.pow(10, numberOfDigits - 3)), token.length);
+	}
+};
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/format/formatters.js
+var dayPeriodEnum = {
+	am: "am",
+	pm: "pm",
+	midnight: "midnight",
+	noon: "noon",
+	morning: "morning",
+	afternoon: "afternoon",
+	evening: "evening",
+	night: "night"
+};
+var formatters = {
+	G: function(date, token, localize) {
+		const era = date.getFullYear() > 0 ? 1 : 0;
+		switch (token) {
+			case "G":
+			case "GG":
+			case "GGG": return localize.era(era, { width: "abbreviated" });
+			case "GGGGG": return localize.era(era, { width: "narrow" });
+			default: return localize.era(era, { width: "wide" });
+		}
+	},
+	y: function(date, token, localize) {
+		if (token === "yo") {
+			const signedYear = date.getFullYear();
+			const year = signedYear > 0 ? signedYear : 1 - signedYear;
+			return localize.ordinalNumber(year, { unit: "year" });
+		}
+		return lightFormatters.y(date, token);
+	},
+	Y: function(date, token, localize, options) {
+		const signedWeekYear = getWeekYear(date, options);
+		const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
+		if (token === "YY") return addLeadingZeros(weekYear % 100, 2);
+		if (token === "Yo") return localize.ordinalNumber(weekYear, { unit: "year" });
+		return addLeadingZeros(weekYear, token.length);
+	},
+	R: function(date, token) {
+		return addLeadingZeros(getISOWeekYear(date), token.length);
+	},
+	u: function(date, token) {
+		return addLeadingZeros(date.getFullYear(), token.length);
+	},
+	Q: function(date, token, localize) {
+		const quarter = Math.ceil((date.getMonth() + 1) / 3);
+		switch (token) {
+			case "Q": return String(quarter);
+			case "QQ": return addLeadingZeros(quarter, 2);
+			case "Qo": return localize.ordinalNumber(quarter, { unit: "quarter" });
+			case "QQQ": return localize.quarter(quarter, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "QQQQQ": return localize.quarter(quarter, {
+				width: "narrow",
+				context: "formatting"
+			});
+			default: return localize.quarter(quarter, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	q: function(date, token, localize) {
+		const quarter = Math.ceil((date.getMonth() + 1) / 3);
+		switch (token) {
+			case "q": return String(quarter);
+			case "qq": return addLeadingZeros(quarter, 2);
+			case "qo": return localize.ordinalNumber(quarter, { unit: "quarter" });
+			case "qqq": return localize.quarter(quarter, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "qqqqq": return localize.quarter(quarter, {
+				width: "narrow",
+				context: "standalone"
+			});
+			default: return localize.quarter(quarter, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	M: function(date, token, localize) {
+		const month = date.getMonth();
+		switch (token) {
+			case "M":
+			case "MM": return lightFormatters.M(date, token);
+			case "Mo": return localize.ordinalNumber(month + 1, { unit: "month" });
+			case "MMM": return localize.month(month, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "MMMMM": return localize.month(month, {
+				width: "narrow",
+				context: "formatting"
+			});
+			default: return localize.month(month, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	L: function(date, token, localize) {
+		const month = date.getMonth();
+		switch (token) {
+			case "L": return String(month + 1);
+			case "LL": return addLeadingZeros(month + 1, 2);
+			case "Lo": return localize.ordinalNumber(month + 1, { unit: "month" });
+			case "LLL": return localize.month(month, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "LLLLL": return localize.month(month, {
+				width: "narrow",
+				context: "standalone"
+			});
+			default: return localize.month(month, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	w: function(date, token, localize, options) {
+		const week = getWeek(date, options);
+		if (token === "wo") return localize.ordinalNumber(week, { unit: "week" });
+		return addLeadingZeros(week, token.length);
+	},
+	I: function(date, token, localize) {
+		const isoWeek = getISOWeek(date);
+		if (token === "Io") return localize.ordinalNumber(isoWeek, { unit: "week" });
+		return addLeadingZeros(isoWeek, token.length);
+	},
+	d: function(date, token, localize) {
+		if (token === "do") return localize.ordinalNumber(date.getDate(), { unit: "date" });
+		return lightFormatters.d(date, token);
+	},
+	D: function(date, token, localize) {
+		const dayOfYear = getDayOfYear(date);
+		if (token === "Do") return localize.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
+		return addLeadingZeros(dayOfYear, token.length);
+	},
+	E: function(date, token, localize) {
+		const dayOfWeek = date.getDay();
+		switch (token) {
+			case "E":
+			case "EE":
+			case "EEE": return localize.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "EEEEE": return localize.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "EEEEEE": return localize.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			default: return localize.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	e: function(date, token, localize, options) {
+		const dayOfWeek = date.getDay();
+		const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
+		switch (token) {
+			case "e": return String(localDayOfWeek);
+			case "ee": return addLeadingZeros(localDayOfWeek, 2);
+			case "eo": return localize.ordinalNumber(localDayOfWeek, { unit: "day" });
+			case "eee": return localize.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "eeeee": return localize.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "eeeeee": return localize.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			default: return localize.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	c: function(date, token, localize, options) {
+		const dayOfWeek = date.getDay();
+		const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
+		switch (token) {
+			case "c": return String(localDayOfWeek);
+			case "cc": return addLeadingZeros(localDayOfWeek, token.length);
+			case "co": return localize.ordinalNumber(localDayOfWeek, { unit: "day" });
+			case "ccc": return localize.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "standalone"
+			});
+			case "ccccc": return localize.day(dayOfWeek, {
+				width: "narrow",
+				context: "standalone"
+			});
+			case "cccccc": return localize.day(dayOfWeek, {
+				width: "short",
+				context: "standalone"
+			});
+			default: return localize.day(dayOfWeek, {
+				width: "wide",
+				context: "standalone"
+			});
+		}
+	},
+	i: function(date, token, localize) {
+		const dayOfWeek = date.getDay();
+		const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
+		switch (token) {
+			case "i": return String(isoDayOfWeek);
+			case "ii": return addLeadingZeros(isoDayOfWeek, token.length);
+			case "io": return localize.ordinalNumber(isoDayOfWeek, { unit: "day" });
+			case "iii": return localize.day(dayOfWeek, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "iiiii": return localize.day(dayOfWeek, {
+				width: "narrow",
+				context: "formatting"
+			});
+			case "iiiiii": return localize.day(dayOfWeek, {
+				width: "short",
+				context: "formatting"
+			});
+			default: return localize.day(dayOfWeek, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	a: function(date, token, localize) {
+		const dayPeriodEnumValue = date.getHours() / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "a":
+			case "aa": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "aaa": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			}).toLowerCase();
+			case "aaaaa": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			default: return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	b: function(date, token, localize) {
+		const hours = date.getHours();
+		let dayPeriodEnumValue;
+		if (hours === 12) dayPeriodEnumValue = dayPeriodEnum.noon;
+		else if (hours === 0) dayPeriodEnumValue = dayPeriodEnum.midnight;
+		else dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
+		switch (token) {
+			case "b":
+			case "bb": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "bbb": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			}).toLowerCase();
+			case "bbbbb": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			default: return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	B: function(date, token, localize) {
+		const hours = date.getHours();
+		let dayPeriodEnumValue;
+		if (hours >= 17) dayPeriodEnumValue = dayPeriodEnum.evening;
+		else if (hours >= 12) dayPeriodEnumValue = dayPeriodEnum.afternoon;
+		else if (hours >= 4) dayPeriodEnumValue = dayPeriodEnum.morning;
+		else dayPeriodEnumValue = dayPeriodEnum.night;
+		switch (token) {
+			case "B":
+			case "BB":
+			case "BBB": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "abbreviated",
+				context: "formatting"
+			});
+			case "BBBBB": return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "narrow",
+				context: "formatting"
+			});
+			default: return localize.dayPeriod(dayPeriodEnumValue, {
+				width: "wide",
+				context: "formatting"
+			});
+		}
+	},
+	h: function(date, token, localize) {
+		if (token === "ho") {
+			let hours = date.getHours() % 12;
+			if (hours === 0) hours = 12;
+			return localize.ordinalNumber(hours, { unit: "hour" });
+		}
+		return lightFormatters.h(date, token);
+	},
+	H: function(date, token, localize) {
+		if (token === "Ho") return localize.ordinalNumber(date.getHours(), { unit: "hour" });
+		return lightFormatters.H(date, token);
+	},
+	K: function(date, token, localize) {
+		const hours = date.getHours() % 12;
+		if (token === "Ko") return localize.ordinalNumber(hours, { unit: "hour" });
+		return addLeadingZeros(hours, token.length);
+	},
+	k: function(date, token, localize) {
+		let hours = date.getHours();
+		if (hours === 0) hours = 24;
+		if (token === "ko") return localize.ordinalNumber(hours, { unit: "hour" });
+		return addLeadingZeros(hours, token.length);
+	},
+	m: function(date, token, localize) {
+		if (token === "mo") return localize.ordinalNumber(date.getMinutes(), { unit: "minute" });
+		return lightFormatters.m(date, token);
+	},
+	s: function(date, token, localize) {
+		if (token === "so") return localize.ordinalNumber(date.getSeconds(), { unit: "second" });
+		return lightFormatters.s(date, token);
+	},
+	S: function(date, token) {
+		return lightFormatters.S(date, token);
+	},
+	X: function(date, token, _localize) {
+		const timezoneOffset = date.getTimezoneOffset();
+		if (timezoneOffset === 0) return "Z";
+		switch (token) {
+			case "X": return formatTimezoneWithOptionalMinutes(timezoneOffset);
+			case "XXXX":
+			case "XX": return formatTimezone(timezoneOffset);
+			default: return formatTimezone(timezoneOffset, ":");
+		}
+	},
+	x: function(date, token, _localize) {
+		const timezoneOffset = date.getTimezoneOffset();
+		switch (token) {
+			case "x": return formatTimezoneWithOptionalMinutes(timezoneOffset);
+			case "xxxx":
+			case "xx": return formatTimezone(timezoneOffset);
+			default: return formatTimezone(timezoneOffset, ":");
+		}
+	},
+	O: function(date, token, _localize) {
+		const timezoneOffset = date.getTimezoneOffset();
+		switch (token) {
+			case "O":
+			case "OO":
+			case "OOO": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+			default: return "GMT" + formatTimezone(timezoneOffset, ":");
+		}
+	},
+	z: function(date, token, _localize) {
+		const timezoneOffset = date.getTimezoneOffset();
+		switch (token) {
+			case "z":
+			case "zz":
+			case "zzz": return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+			default: return "GMT" + formatTimezone(timezoneOffset, ":");
+		}
+	},
+	t: function(date, token, _localize) {
+		return addLeadingZeros(Math.trunc(+date / 1e3), token.length);
+	},
+	T: function(date, token, _localize) {
+		return addLeadingZeros(+date, token.length);
+	}
+};
+function formatTimezoneShort(offset, delimiter = "") {
+	const sign = offset > 0 ? "-" : "+";
+	const absOffset = Math.abs(offset);
+	const hours = Math.trunc(absOffset / 60);
+	const minutes = absOffset % 60;
+	if (minutes === 0) return sign + String(hours);
+	return sign + String(hours) + delimiter + addLeadingZeros(minutes, 2);
+}
+function formatTimezoneWithOptionalMinutes(offset, delimiter) {
+	if (offset % 60 === 0) return (offset > 0 ? "-" : "+") + addLeadingZeros(Math.abs(offset) / 60, 2);
+	return formatTimezone(offset, delimiter);
+}
+function formatTimezone(offset, delimiter = "") {
+	const sign = offset > 0 ? "-" : "+";
+	const absOffset = Math.abs(offset);
+	const hours = addLeadingZeros(Math.trunc(absOffset / 60), 2);
+	const minutes = addLeadingZeros(absOffset % 60, 2);
+	return sign + hours + delimiter + minutes;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/format/longFormatters.js
+var dateLongFormatter = (pattern, formatLong) => {
+	switch (pattern) {
+		case "P": return formatLong.date({ width: "short" });
+		case "PP": return formatLong.date({ width: "medium" });
+		case "PPP": return formatLong.date({ width: "long" });
+		default: return formatLong.date({ width: "full" });
+	}
+};
+var timeLongFormatter = (pattern, formatLong) => {
+	switch (pattern) {
+		case "p": return formatLong.time({ width: "short" });
+		case "pp": return formatLong.time({ width: "medium" });
+		case "ppp": return formatLong.time({ width: "long" });
+		default: return formatLong.time({ width: "full" });
+	}
+};
+var dateTimeLongFormatter = (pattern, formatLong) => {
+	const matchResult = pattern.match(/(P+)(p+)?/) || [];
+	const datePattern = matchResult[1];
+	const timePattern = matchResult[2];
+	if (!timePattern) return dateLongFormatter(pattern, formatLong);
+	let dateTimeFormat;
+	switch (datePattern) {
+		case "P":
+			dateTimeFormat = formatLong.dateTime({ width: "short" });
+			break;
+		case "PP":
+			dateTimeFormat = formatLong.dateTime({ width: "medium" });
+			break;
+		case "PPP":
+			dateTimeFormat = formatLong.dateTime({ width: "long" });
+			break;
+		default:
+			dateTimeFormat = formatLong.dateTime({ width: "full" });
+			break;
+	}
+	return dateTimeFormat.replace("{{date}}", dateLongFormatter(datePattern, formatLong)).replace("{{time}}", timeLongFormatter(timePattern, formatLong));
+};
+var longFormatters = {
+	p: timeLongFormatter,
+	P: dateTimeLongFormatter
+};
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/_lib/protectedTokens.js
+var dayOfYearTokenRE = /^D+$/;
+var weekYearTokenRE = /^Y+$/;
+var throwTokens = [
+	"D",
+	"DD",
+	"YY",
+	"YYYY"
+];
+function isProtectedDayOfYearToken(token) {
+	return dayOfYearTokenRE.test(token);
+}
+function isProtectedWeekYearToken(token) {
+	return weekYearTokenRE.test(token);
+}
+function warnOrThrowProtectedError(token, format, input) {
+	const _message = message(token, format, input);
+	console.warn(_message);
+	if (throwTokens.includes(token)) throw new RangeError(_message);
+}
+function message(token, format, input) {
+	const subject = token[0] === "Y" ? "years" : "days of the month";
+	return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
+}
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/format.js
+var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
+var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
+var escapedStringRegExp = /^'([^]*?)'?$/;
+var doubleQuoteRegExp = /''/g;
+var unescapedLatinCharacterRegExp = /[a-zA-Z]/;
+/**
+* The {@link format} function options.
+*/
+/**
+* @name format
+* @alias formatDate
+* @category Common Helpers
+* @summary Format the date.
+*
+* @description
+* Return the formatted date string in the given format. The result may vary by locale.
+*
+* > ⚠️ Please note that the `format` tokens differ from Moment.js and other libraries.
+* > See: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+*
+* The characters wrapped between two single quotes characters (') are escaped.
+* Two single quotes in a row, whether inside or outside a quoted sequence, represent a 'real' single quote.
+* (see the last example)
+*
+* Format of the string is based on Unicode Technical Standard #35:
+* https://www.unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table
+* with a few additions (see note 7 below the table).
+*
+* Accepted patterns:
+* | Unit                            | Pattern | Result examples                   | Notes |
+* |---------------------------------|---------|-----------------------------------|-------|
+* | Era                             | G..GGG  | AD, BC                            |       |
+* |                                 | GGGG    | Anno Domini, Before Christ        | 2     |
+* |                                 | GGGGG   | A, B                              |       |
+* | Calendar year                   | y       | 44, 1, 1900, 2017                 | 5     |
+* |                                 | yo      | 44th, 1st, 0th, 17th              | 5,7   |
+* |                                 | yy      | 44, 01, 00, 17                    | 5     |
+* |                                 | yyy     | 044, 001, 1900, 2017              | 5     |
+* |                                 | yyyy    | 0044, 0001, 1900, 2017            | 5     |
+* |                                 | yyyyy   | ...                               | 3,5   |
+* | Local week-numbering year       | Y       | 44, 1, 1900, 2017                 | 5     |
+* |                                 | Yo      | 44th, 1st, 1900th, 2017th         | 5,7   |
+* |                                 | YY      | 44, 01, 00, 17                    | 5,8   |
+* |                                 | YYY     | 044, 001, 1900, 2017              | 5     |
+* |                                 | YYYY    | 0044, 0001, 1900, 2017            | 5,8   |
+* |                                 | YYYYY   | ...                               | 3,5   |
+* | ISO week-numbering year         | R       | -43, 0, 1, 1900, 2017             | 5,7   |
+* |                                 | RR      | -43, 00, 01, 1900, 2017           | 5,7   |
+* |                                 | RRR     | -043, 000, 001, 1900, 2017        | 5,7   |
+* |                                 | RRRR    | -0043, 0000, 0001, 1900, 2017     | 5,7   |
+* |                                 | RRRRR   | ...                               | 3,5,7 |
+* | Extended year                   | u       | -43, 0, 1, 1900, 2017             | 5     |
+* |                                 | uu      | -43, 01, 1900, 2017               | 5     |
+* |                                 | uuu     | -043, 001, 1900, 2017             | 5     |
+* |                                 | uuuu    | -0043, 0001, 1900, 2017           | 5     |
+* |                                 | uuuuu   | ...                               | 3,5   |
+* | Quarter (formatting)            | Q       | 1, 2, 3, 4                        |       |
+* |                                 | Qo      | 1st, 2nd, 3rd, 4th                | 7     |
+* |                                 | QQ      | 01, 02, 03, 04                    |       |
+* |                                 | QQQ     | Q1, Q2, Q3, Q4                    |       |
+* |                                 | QQQQ    | 1st quarter, 2nd quarter, ...     | 2     |
+* |                                 | QQQQQ   | 1, 2, 3, 4                        | 4     |
+* | Quarter (stand-alone)           | q       | 1, 2, 3, 4                        |       |
+* |                                 | qo      | 1st, 2nd, 3rd, 4th                | 7     |
+* |                                 | qq      | 01, 02, 03, 04                    |       |
+* |                                 | qqq     | Q1, Q2, Q3, Q4                    |       |
+* |                                 | qqqq    | 1st quarter, 2nd quarter, ...     | 2     |
+* |                                 | qqqqq   | 1, 2, 3, 4                        | 4     |
+* | Month (formatting)              | M       | 1, 2, ..., 12                     |       |
+* |                                 | Mo      | 1st, 2nd, ..., 12th               | 7     |
+* |                                 | MM      | 01, 02, ..., 12                   |       |
+* |                                 | MMM     | Jan, Feb, ..., Dec                |       |
+* |                                 | MMMM    | January, February, ..., December  | 2     |
+* |                                 | MMMMM   | J, F, ..., D                      |       |
+* | Month (stand-alone)             | L       | 1, 2, ..., 12                     |       |
+* |                                 | Lo      | 1st, 2nd, ..., 12th               | 7     |
+* |                                 | LL      | 01, 02, ..., 12                   |       |
+* |                                 | LLL     | Jan, Feb, ..., Dec                |       |
+* |                                 | LLLL    | January, February, ..., December  | 2     |
+* |                                 | LLLLL   | J, F, ..., D                      |       |
+* | Local week of year              | w       | 1, 2, ..., 53                     |       |
+* |                                 | wo      | 1st, 2nd, ..., 53th               | 7     |
+* |                                 | ww      | 01, 02, ..., 53                   |       |
+* | ISO week of year                | I       | 1, 2, ..., 53                     | 7     |
+* |                                 | Io      | 1st, 2nd, ..., 53th               | 7     |
+* |                                 | II      | 01, 02, ..., 53                   | 7     |
+* | Day of month                    | d       | 1, 2, ..., 31                     |       |
+* |                                 | do      | 1st, 2nd, ..., 31st               | 7     |
+* |                                 | dd      | 01, 02, ..., 31                   |       |
+* | Day of year                     | D       | 1, 2, ..., 365, 366               | 9     |
+* |                                 | Do      | 1st, 2nd, ..., 365th, 366th       | 7     |
+* |                                 | DD      | 01, 02, ..., 365, 366             | 9     |
+* |                                 | DDD     | 001, 002, ..., 365, 366           |       |
+* |                                 | DDDD    | ...                               | 3     |
+* | Day of week (formatting)        | E..EEE  | Mon, Tue, Wed, ..., Sun           |       |
+* |                                 | EEEE    | Monday, Tuesday, ..., Sunday      | 2     |
+* |                                 | EEEEE   | M, T, W, T, F, S, S               |       |
+* |                                 | EEEEEE  | Mo, Tu, We, Th, Fr, Sa, Su        |       |
+* | ISO day of week (formatting)    | i       | 1, 2, 3, ..., 7                   | 7     |
+* |                                 | io      | 1st, 2nd, ..., 7th                | 7     |
+* |                                 | ii      | 01, 02, ..., 07                   | 7     |
+* |                                 | iii     | Mon, Tue, Wed, ..., Sun           | 7     |
+* |                                 | iiii    | Monday, Tuesday, ..., Sunday      | 2,7   |
+* |                                 | iiiii   | M, T, W, T, F, S, S               | 7     |
+* |                                 | iiiiii  | Mo, Tu, We, Th, Fr, Sa, Su        | 7     |
+* | Local day of week (formatting)  | e       | 2, 3, 4, ..., 1                   |       |
+* |                                 | eo      | 2nd, 3rd, ..., 1st                | 7     |
+* |                                 | ee      | 02, 03, ..., 01                   |       |
+* |                                 | eee     | Mon, Tue, Wed, ..., Sun           |       |
+* |                                 | eeee    | Monday, Tuesday, ..., Sunday      | 2     |
+* |                                 | eeeee   | M, T, W, T, F, S, S               |       |
+* |                                 | eeeeee  | Mo, Tu, We, Th, Fr, Sa, Su        |       |
+* | Local day of week (stand-alone) | c       | 2, 3, 4, ..., 1                   |       |
+* |                                 | co      | 2nd, 3rd, ..., 1st                | 7     |
+* |                                 | cc      | 02, 03, ..., 01                   |       |
+* |                                 | ccc     | Mon, Tue, Wed, ..., Sun           |       |
+* |                                 | cccc    | Monday, Tuesday, ..., Sunday      | 2     |
+* |                                 | ccccc   | M, T, W, T, F, S, S               |       |
+* |                                 | cccccc  | Mo, Tu, We, Th, Fr, Sa, Su        |       |
+* | AM, PM                          | a..aa   | AM, PM                            |       |
+* |                                 | aaa     | am, pm                            |       |
+* |                                 | aaaa    | a.m., p.m.                        | 2     |
+* |                                 | aaaaa   | a, p                              |       |
+* | AM, PM, noon, midnight          | b..bb   | AM, PM, noon, midnight            |       |
+* |                                 | bbb     | am, pm, noon, midnight            |       |
+* |                                 | bbbb    | a.m., p.m., noon, midnight        | 2     |
+* |                                 | bbbbb   | a, p, n, mi                       |       |
+* | Flexible day period             | B..BBB  | at night, in the morning, ...     |       |
+* |                                 | BBBB    | at night, in the morning, ...     | 2     |
+* |                                 | BBBBB   | at night, in the morning, ...     |       |
+* | Hour [1-12]                     | h       | 1, 2, ..., 11, 12                 |       |
+* |                                 | ho      | 1st, 2nd, ..., 11th, 12th         | 7     |
+* |                                 | hh      | 01, 02, ..., 11, 12               |       |
+* | Hour [0-23]                     | H       | 0, 1, 2, ..., 23                  |       |
+* |                                 | Ho      | 0th, 1st, 2nd, ..., 23rd          | 7     |
+* |                                 | HH      | 00, 01, 02, ..., 23               |       |
+* | Hour [0-11]                     | K       | 1, 2, ..., 11, 0                  |       |
+* |                                 | Ko      | 1st, 2nd, ..., 11th, 0th          | 7     |
+* |                                 | KK      | 01, 02, ..., 11, 00               |       |
+* | Hour [1-24]                     | k       | 24, 1, 2, ..., 23                 |       |
+* |                                 | ko      | 24th, 1st, 2nd, ..., 23rd         | 7     |
+* |                                 | kk      | 24, 01, 02, ..., 23               |       |
+* | Minute                          | m       | 0, 1, ..., 59                     |       |
+* |                                 | mo      | 0th, 1st, ..., 59th               | 7     |
+* |                                 | mm      | 00, 01, ..., 59                   |       |
+* | Second                          | s       | 0, 1, ..., 59                     |       |
+* |                                 | so      | 0th, 1st, ..., 59th               | 7     |
+* |                                 | ss      | 00, 01, ..., 59                   |       |
+* | Fraction of second              | S       | 0, 1, ..., 9                      |       |
+* |                                 | SS      | 00, 01, ..., 99                   |       |
+* |                                 | SSS     | 000, 001, ..., 999                |       |
+* |                                 | SSSS    | ...                               | 3     |
+* | Timezone (ISO-8601 w/ Z)        | X       | -08, +0530, Z                     |       |
+* |                                 | XX      | -0800, +0530, Z                   |       |
+* |                                 | XXX     | -08:00, +05:30, Z                 |       |
+* |                                 | XXXX    | -0800, +0530, Z, +123456          | 2     |
+* |                                 | XXXXX   | -08:00, +05:30, Z, +12:34:56      |       |
+* | Timezone (ISO-8601 w/o Z)       | x       | -08, +0530, +00                   |       |
+* |                                 | xx      | -0800, +0530, +0000               |       |
+* |                                 | xxx     | -08:00, +05:30, +00:00            | 2     |
+* |                                 | xxxx    | -0800, +0530, +0000, +123456      |       |
+* |                                 | xxxxx   | -08:00, +05:30, +00:00, +12:34:56 |       |
+* | Timezone (GMT)                  | O...OOO | GMT-8, GMT+5:30, GMT+0            |       |
+* |                                 | OOOO    | GMT-08:00, GMT+05:30, GMT+00:00   | 2     |
+* | Timezone (specific non-locat.)  | z...zzz | GMT-8, GMT+5:30, GMT+0            | 6     |
+* |                                 | zzzz    | GMT-08:00, GMT+05:30, GMT+00:00   | 2,6   |
+* | Seconds timestamp               | t       | 512969520                         | 7     |
+* |                                 | tt      | ...                               | 3,7   |
+* | Milliseconds timestamp          | T       | 512969520900                      | 7     |
+* |                                 | TT      | ...                               | 3,7   |
+* | Long localized date             | P       | 04/29/1453                        | 7     |
+* |                                 | PP      | Apr 29, 1453                      | 7     |
+* |                                 | PPP     | April 29th, 1453                  | 7     |
+* |                                 | PPPP    | Friday, April 29th, 1453          | 2,7   |
+* | Long localized time             | p       | 12:00 AM                          | 7     |
+* |                                 | pp      | 12:00:00 AM                       | 7     |
+* |                                 | ppp     | 12:00:00 AM GMT+2                 | 7     |
+* |                                 | pppp    | 12:00:00 AM GMT+02:00             | 2,7   |
+* | Combination of date and time    | Pp      | 04/29/1453, 12:00 AM              | 7     |
+* |                                 | PPpp    | Apr 29, 1453, 12:00:00 AM         | 7     |
+* |                                 | PPPppp  | April 29th, 1453 at ...           | 7     |
+* |                                 | PPPPpppp| Friday, April 29th, 1453 at ...   | 2,7   |
+* Notes:
+* 1. "Formatting" units (e.g. formatting quarter) in the default en-US locale
+*    are the same as "stand-alone" units, but are different in some languages.
+*    "Formatting" units are declined according to the rules of the language
+*    in the context of a date. "Stand-alone" units are always nominative singular:
+*
+*    `format(new Date(2017, 10, 6), 'do LLLL', {locale: cs}) //=> '6. listopad'`
+*
+*    `format(new Date(2017, 10, 6), 'do MMMM', {locale: cs}) //=> '6. listopadu'`
+*
+* 2. Any sequence of the identical letters is a pattern, unless it is escaped by
+*    the single quote characters (see below).
+*    If the sequence is longer than listed in table (e.g. `EEEEEEEEEEE`)
+*    the output will be the same as default pattern for this unit, usually
+*    the longest one (in case of ISO weekdays, `EEEE`). Default patterns for units
+*    are marked with "2" in the last column of the table.
+*
+*    `format(new Date(2017, 10, 6), 'MMM') //=> 'Nov'`
+*
+*    `format(new Date(2017, 10, 6), 'MMMM') //=> 'November'`
+*
+*    `format(new Date(2017, 10, 6), 'MMMMM') //=> 'N'`
+*
+*    `format(new Date(2017, 10, 6), 'MMMMMM') //=> 'November'`
+*
+*    `format(new Date(2017, 10, 6), 'MMMMMMM') //=> 'November'`
+*
+* 3. Some patterns could be unlimited length (such as `yyyyyyyy`).
+*    The output will be padded with zeros to match the length of the pattern.
+*
+*    `format(new Date(2017, 10, 6), 'yyyyyyyy') //=> '00002017'`
+*
+* 4. `QQQQQ` and `qqqqq` could be not strictly numerical in some locales.
+*    These tokens represent the shortest form of the quarter.
+*
+* 5. The main difference between `y` and `u` patterns are B.C. years:
+*
+*    | Year | `y` | `u` |
+*    |------|-----|-----|
+*    | AC 1 |   1 |   1 |
+*    | BC 1 |   1 |   0 |
+*    | BC 2 |   2 |  -1 |
+*
+*    Also `yy` always returns the last two digits of a year,
+*    while `uu` pads single digit years to 2 characters and returns other years unchanged:
+*
+*    | Year | `yy` | `uu` |
+*    |------|------|------|
+*    | 1    |   01 |   01 |
+*    | 14   |   14 |   14 |
+*    | 376  |   76 |  376 |
+*    | 1453 |   53 | 1453 |
+*
+*    The same difference is true for local and ISO week-numbering years (`Y` and `R`),
+*    except local week-numbering years are dependent on `options.weekStartsOn`
+*    and `options.firstWeekContainsDate` (compare [getISOWeekYear](https://date-fns.org/docs/getISOWeekYear)
+*    and [getWeekYear](https://date-fns.org/docs/getWeekYear)).
+*
+* 6. Specific non-location timezones are currently unavailable in `date-fns`,
+*    so right now these tokens fall back to GMT timezones.
+*
+* 7. These patterns are not in the Unicode Technical Standard #35:
+*    - `i`: ISO day of week
+*    - `I`: ISO week of year
+*    - `R`: ISO week-numbering year
+*    - `t`: seconds timestamp
+*    - `T`: milliseconds timestamp
+*    - `o`: ordinal number modifier
+*    - `P`: long localized date
+*    - `p`: long localized time
+*
+* 8. `YY` and `YYYY` tokens represent week-numbering years but they are often confused with years.
+*    You should enable `options.useAdditionalWeekYearTokens` to use them. See: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+*
+* 9. `D` and `DD` tokens represent days of the year but they are often confused with days of the month.
+*    You should enable `options.useAdditionalDayOfYearTokens` to use them. See: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+*
+* @param date - The original date
+* @param format - The string of tokens
+* @param options - An object with options
+*
+* @returns The formatted date string
+*
+* @throws `date` must not be Invalid Date
+* @throws `options.locale` must contain `localize` property
+* @throws `options.locale` must contain `formatLong` property
+* @throws use `yyyy` instead of `YYYY` for formatting years using [format provided] to the input [input provided]; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+* @throws use `yy` instead of `YY` for formatting years using [format provided] to the input [input provided]; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+* @throws use `d` instead of `D` for formatting days of the month using [format provided] to the input [input provided]; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+* @throws use `dd` instead of `DD` for formatting days of the month using [format provided] to the input [input provided]; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md
+* @throws format string contains an unescaped latin alphabet character
+*
+* @example
+* // Represent 11 February 2014 in middle-endian format:
+* const result = format(new Date(2014, 1, 11), 'MM/dd/yyyy')
+* //=> '02/11/2014'
+*
+* @example
+* // Represent 2 July 2014 in Esperanto:
+* import { eoLocale } from 'date-fns/locale/eo'
+* const result = format(new Date(2014, 6, 2), "do 'de' MMMM yyyy", {
+*   locale: eoLocale
+* })
+* //=> '2-a de julio 2014'
+*
+* @example
+* // Escape string by single quote characters:
+* const result = format(new Date(2014, 6, 2, 15), "h 'o''clock'")
+* //=> "3 o'clock"
+*/
+function format(date, formatStr, options) {
+	const defaultOptions = getDefaultOptions();
+	const locale = options?.locale ?? defaultOptions.locale ?? enUS;
+	const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions.firstWeekContainsDate ?? defaultOptions.locale?.options?.firstWeekContainsDate ?? 1;
+	const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions.weekStartsOn ?? defaultOptions.locale?.options?.weekStartsOn ?? 0;
+	const originalDate = toDate(date, options?.in);
+	if (!isValid(originalDate)) throw new RangeError("Invalid time value");
+	let parts = formatStr.match(longFormattingTokensRegExp).map((substring) => {
+		const firstCharacter = substring[0];
+		if (firstCharacter === "p" || firstCharacter === "P") {
+			const longFormatter = longFormatters[firstCharacter];
+			return longFormatter(substring, locale.formatLong);
+		}
+		return substring;
+	}).join("").match(formattingTokensRegExp).map((substring) => {
+		if (substring === "''") return {
+			isToken: false,
+			value: "'"
+		};
+		const firstCharacter = substring[0];
+		if (firstCharacter === "'") return {
+			isToken: false,
+			value: cleanEscapedString(substring)
+		};
+		if (formatters[firstCharacter]) return {
+			isToken: true,
+			value: substring
+		};
+		if (firstCharacter.match(unescapedLatinCharacterRegExp)) throw new RangeError("Format string contains an unescaped latin alphabet character `" + firstCharacter + "`");
+		return {
+			isToken: false,
+			value: substring
+		};
+	});
+	if (locale.localize.preprocessor) parts = locale.localize.preprocessor(originalDate, parts);
+	const formatterOptions = {
+		firstWeekContainsDate,
+		weekStartsOn,
+		locale
+	};
+	return parts.map((part) => {
+		if (!part.isToken) return part.value;
+		const token = part.value;
+		if (!options?.useAdditionalWeekYearTokens && isProtectedWeekYearToken(token) || !options?.useAdditionalDayOfYearTokens && isProtectedDayOfYearToken(token)) warnOrThrowProtectedError(token, formatStr, String(date));
+		const formatter = formatters[token[0]];
+		return formatter(originalDate, token, locale.localize, formatterOptions);
+	}).join("");
+}
+function cleanEscapedString(input) {
+	const matched = input.match(escapedStringRegExp);
+	if (!matched) return input;
+	return matched[1].replace(doubleQuoteRegExp, "'");
+}
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/date-fns@4.1.0/node_modules/date-fns/formatDistance.js
 /**
@@ -53955,59 +55411,76 @@ var nextLevel = {
 	item: "marca"
 };
 function TreeNodeItem({ node, allNodes, onAddChild }) {
-	const [isOpen, setIsOpen] = (0, import_react.useState)(true);
+	const [isOpen, setIsOpen] = (0, import_react.useState)(false);
+	const { inventory } = useAppStore();
 	const children = allNodes.filter((n) => n.parentId === node.id);
 	const hasChildren = children.length > 0;
 	const canAddChild = !!nextLevel[node.level];
 	const Icon = levelIcons[node.level] || Folder;
+	const quantity = (0, import_react.useMemo)(() => {
+		const getQty = (nId) => {
+			return inventory.filter((i) => i.treeNodeId === nId).length + allNodes.filter((n) => n.parentId === nId).reduce((sum, child) => sum + getQty(child.id), 0);
+		};
+		return getQty(node.id);
+	}, [
+		node.id,
+		inventory,
+		allNodes
+	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Tree/TreeNodeItem.tsx:36:5",
+		"data-uid": "src/pages/Tree/TreeNodeItem.tsx:48:5",
 		"data-prohibitions": "[editContent]",
 		className: "flex flex-col select-none",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/pages/Tree/TreeNodeItem.tsx:37:7",
+			"data-uid": "src/pages/Tree/TreeNodeItem.tsx:49:7",
 			"data-prohibitions": "[editContent]",
 			className: cn$1("group flex items-center justify-between rounded-md py-2 px-2 hover:bg-muted/50 transition-colors", !isOpen && "opacity-90"),
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:43:9",
+				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:55:9",
 				"data-prohibitions": "[editContent]",
 				className: "flex items-center gap-2 cursor-pointer flex-1",
 				onClick: () => setIsOpen(!isOpen),
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:47:11",
+						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:59:11",
 						"data-prohibitions": "[editContent]",
 						className: "w-5 flex justify-center",
 						children: hasChildren ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, {
-							"data-uid": "src/pages/Tree/TreeNodeItem.tsx:49:15",
+							"data-uid": "src/pages/Tree/TreeNodeItem.tsx:61:15",
 							"data-prohibitions": "[editContent]",
 							className: cn$1("h-4 w-4 text-muted-foreground transition-transform duration-200", isOpen && "rotate-90")
 						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Tree/TreeNodeItem.tsx:56:15",
+							"data-uid": "src/pages/Tree/TreeNodeItem.tsx:68:15",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Icon, {
-						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:59:11",
+						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:71:11",
 						"data-prohibitions": "[editContent]",
 						className: "h-4 w-4 text-muted-foreground/70"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:60:11",
+						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:72:11",
 						"data-prohibitions": "[editContent]",
 						className: "text-sm font-medium",
 						children: node.name
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:61:11",
+						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:73:11",
 						"data-prohibitions": "[editContent]",
 						className: "text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-border px-1.5 py-0.5 rounded-sm ml-2",
 						children: node.level
+					}),
+					quantity > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:77:13",
+						"data-prohibitions": "[editContent]",
+						className: "ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold",
+						children: quantity
 					})
 				]
 			}), canAddChild && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:67:11",
+				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:84:11",
 				"data-prohibitions": "[]",
 				variant: "ghost",
 				size: "icon",
@@ -54018,17 +55491,17 @@ function TreeNodeItem({ node, allNodes, onAddChild }) {
 				},
 				title: `Adicionar ${nextLevel[node.level]}`,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-					"data-uid": "src/pages/Tree/TreeNodeItem.tsx:77:13",
+					"data-uid": "src/pages/Tree/TreeNodeItem.tsx:94:13",
 					"data-prohibitions": "[editContent]",
 					className: "h-3 w-3"
 				})
 			})]
 		}), isOpen && hasChildren && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			"data-uid": "src/pages/Tree/TreeNodeItem.tsx:83:9",
+			"data-uid": "src/pages/Tree/TreeNodeItem.tsx:100:9",
 			"data-prohibitions": "[editContent]",
 			className: "ml-5 mt-1 border-l border-border/50 pl-3 space-y-1 animate-slide-down origin-top",
 			children: children.map((child) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreeNodeItem, {
-				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:85:13",
+				"data-uid": "src/pages/Tree/TreeNodeItem.tsx:102:13",
 				"data-prohibitions": "[editContent]",
 				node: child,
 				allNodes,
@@ -57219,450 +58692,143 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 	});
 }
 //#endregion
-//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-tabs@1.1.13_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_2ad0945e3cb98dc5bbfaaf29c105e977/node_modules/@radix-ui/react-tabs/dist/index.mjs
-var TABS_NAME = "Tabs";
-var [createTabsContext, createTabsScope] = createContextScope$1(TABS_NAME, [createRovingFocusGroupScope]);
-var useRovingFocusGroupScope = createRovingFocusGroupScope();
-var [TabsProvider, useTabsContext] = createTabsContext(TABS_NAME);
-var Tabs$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeTabs, value: valueProp, onValueChange, defaultValue, orientation = "horizontal", dir, activationMode = "automatic", ...tabsProps } = props;
-	const direction = useDirection(dir);
-	const [value, setValue] = useControllableState({
-		prop: valueProp,
-		onChange: onValueChange,
-		defaultProp: defaultValue ?? "",
-		caller: TABS_NAME
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsProvider, {
-		scope: __scopeTabs,
-		baseId: useId(),
-		value,
-		onValueChange: setValue,
-		orientation,
-		dir: direction,
-		activationMode,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
-			dir: direction,
-			"data-orientation": orientation,
-			...tabsProps,
-			ref: forwardedRef
-		})
-	});
-});
-Tabs$1.displayName = TABS_NAME;
-var TAB_LIST_NAME = "TabsList";
-var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeTabs, loop = true, ...listProps } = props;
-	const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
-	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
-		asChild: true,
-		...rovingFocusGroupScope,
-		orientation: context.orientation,
-		dir: context.dir,
-		loop,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
-			role: "tablist",
-			"aria-orientation": context.orientation,
-			...listProps,
-			ref: forwardedRef
-		})
-	});
-});
-TabsList$1.displayName = TAB_LIST_NAME;
-var TRIGGER_NAME = "TabsTrigger";
-var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
-	const context = useTabsContext(TRIGGER_NAME, __scopeTabs);
-	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
-	const triggerId = makeTriggerId(context.baseId, value);
-	const contentId = makeContentId(context.baseId, value);
-	const isSelected = value === context.value;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Item, {
-		asChild: true,
-		...rovingFocusGroupScope,
-		focusable: !disabled,
-		active: isSelected,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
-			type: "button",
-			role: "tab",
-			"aria-selected": isSelected,
-			"aria-controls": contentId,
-			"data-state": isSelected ? "active" : "inactive",
-			"data-disabled": disabled ? "" : void 0,
-			disabled,
-			id: triggerId,
-			...triggerProps,
-			ref: forwardedRef,
-			onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
-				if (!disabled && event.button === 0 && event.ctrlKey === false) context.onValueChange(value);
-				else event.preventDefault();
-			}),
-			onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
-				if ([" ", "Enter"].includes(event.key)) context.onValueChange(value);
-			}),
-			onFocus: composeEventHandlers(props.onFocus, () => {
-				const isAutomaticActivation = context.activationMode !== "manual";
-				if (!isSelected && !disabled && isAutomaticActivation) context.onValueChange(value);
-			})
-		})
-	});
-});
-TabsTrigger$1.displayName = TRIGGER_NAME;
-var CONTENT_NAME = "TabsContent";
-var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
-	const context = useTabsContext(CONTENT_NAME, __scopeTabs);
-	const triggerId = makeTriggerId(context.baseId, value);
-	const contentId = makeContentId(context.baseId, value);
-	const isSelected = value === context.value;
-	const isMountAnimationPreventedRef = import_react.useRef(isSelected);
-	import_react.useEffect(() => {
-		const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
-		return () => cancelAnimationFrame(rAF);
-	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
-		present: forceMount || isSelected,
-		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
-			"data-state": isSelected ? "active" : "inactive",
-			"data-orientation": context.orientation,
-			role: "tabpanel",
-			"aria-labelledby": triggerId,
-			hidden: !present,
-			id: contentId,
-			tabIndex: 0,
-			...contentProps,
-			ref: forwardedRef,
-			style: {
-				...props.style,
-				animationDuration: isMountAnimationPreventedRef.current ? "0s" : void 0
-			},
-			children: present && children
-		})
-	});
-});
-TabsContent$1.displayName = CONTENT_NAME;
-function makeTriggerId(baseId, value) {
-	return `${baseId}-trigger-${value}`;
-}
-function makeContentId(baseId, value) {
-	return `${baseId}-content-${value}`;
-}
-var Root2 = Tabs$1;
-var List = TabsList$1;
-var Trigger = TabsTrigger$1;
-var Content = TabsContent$1;
-//#endregion
-//#region src/components/ui/tabs.tsx
-var Tabs = Root2;
-var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
-	"data-uid": "src/components/ui/tabs.tsx:13:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
-	...props
-}));
-TabsList.displayName = List.displayName;
-var TabsTrigger = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger, {
-	"data-uid": "src/components/ui/tabs.tsx:28:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm", className),
-	...props
-}));
-TabsTrigger.displayName = Trigger.displayName;
-var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content, {
-	"data-uid": "src/components/ui/tabs.tsx:43:3",
-	"data-prohibitions": "[editContent]",
-	ref,
-	className: cn$1("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className),
-	...props
-}));
-TabsContent.displayName = Content.displayName;
-//#endregion
 //#region src/pages/Teams/UpdateDialog.tsx
 function UpdateDialog({ item, open, onOpenChange }) {
-	const { updateInventoryItem, history } = useAppStore();
+	const { updateInventoryItem } = useAppStore();
 	const [condition, setCondition] = (0, import_react.useState)("good");
-	const [hasAsset, setHasAsset] = (0, import_react.useState)(true);
-	const [assetNumber, setAssetNumber] = (0, import_react.useState)("");
-	const [photos, setPhotos] = (0, import_react.useState)([]);
+	const [reason, setReason] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
-		if (item) {
+		if (item && open) {
 			setCondition(item.condition);
-			setHasAsset(item.hasAssetNumber ?? true);
-			setAssetNumber(item.assetNumber || "");
-			setPhotos(item.photos || []);
+			setReason("");
 		}
-	}, [item]);
-	const handleSave = () => {
-		if (item) updateInventoryItem(item.id, {
+	}, [item, open]);
+	const handleSubmit = () => {
+		if (!item) return;
+		if ((condition === "damaged" || condition === "repair") && !reason.trim()) {
+			alert("Motivo/Comentário é obrigatório para este status.");
+			return;
+		}
+		updateInventoryItem(item.id, {
 			condition,
-			hasAssetNumber: hasAsset,
-			assetNumber: hasAsset ? assetNumber : void 0,
-			photos
+			reason
 		});
 		onOpenChange(false);
 	};
-	const handleFileChange = (e) => {
-		const file = e.target.files?.[0];
-		if (file) setPhotos((prev) => [...prev, URL.createObjectURL(file)]);
-	};
-	const itemHistory = history.filter((h) => h.inventoryId === item?.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+	if (!item) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/UpdateDialog.tsx:71:5",
+		"data-uid": "src/pages/Teams/UpdateDialog.tsx:53:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/UpdateDialog.tsx:72:7",
+			"data-uid": "src/pages/Teams/UpdateDialog.tsx:54:7",
 			"data-prohibitions": "[editContent]",
-			className: "sm:max-w-[500px]",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
-				"data-uid": "src/pages/Teams/UpdateDialog.tsx:73:9",
-				"data-prohibitions": "[]",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:74:11",
-					"data-prohibitions": "[]",
-					children: "Perfil da Instância"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:75:11",
-					"data-prohibitions": "[]",
-					children: "Gerencie dados e insira fotos para controle de estado."
-				})]
-			}), item && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
-				"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:11",
-				"data-prohibitions": "[editContent]",
-				defaultValue: "details",
-				className: "mt-2",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:81:13",
-						"data-prohibitions": "[]",
-						className: "grid w-full grid-cols-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:82:15",
-							"data-prohibitions": "[]",
-							value: "details",
-							children: "Detalhes"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:83:15",
-							"data-prohibitions": "[]",
-							value: "history",
-							children: "Linha do Tempo"
-						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsContent, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:85:13",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, {
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:55:9",
+					"data-prohibitions": "[editContent]",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:56:11",
 						"data-prohibitions": "[editContent]",
-						value: "details",
-						className: "space-y-4 py-4",
+						children: ["Atualizar Instância: ", item.hasAssetNumber ? item.assetNumber : "Sem Patrimônio"]
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:60:9",
+					"data-prohibitions": "[editContent]",
+					className: "space-y-4 py-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:61:11",
+						"data-prohibitions": "[]",
+						className: "space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:62:13",
+							"data-prohibitions": "[]",
+							children: "Condição da Ferramenta"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:63:13",
+							"data-prohibitions": "[]",
+							value: condition,
+							onValueChange: (v) => setCondition(v),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:64:15",
+								"data-prohibitions": "[]",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:65:17",
+									"data-prohibitions": "[editContent]"
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:67:15",
+								"data-prohibitions": "[]",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:68:17",
+										"data-prohibitions": "[]",
+										value: "good",
+										children: "Bom Estado"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:69:17",
+										"data-prohibitions": "[]",
+										value: "damaged",
+										children: "Danificado"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:70:17",
+										"data-prohibitions": "[]",
+										value: "repair",
+										children: "Para Reparo"
+									})
+								]
+							})]
+						})]
+					}), (condition === "damaged" || condition === "repair") && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:76:13",
+						"data-prohibitions": "[]",
+						className: "space-y-2 animate-fade-in",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:77:15",
+								"data-prohibitions": "[]",
+								className: "text-destructive font-bold",
+								children: "Motivo / Comentário (Obrigatório)"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:15",
+								"data-prohibitions": "[editContent]",
+								value: reason,
+								onChange: (e) => setReason(e.target.value),
+								placeholder: "Descreva o defeito ou motivo da manutenção...",
+								className: "border-destructive/50 focus-visible:ring-destructive/30"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 								"data-uid": "src/pages/Teams/UpdateDialog.tsx:86:15",
 								"data-prohibitions": "[]",
-								className: "grid grid-cols-2 gap-4",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:87:17",
-									"data-prohibitions": "[]",
-									className: "space-y-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:88:19",
-										"data-prohibitions": "[]",
-										children: "Condição"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:89:19",
-										"data-prohibitions": "[]",
-										value: condition,
-										onValueChange: (v) => setCondition(v),
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:90:21",
-											"data-prohibitions": "[]",
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-												"data-uid": "src/pages/Teams/UpdateDialog.tsx:91:23",
-												"data-prohibitions": "[editContent]"
-											})
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:93:21",
-											"data-prohibitions": "[]",
-											children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-													"data-uid": "src/pages/Teams/UpdateDialog.tsx:94:23",
-													"data-prohibitions": "[]",
-													value: "good",
-													children: "Bom Estado"
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-													"data-uid": "src/pages/Teams/UpdateDialog.tsx:95:23",
-													"data-prohibitions": "[]",
-													value: "damaged",
-													children: "Danificado"
-												}),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-													"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:23",
-													"data-prohibitions": "[]",
-													value: "repair",
-													children: "Para Reparo"
-												})
-											]
-										})]
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:100:17",
-									"data-prohibitions": "[]",
-									className: "flex flex-col justify-center space-y-2 border rounded-md px-3 py-1",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:101:19",
-										"data-prohibitions": "[]",
-										className: "text-xs",
-										children: "Possui Patrimônio?"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:102:19",
-										"data-prohibitions": "[editContent]",
-										checked: hasAsset,
-										onCheckedChange: setHasAsset
-									})]
-								})]
-							}),
-							hasAsset && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:106:17",
-								"data-prohibitions": "[]",
-								className: "space-y-2 animate-in fade-in",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:107:19",
-									"data-prohibitions": "[]",
-									children: "Nº Patrimônio"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:108:19",
-									"data-prohibitions": "[editContent]",
-									value: assetNumber,
-									onChange: (e) => setAssetNumber(e.target.value)
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:111:15",
-								"data-prohibitions": "[editContent]",
-								className: "space-y-3 border rounded-md p-4 bg-muted/30",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$1, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:112:17",
-									"data-prohibitions": "[]",
-									className: "flex items-center gap-2",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:113:19",
-										"data-prohibitions": "[editContent]",
-										className: "h-4 w-4"
-									}), " Fotos / Evidências"]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:115:17",
-									"data-prohibitions": "[editContent]",
-									className: "grid grid-cols-4 gap-2",
-									children: [photos.map((p, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:117:21",
-										"data-prohibitions": "[]",
-										className: "relative aspect-square rounded-md overflow-hidden border group bg-background",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:121:23",
-											"data-prohibitions": "[editContent]",
-											src: p,
-											alt: "Foto",
-											className: "w-full h-full object-cover"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:122:23",
-											"data-prohibitions": "[]",
-											variant: "destructive",
-											size: "icon",
-											className: "absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100",
-											onClick: () => setPhotos((prev) => prev.filter((_, idx) => idx !== i)),
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
-												"data-uid": "src/pages/Teams/UpdateDialog.tsx:128:25",
-												"data-prohibitions": "[editContent]",
-												className: "h-3 w-3"
-											})
-										})]
-									}, i)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:132:19",
-										"data-prohibitions": "[]",
-										className: "flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/50 transition-colors",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:133:21",
-											"data-prohibitions": "[editContent]",
-											className: "w-5 h-5 text-muted-foreground"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:134:21",
-											"data-prohibitions": "[editContent]",
-											type: "file",
-											className: "hidden",
-											accept: "image/*",
-											onChange: handleFileChange
-										})]
-									})]
-								})]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:143:15",
-								"data-prohibitions": "[]",
-								className: "w-full",
-								onClick: handleSave,
-								children: "Salvar Alterações"
+								className: "text-[10px] text-muted-foreground",
+								children: "Esta informação ficará registrada no histórico do item."
 							})
 						]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:147:13",
-						"data-prohibitions": "[editContent]",
-						value: "history",
-						className: "py-4",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollArea, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:148:15",
-							"data-prohibitions": "[editContent]",
-							className: "h-[280px] pr-4",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:149:17",
-								"data-prohibitions": "[editContent]",
-								className: "space-y-4 border-l-2 ml-3 border-muted pl-4 relative",
-								children: itemHistory.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:151:21",
-									"data-prohibitions": "[]",
-									className: "text-sm text-muted-foreground pt-4",
-									children: "Sem eventos."
-								}) : itemHistory.map((evt) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:154:23",
-									"data-prohibitions": "[editContent]",
-									className: "relative",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:155:25",
-											"data-prohibitions": "[editContent]",
-											className: "absolute -left-[23px] top-1 h-3 w-3 rounded-full bg-primary ring-4 ring-background"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:156:25",
-											"data-prohibitions": "[editContent]",
-											className: "text-xs text-muted-foreground mb-1 flex justify-between",
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												"data-uid": "src/pages/Teams/UpdateDialog.tsx:157:27",
-												"data-prohibitions": "[editContent]",
-												children: new Date(evt.date).toLocaleDateString()
-											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												"data-uid": "src/pages/Teams/UpdateDialog.tsx:158:27",
-												"data-prohibitions": "[editContent]",
-												className: "font-medium text-foreground",
-												children: evt.user
-											})]
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:160:25",
-											"data-prohibitions": "[editContent]",
-											className: "text-sm border rounded-md p-2 bg-muted/20",
-											children: evt.description
-										})
-									]
-								}, evt.id))
-							})
-						})
-					})
-				]
-			})]
+					})]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:92:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:93:11",
+						"data-prohibitions": "[]",
+						variant: "outline",
+						onClick: () => onOpenChange(false),
+						children: "Cancelar"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:11",
+						"data-prohibitions": "[]",
+						onClick: handleSubmit,
+						disabled: (condition === "damaged" || condition === "repair") && !reason.trim(),
+						children: "Salvar Alterações"
+					})]
+				})
+			]
 		})
 	});
 }
@@ -58760,374 +59926,959 @@ function AuditoriaPage() {
 	});
 }
 //#endregion
-//#region src/pages/Reports/Index.tsx
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-tabs@1.1.13_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_2ad0945e3cb98dc5bbfaaf29c105e977/node_modules/@radix-ui/react-tabs/dist/index.mjs
+var TABS_NAME = "Tabs";
+var [createTabsContext, createTabsScope] = createContextScope$1(TABS_NAME, [createRovingFocusGroupScope]);
+var useRovingFocusGroupScope = createRovingFocusGroupScope();
+var [TabsProvider, useTabsContext] = createTabsContext(TABS_NAME);
+var Tabs$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value: valueProp, onValueChange, defaultValue, orientation = "horizontal", dir, activationMode = "automatic", ...tabsProps } = props;
+	const direction = useDirection(dir);
+	const [value, setValue] = useControllableState({
+		prop: valueProp,
+		onChange: onValueChange,
+		defaultProp: defaultValue ?? "",
+		caller: TABS_NAME
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsProvider, {
+		scope: __scopeTabs,
+		baseId: useId(),
+		value,
+		onValueChange: setValue,
+		orientation,
+		dir: direction,
+		activationMode,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			dir: direction,
+			"data-orientation": orientation,
+			...tabsProps,
+			ref: forwardedRef
+		})
+	});
+});
+Tabs$1.displayName = TABS_NAME;
+var TAB_LIST_NAME = "TabsList";
+var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, loop = true, ...listProps } = props;
+	const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
+	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
+		asChild: true,
+		...rovingFocusGroupScope,
+		orientation: context.orientation,
+		dir: context.dir,
+		loop,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			role: "tablist",
+			"aria-orientation": context.orientation,
+			...listProps,
+			ref: forwardedRef
+		})
+	});
+});
+TabsList$1.displayName = TAB_LIST_NAME;
+var TRIGGER_NAME = "TabsTrigger";
+var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
+	const context = useTabsContext(TRIGGER_NAME, __scopeTabs);
+	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
+	const triggerId = makeTriggerId(context.baseId, value);
+	const contentId = makeContentId(context.baseId, value);
+	const isSelected = value === context.value;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Item, {
+		asChild: true,
+		...rovingFocusGroupScope,
+		focusable: !disabled,
+		active: isSelected,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+			type: "button",
+			role: "tab",
+			"aria-selected": isSelected,
+			"aria-controls": contentId,
+			"data-state": isSelected ? "active" : "inactive",
+			"data-disabled": disabled ? "" : void 0,
+			disabled,
+			id: triggerId,
+			...triggerProps,
+			ref: forwardedRef,
+			onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
+				if (!disabled && event.button === 0 && event.ctrlKey === false) context.onValueChange(value);
+				else event.preventDefault();
+			}),
+			onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
+				if ([" ", "Enter"].includes(event.key)) context.onValueChange(value);
+			}),
+			onFocus: composeEventHandlers(props.onFocus, () => {
+				const isAutomaticActivation = context.activationMode !== "manual";
+				if (!isSelected && !disabled && isAutomaticActivation) context.onValueChange(value);
+			})
+		})
+	});
+});
+TabsTrigger$1.displayName = TRIGGER_NAME;
+var CONTENT_NAME = "TabsContent";
+var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
+	const context = useTabsContext(CONTENT_NAME, __scopeTabs);
+	const triggerId = makeTriggerId(context.baseId, value);
+	const contentId = makeContentId(context.baseId, value);
+	const isSelected = value === context.value;
+	const isMountAnimationPreventedRef = import_react.useRef(isSelected);
+	import_react.useEffect(() => {
+		const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
+		return () => cancelAnimationFrame(rAF);
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || isSelected,
+		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			"data-state": isSelected ? "active" : "inactive",
+			"data-orientation": context.orientation,
+			role: "tabpanel",
+			"aria-labelledby": triggerId,
+			hidden: !present,
+			id: contentId,
+			tabIndex: 0,
+			...contentProps,
+			ref: forwardedRef,
+			style: {
+				...props.style,
+				animationDuration: isMountAnimationPreventedRef.current ? "0s" : void 0
+			},
+			children: present && children
+		})
+	});
+});
+TabsContent$1.displayName = CONTENT_NAME;
+function makeTriggerId(baseId, value) {
+	return `${baseId}-trigger-${value}`;
+}
+function makeContentId(baseId, value) {
+	return `${baseId}-content-${value}`;
+}
+var Root2 = Tabs$1;
+var List = TabsList$1;
+var Trigger = TabsTrigger$1;
+var Content = TabsContent$1;
+//#endregion
+//#region src/components/ui/tabs.tsx
+var Tabs = Root2;
+var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
+	"data-uid": "src/components/ui/tabs.tsx:13:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
+	...props
+}));
+TabsList.displayName = List.displayName;
+var TabsTrigger = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger, {
+	"data-uid": "src/components/ui/tabs.tsx:28:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm", className),
+	...props
+}));
+TabsTrigger.displayName = Trigger.displayName;
+var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content, {
+	"data-uid": "src/components/ui/tabs.tsx:43:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className),
+	...props
+}));
+TabsContent.displayName = Content.displayName;
+//#endregion
+//#region src/pages/Reports/HistoryTab.tsx
+function HistoryTab() {
+	const { history, inventory, teams } = useAppStore();
+	const [teamFilter, setTeamFilter] = (0, import_react.useState)("all");
+	const filteredHistory = (0, import_react.useMemo)(() => {
+		return history.filter((h) => {
+			if (teamFilter !== "all") {
+				if (inventory.find((i) => i.id === h.inventoryId)?.teamId !== teamFilter) return false;
+			}
+			return true;
+		}).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+	}, [
+		history,
+		teamFilter,
+		inventory
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		"data-uid": "src/pages/Reports/HistoryTab.tsx:39:5",
+		"data-prohibitions": "[editContent]",
+		className: "animate-slide-up",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+			"data-uid": "src/pages/Reports/HistoryTab.tsx:40:7",
+			"data-prohibitions": "[editContent]",
+			className: "bg-muted/30 pb-4 border-b",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Reports/HistoryTab.tsx:41:9",
+				"data-prohibitions": "[editContent]",
+				className: "w-full max-w-xs space-y-1.5",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+					"data-uid": "src/pages/Reports/HistoryTab.tsx:42:11",
+					"data-prohibitions": "[]",
+					className: "text-xs font-medium",
+					children: "Filtrar por Equipe"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+					"data-uid": "src/pages/Reports/HistoryTab.tsx:43:11",
+					"data-prohibitions": "[editContent]",
+					value: teamFilter,
+					onValueChange: setTeamFilter,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+						"data-uid": "src/pages/Reports/HistoryTab.tsx:44:13",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+							"data-uid": "src/pages/Reports/HistoryTab.tsx:45:15",
+							"data-prohibitions": "[editContent]"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+						"data-uid": "src/pages/Reports/HistoryTab.tsx:47:13",
+						"data-prohibitions": "[editContent]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+							"data-uid": "src/pages/Reports/HistoryTab.tsx:48:15",
+							"data-prohibitions": "[]",
+							value: "all",
+							children: "Todas as Equipes"
+						}), teams.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+							"data-uid": "src/pages/Reports/HistoryTab.tsx:50:17",
+							"data-prohibitions": "[editContent]",
+							value: t.id,
+							children: t.name
+						}, t.id))]
+					})]
+				})]
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+			"data-uid": "src/pages/Reports/HistoryTab.tsx:58:7",
+			"data-prohibitions": "[editContent]",
+			className: "p-0",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+				"data-uid": "src/pages/Reports/HistoryTab.tsx:59:9",
+				"data-prohibitions": "[editContent]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+					"data-uid": "src/pages/Reports/HistoryTab.tsx:60:11",
+					"data-prohibitions": "[]",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+						"data-uid": "src/pages/Reports/HistoryTab.tsx:61:13",
+						"data-prohibitions": "[]",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:62:15",
+								"data-prohibitions": "[]",
+								children: "Data"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:63:15",
+								"data-prohibitions": "[]",
+								children: "Item (Patrimônio)"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:64:15",
+								"data-prohibitions": "[]",
+								children: "Equipe Atual"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:65:15",
+								"data-prohibitions": "[]",
+								children: "Tipo"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:66:15",
+								"data-prohibitions": "[]",
+								children: "Descrição / Motivo"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+								"data-uid": "src/pages/Reports/HistoryTab.tsx:67:15",
+								"data-prohibitions": "[]",
+								children: "Responsável"
+							})
+						]
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+					"data-uid": "src/pages/Reports/HistoryTab.tsx:70:11",
+					"data-prohibitions": "[editContent]",
+					children: [filteredHistory.map((h) => {
+						const item = inventory.find((i) => i.id === h.inventoryId);
+						const team = teams.find((t) => t.id === item?.teamId);
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/Reports/HistoryTab.tsx:76:17",
+							"data-prohibitions": "[editContent]",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:77:19",
+									"data-prohibitions": "[editContent]",
+									className: "text-xs whitespace-nowrap",
+									children: format(new Date(h.date), "dd/MM/yyyy HH:mm", { locale: ptBR })
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:80:19",
+									"data-prohibitions": "[editContent]",
+									className: "font-mono text-xs font-semibold",
+									children: item?.hasAssetNumber ? item.assetNumber : h.inventoryId
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:83:19",
+									"data-prohibitions": "[editContent]",
+									className: "text-sm",
+									children: team?.name || "-"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:84:19",
+									"data-prohibitions": "[editContent]",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/pages/Reports/HistoryTab.tsx:85:21",
+										"data-prohibitions": "[editContent]",
+										className: `inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${h.type === "status_change" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`,
+										children: h.type
+									})
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:95:19",
+									"data-prohibitions": "[editContent]",
+									className: "text-sm",
+									children: h.description
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Reports/HistoryTab.tsx:96:19",
+									"data-prohibitions": "[editContent]",
+									className: "text-xs",
+									children: h.user
+								})
+							]
+						}, h.id);
+					}), filteredHistory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+						"data-uid": "src/pages/Reports/HistoryTab.tsx:101:15",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							"data-uid": "src/pages/Reports/HistoryTab.tsx:102:17",
+							"data-prohibitions": "[]",
+							colSpan: 6,
+							className: "h-24 text-center text-muted-foreground",
+							children: "Nenhum registro histórico encontrado."
+						})
+					})]
+				})]
+			})
+		})]
+	});
+}
+//#endregion
+//#region src/pages/Reports/TeamInventoryTab.tsx
 var conditionLabels = {
 	good: "Bom estado",
 	damaged: "Danificado",
 	repair: "Em Reparo"
 };
-function ReportsPage() {
-	const { inventory, teams, nodes, getNodePath } = useAppStore();
-	const [teamFilter, setTeamFilter] = (0, import_react.useState)("all");
-	const [statusFilter, setStatusFilter] = (0, import_react.useState)("all");
-	const [brandFilter, setBrandFilter] = (0, import_react.useState)("all");
-	const [levelFilter, setLevelFilter] = (0, import_react.useState)("all");
-	const uniqueBrands = (0, import_react.useMemo)(() => {
-		return Array.from(new Set(nodes.filter((n) => n.level === "marca").map((n) => n.name)));
-	}, [nodes]);
-	const topLevels = (0, import_react.useMemo)(() => {
-		return nodes.filter((n) => n.level === "departamento");
-	}, [nodes]);
-	const filteredInventory = (0, import_react.useMemo)(() => {
-		return inventory.filter((item) => {
-			if (teamFilter !== "all" && item.teamId !== teamFilter) return false;
-			if (statusFilter !== "all" && item.condition !== statusFilter) return false;
-			const path = getNodePath(item.treeNodeId);
-			const marcaNode = path.find((n) => n.level === "marca");
-			if (brandFilter !== "all" && marcaNode?.name !== brandFilter) return false;
-			if (levelFilter !== "all" && !path.some((n) => n.id === levelFilter)) return false;
-			return true;
+function TeamInventoryTab() {
+	const { teams, inventory, getNodePath, currentUser } = useAppStore();
+	const isMasterAdmin = isAdmin(currentUser);
+	const grouped = (0, import_react.useMemo)(() => {
+		return teams.map((team) => {
+			const items = inventory.filter((i) => i.teamId === team.id);
+			return {
+				team,
+				items,
+				totalValue: items.reduce((acc, curr) => acc + (curr.price || 0), 0)
+			};
 		});
-	}, [
-		inventory,
-		teamFilter,
-		statusFilter,
-		brandFilter,
-		levelFilter,
-		getNodePath
-	]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Reports/Index.tsx:60:5",
+	}, [teams, inventory]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:33:5",
 		"data-prohibitions": "[editContent]",
-		className: "space-y-6 animate-fade-in",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/pages/Reports/Index.tsx:61:7",
-			"data-prohibitions": "[]",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-				"data-uid": "src/pages/Reports/Index.tsx:62:9",
-				"data-prohibitions": "[]",
-				className: "text-2xl font-bold tracking-tight",
-				children: "Relatórios Customizados"
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				"data-uid": "src/pages/Reports/Index.tsx:63:9",
-				"data-prohibitions": "[]",
-				className: "text-muted-foreground",
-				children: "Filtre as instâncias de estoque em todos os níveis hierárquicos e exporte os dados."
-			})]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-			"data-uid": "src/pages/Reports/Index.tsx:68:7",
+		className: "space-y-6 animate-slide-up",
+		children: grouped.map(({ team, items, totalValue }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+			"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:35:9",
 			"data-prohibitions": "[editContent]",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-				"data-uid": "src/pages/Reports/Index.tsx:69:9",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+				"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:36:11",
 				"data-prohibitions": "[editContent]",
-				className: "bg-muted/30 pb-4 border-b",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Reports/Index.tsx:70:11",
+				className: "bg-muted/30 pb-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:37:13",
 					"data-prohibitions": "[editContent]",
-					className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Reports/Index.tsx:71:13",
-							"data-prohibitions": "[editContent]",
-							className: "space-y-1.5",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-								"data-uid": "src/pages/Reports/Index.tsx:72:15",
-								"data-prohibitions": "[]",
-								className: "text-xs font-medium",
-								children: "Equipe (Tacha)"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Reports/Index.tsx:73:15",
-								"data-prohibitions": "[editContent]",
-								value: teamFilter,
-								onValueChange: setTeamFilter,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Reports/Index.tsx:74:17",
-									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Reports/Index.tsx:75:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Reports/Index.tsx:77:17",
-									"data-prohibitions": "[editContent]",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:78:19",
-										"data-prohibitions": "[]",
-										value: "all",
-										children: "Todas as Equipes"
-									}), teams.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:80:21",
-										"data-prohibitions": "[editContent]",
-										value: t.id,
-										children: t.name
-									}, t.id))]
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Reports/Index.tsx:87:13",
-							"data-prohibitions": "[]",
-							className: "space-y-1.5",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-								"data-uid": "src/pages/Reports/Index.tsx:88:15",
-								"data-prohibitions": "[]",
-								className: "text-xs font-medium",
-								children: "Condição"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Reports/Index.tsx:89:15",
-								"data-prohibitions": "[]",
-								value: statusFilter,
-								onValueChange: setStatusFilter,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Reports/Index.tsx:90:17",
-									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Reports/Index.tsx:91:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Reports/Index.tsx:93:17",
-									"data-prohibitions": "[]",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Reports/Index.tsx:94:19",
-											"data-prohibitions": "[]",
-											value: "all",
-											children: "Todas"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Reports/Index.tsx:95:19",
-											"data-prohibitions": "[]",
-											value: "good",
-											children: "Bom Estado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Reports/Index.tsx:96:19",
-											"data-prohibitions": "[]",
-											value: "damaged",
-											children: "Danificado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Reports/Index.tsx:97:19",
-											"data-prohibitions": "[]",
-											value: "repair",
-											children: "Para Reparo"
-										})
-									]
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Reports/Index.tsx:101:13",
-							"data-prohibitions": "[editContent]",
-							className: "space-y-1.5",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-								"data-uid": "src/pages/Reports/Index.tsx:102:15",
-								"data-prohibitions": "[]",
-								className: "text-xs font-medium",
-								children: "Marca (Atributo)"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Reports/Index.tsx:103:15",
-								"data-prohibitions": "[editContent]",
-								value: brandFilter,
-								onValueChange: setBrandFilter,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Reports/Index.tsx:104:17",
-									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Reports/Index.tsx:105:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Reports/Index.tsx:107:17",
-									"data-prohibitions": "[editContent]",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:108:19",
-										"data-prohibitions": "[]",
-										value: "all",
-										children: "Todas as Marcas"
-									}), uniqueBrands.map((b) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:110:21",
-										"data-prohibitions": "[editContent]",
-										value: b,
-										children: b
-									}, b))]
-								})]
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Reports/Index.tsx:117:13",
-							"data-prohibitions": "[editContent]",
-							className: "space-y-1.5",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-								"data-uid": "src/pages/Reports/Index.tsx:118:15",
-								"data-prohibitions": "[]",
-								className: "text-xs font-medium",
-								children: "Departamento (Nível Topo)"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Reports/Index.tsx:119:15",
-								"data-prohibitions": "[editContent]",
-								value: levelFilter,
-								onValueChange: setLevelFilter,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Reports/Index.tsx:120:17",
-									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Reports/Index.tsx:121:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Reports/Index.tsx:123:17",
-									"data-prohibitions": "[editContent]",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:124:19",
-										"data-prohibitions": "[]",
-										value: "all",
-										children: "Todos"
-									}), topLevels.map((n) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Reports/Index.tsx:126:21",
-										"data-prohibitions": "[editContent]",
-										value: n.id,
-										children: n.name
-									}, n.id))]
-								})]
-							})]
-						})
-					]
-				})
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-				"data-uid": "src/pages/Reports/Index.tsx:135:9",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+						"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:38:15",
+						"data-prohibitions": "[editContent]",
+						className: "text-lg",
+						children: team.name
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:39:15",
+						"data-prohibitions": "[editContent]",
+						className: "text-xs text-muted-foreground mt-1",
+						children: [items.length, " instâncias alocadas"]
+					})]
+				}), isMasterAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:44:15",
+					"data-prohibitions": "[editContent]",
+					className: "text-sm font-semibold bg-emerald-100/80 text-emerald-800 px-4 py-2 rounded-md border border-emerald-200",
+					children: ["Valor Total (BRL): R$ ", totalValue.toFixed(2)]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+				"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:49:11",
 				"data-prohibitions": "[editContent]",
 				className: "p-0",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Reports/Index.tsx:136:11",
-					"data-prohibitions": "[editContent]",
-					className: "p-4 flex justify-between items-center border-b",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						"data-uid": "src/pages/Reports/Index.tsx:137:13",
-						"data-prohibitions": "[editContent]",
-						className: "text-sm font-medium",
-						children: [filteredInventory.length, " instâncias encontradas"]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/pages/Reports/Index.tsx:140:13",
-						"data-prohibitions": "[]",
-						variant: "outline",
-						size: "sm",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, {
-							"data-uid": "src/pages/Reports/Index.tsx:141:15",
-							"data-prohibitions": "[editContent]",
-							className: "h-4 w-4 mr-2"
-						}), " Exportar CSV"]
-					})]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-					"data-uid": "src/pages/Reports/Index.tsx:144:11",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:50:13",
 					"data-prohibitions": "[editContent]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-						"data-uid": "src/pages/Reports/Index.tsx:145:13",
-						"data-prohibitions": "[]",
+						"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:51:15",
+						"data-prohibitions": "[editContent]",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-							"data-uid": "src/pages/Reports/Index.tsx:146:15",
-							"data-prohibitions": "[]",
+							"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:52:17",
+							"data-prohibitions": "[editContent]",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:147:17",
+									"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:53:19",
 									"data-prohibitions": "[]",
-									children: "ID / Instância"
+									children: "Nº Patrimônio"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:148:17",
-									"data-prohibitions": "[]",
-									children: "Equipe"
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:149:17",
+									"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:54:19",
 									"data-prohibitions": "[]",
 									children: "Item Base"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:150:17",
+									"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:55:19",
 									"data-prohibitions": "[]",
 									children: "Marca"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:151:17",
+									"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:56:19",
 									"data-prohibitions": "[]",
-									children: "Departamento"
+									children: "Status / Condição"
 								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/Reports/Index.tsx:152:17",
+								isMasterAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:57:37",
 									"data-prohibitions": "[]",
-									children: "Status"
+									className: "text-right",
+									children: "Valor Unit. (R$)"
 								})
 							]
 						})
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
-						"data-uid": "src/pages/Reports/Index.tsx:155:13",
+						"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:60:15",
 						"data-prohibitions": "[editContent]",
-						children: [filteredInventory.slice(0, 100).map((item) => {
+						children: [items.map((item) => {
 							const path = getNodePath(item.treeNodeId);
-							const team = teams.find((t) => t.id === item.teamId);
-							const marca = path.find((n) => n.level === "marca")?.name;
-							const itemName = path.find((n) => n.level === "item")?.name;
-							const dept = path.find((n) => n.level === "departamento")?.name;
+							const marca = path.find((n) => n.level === "marca")?.name || "-";
+							const itemName = path.find((n) => n.level === "item")?.name || "Item";
 							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/Reports/Index.tsx:164:19",
+								"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:67:21",
 								"data-prohibitions": "[editContent]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:165:21",
+										"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:68:23",
 										"data-prohibitions": "[editContent]",
-										className: "font-mono text-xs",
-										children: item.id
+										className: "font-mono text-xs font-medium",
+										children: item.hasAssetNumber ? item.assetNumber : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:72:27",
+											"data-prohibitions": "[]",
+											className: "text-muted-foreground italic",
+											children: "Sem Patrimônio"
+										})
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:166:21",
-										"data-prohibitions": "[editContent]",
-										children: team?.name
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:167:21",
+										"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:75:23",
 										"data-prohibitions": "[editContent]",
 										className: "font-medium",
 										children: itemName
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:168:21",
+										"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:76:23",
 										"data-prohibitions": "[editContent]",
+										className: "text-muted-foreground",
 										children: marca
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:169:21",
-										"data-prohibitions": "[editContent]",
-										className: "text-muted-foreground",
-										children: dept
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/Reports/Index.tsx:170:21",
+										"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:77:23",
 										"data-prohibitions": "[editContent]",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											"data-uid": "src/pages/Reports/Index.tsx:171:23",
+											"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:78:25",
 											"data-prohibitions": "[editContent]",
-											className: `inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${item.condition === "good" ? "bg-emerald-100 text-emerald-800" : item.condition === "damaged" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`,
+											className: `inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${item.condition === "good" ? "bg-emerald-100 text-emerald-800" : item.condition === "damaged" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"}`,
 											children: conditionLabels[item.condition]
 										})
+									}),
+									isMasterAdmin && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:91:25",
+										"data-prohibitions": "[editContent]",
+										className: "text-right tabular-nums text-muted-foreground",
+										children: item.price ? item.price.toFixed(2) : "0.00"
 									})
 								]
 							}, item.id);
-						}), filteredInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
-							"data-uid": "src/pages/Reports/Index.tsx:187:17",
+						}), items.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+							"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:99:19",
 							"data-prohibitions": "[]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-								"data-uid": "src/pages/Reports/Index.tsx:188:19",
+								"data-uid": "src/pages/Reports/TeamInventoryTab.tsx:100:21",
 								"data-prohibitions": "[]",
-								colSpan: 6,
-								className: "h-24 text-center text-muted-foreground",
-								children: "Nenhum registro corresponde aos filtros."
+								colSpan: isMasterAdmin ? 5 : 4,
+								className: "text-center h-20 text-muted-foreground",
+								children: "Nenhum item alocado nesta equipe."
 							})
 						})]
 					})]
-				})]
+				})
 			})]
+		}, team.id))
+	});
+}
+//#endregion
+//#region src/pages/Reports/ChecklistTab.tsx
+function ChecklistTab() {
+	const { teams, inventory, getNodePath } = useAppStore();
+	const [selectedTeam, setSelectedTeam] = (0, import_react.useState)(teams[0]?.id || "");
+	const teamInventory = (0, import_react.useMemo)(() => {
+		return inventory.filter((i) => i.teamId === selectedTeam);
+	}, [inventory, selectedTeam]);
+	const teamName = teams.find((t) => t.id === selectedTeam)?.name;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		"data-uid": "src/pages/Reports/ChecklistTab.tsx:33:5",
+		"data-prohibitions": "[editContent]",
+		className: "animate-slide-up",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+			"data-uid": "src/pages/Reports/ChecklistTab.tsx:34:7",
+			"data-prohibitions": "[editContent]",
+			className: "bg-muted/30 pb-4 border-b flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Reports/ChecklistTab.tsx:35:9",
+				"data-prohibitions": "[editContent]",
+				className: "w-full max-w-xs space-y-1.5",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+					"data-uid": "src/pages/Reports/ChecklistTab.tsx:36:11",
+					"data-prohibitions": "[]",
+					className: "text-xs font-medium",
+					children: "Selecione a Equipe para o Checklist"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+					"data-uid": "src/pages/Reports/ChecklistTab.tsx:37:11",
+					"data-prohibitions": "[editContent]",
+					value: selectedTeam,
+					onValueChange: setSelectedTeam,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:38:13",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+							"data-uid": "src/pages/Reports/ChecklistTab.tsx:39:15",
+							"data-prohibitions": "[editContent]"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:41:13",
+						"data-prohibitions": "[editContent]",
+						children: teams.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+							"data-uid": "src/pages/Reports/ChecklistTab.tsx:43:17",
+							"data-prohibitions": "[editContent]",
+							value: t.id,
+							children: t.name
+						}, t.id))
+					})]
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				"data-uid": "src/pages/Reports/ChecklistTab.tsx:50:9",
+				"data-prohibitions": "[]",
+				variant: "outline",
+				onClick: () => window.print(),
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, {
+					"data-uid": "src/pages/Reports/ChecklistTab.tsx:51:11",
+					"data-prohibitions": "[editContent]",
+					className: "h-4 w-4 mr-2"
+				}), " Imprimir para Auditoria"]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+			"data-uid": "src/pages/Reports/ChecklistTab.tsx:54:7",
+			"data-prohibitions": "[editContent]",
+			className: "p-0 sm:p-6 print:p-0 print:border-none",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Reports/ChecklistTab.tsx:55:9",
+				"data-prohibitions": "[editContent]",
+				className: "mb-6 hidden print:block",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:56:11",
+						"data-prohibitions": "[]",
+						className: "text-2xl font-bold uppercase tracking-tight",
+						children: "Checklist de Auditoria Surpresa"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:59:11",
+						"data-prohibitions": "[editContent]",
+						className: "flex justify-between mt-2 text-sm",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+								"data-uid": "src/pages/Reports/ChecklistTab.tsx:60:13",
+								"data-prohibitions": "[editContent]",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:61:15",
+										"data-prohibitions": "[]",
+										children: "Equipe Inspecionada:"
+									}),
+									" ",
+									teamName
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+								"data-uid": "src/pages/Reports/ChecklistTab.tsx:63:13",
+								"data-prohibitions": "[]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:64:15",
+									"data-prohibitions": "[]",
+									children: "Data:"
+								}), " ____/____/______"]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+								"data-uid": "src/pages/Reports/ChecklistTab.tsx:66:13",
+								"data-prohibitions": "[]",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:67:15",
+									"data-prohibitions": "[]",
+									children: "Visto Gestor:"
+								}), " ___________________"]
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("hr", {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:70:11",
+						"data-prohibitions": "[editContent]",
+						className: "my-4 border-black"
+					})
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/Reports/ChecklistTab.tsx:73:9",
+				"data-prohibitions": "[editContent]",
+				className: "border rounded-md print:border-black print:rounded-none",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					"data-uid": "src/pages/Reports/ChecklistTab.tsx:74:11",
+					"data-prohibitions": "[editContent]",
+					className: "print:text-xs",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:75:13",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/Reports/ChecklistTab.tsx:76:15",
+							"data-prohibitions": "[]",
+							className: "print:border-black print:bg-gray-100",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:77:17",
+									"data-prohibitions": "[]",
+									className: "w-[150px] print:text-black",
+									children: "Nº Patrimônio"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:78:17",
+									"data-prohibitions": "[]",
+									className: "print:text-black",
+									children: "Descrição do Item (Marca)"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:79:17",
+									"data-prohibitions": "[]",
+									className: "w-[80px] text-center border-l print:border-black print:text-black",
+									children: "Presente"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:82:17",
+									"data-prohibitions": "[]",
+									className: "w-[80px] text-center border-l print:border-black print:text-black",
+									children: "Faltando"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:85:17",
+									"data-prohibitions": "[]",
+									className: "w-[80px] text-center border-l print:border-black print:text-black",
+									children: "Emprest."
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/ChecklistTab.tsx:88:17",
+									"data-prohibitions": "[]",
+									className: "w-[250px] border-l print:border-black print:text-black",
+									children: "Observações de Auditoria"
+								})
+							]
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+						"data-uid": "src/pages/Reports/ChecklistTab.tsx:93:13",
+						"data-prohibitions": "[editContent]",
+						children: [teamInventory.map((item) => {
+							const path = getNodePath(item.treeNodeId);
+							const name = `${path.find((n) => n.level === "item")?.name || "Item"} (${path.find((n) => n.level === "marca")?.name || "-"})`;
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/Reports/ChecklistTab.tsx:99:19",
+								"data-prohibitions": "[editContent]",
+								className: "h-14 print:border-black",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:100:21",
+										"data-prohibitions": "[editContent]",
+										className: "font-mono text-xs font-semibold",
+										children: item.hasAssetNumber ? item.assetNumber : "S/N"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:103:21",
+										"data-prohibitions": "[editContent]",
+										className: "font-medium text-sm",
+										children: name
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:104:21",
+										"data-prohibitions": "[]",
+										className: "border-l print:border-black",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/ChecklistTab.tsx:105:23",
+											"data-prohibitions": "[]",
+											className: "w-5 h-5 border-2 border-muted-foreground/40 print:border-black rounded mx-auto"
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:107:21",
+										"data-prohibitions": "[]",
+										className: "border-l print:border-black",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/ChecklistTab.tsx:108:23",
+											"data-prohibitions": "[]",
+											className: "w-5 h-5 border-2 border-muted-foreground/40 print:border-black rounded mx-auto"
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:110:21",
+										"data-prohibitions": "[]",
+										className: "border-l print:border-black",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/ChecklistTab.tsx:111:23",
+											"data-prohibitions": "[]",
+											className: "w-5 h-5 border-2 border-muted-foreground/40 print:border-black rounded mx-auto"
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/ChecklistTab.tsx:113:21",
+										"data-prohibitions": "[]",
+										className: "border-l print:border-black"
+									})
+								]
+							}, item.id);
+						}), teamInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+							"data-uid": "src/pages/Reports/ChecklistTab.tsx:118:17",
+							"data-prohibitions": "[]",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								"data-uid": "src/pages/Reports/ChecklistTab.tsx:119:19",
+								"data-prohibitions": "[]",
+								colSpan: 6,
+								className: "text-center h-24 print:border-black",
+								children: "Nenhuma ferramenta alocada para impressão."
+							})
+						})]
+					})]
+				})
+			})]
+		})]
+	});
+}
+//#endregion
+//#region src/pages/Reports/TreeReportTab.tsx
+function TreeReportTab() {
+	const { nodes, inventory } = useAppStore();
+	const treeData = (0, import_react.useMemo)(() => {
+		const counts = {};
+		inventory.forEach((item) => {
+			counts[item.treeNodeId] = (counts[item.treeNodeId] || 0) + 1;
+		});
+		[
+			"marca",
+			"item",
+			"categoria",
+			"secao",
+			"departamento"
+		].forEach((level) => {
+			nodes.filter((n) => n.level === level).forEach((node) => {
+				if (node.parentId) counts[node.parentId] = (counts[node.parentId] || 0) + (counts[node.id] || 0);
+			});
+		});
+		return counts;
+	}, [nodes, inventory]);
+	const renderNode = (parentId, depth = 0) => {
+		const children = nodes.filter((n) => n.parentId === parentId);
+		if (children.length === 0) return null;
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			"data-uid": "src/pages/Reports/TreeReportTab.tsx:34:7",
+			"data-prohibitions": "[editContent]",
+			className: "space-y-1",
+			children: children.map((node) => {
+				const count = treeData[node.id] || 0;
+				if (count === 0 && depth > 0) return null;
+				return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Reports/TreeReportTab.tsx:40:13",
+					"data-prohibitions": "[editContent]",
+					className: `${depth > 0 ? "ml-6" : ""}`,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Reports/TreeReportTab.tsx:41:15",
+						"data-prohibitions": "[editContent]",
+						className: "flex items-center justify-between py-2 px-3 hover:bg-muted/50 rounded-md border border-transparent transition-colors group",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Reports/TreeReportTab.tsx:42:17",
+							"data-prohibitions": "[editContent]",
+							className: "flex items-center gap-2",
+							children: [
+								depth === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FolderTree, {
+									"data-uid": "src/pages/Reports/TreeReportTab.tsx:44:21",
+									"data-prohibitions": "[editContent]",
+									className: "h-4 w-4 text-primary"
+								}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, {
+									"data-uid": "src/pages/Reports/TreeReportTab.tsx:46:21",
+									"data-prohibitions": "[editContent]",
+									className: "h-4 w-4 text-muted-foreground/50"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/pages/Reports/TreeReportTab.tsx:48:19",
+									"data-prohibitions": "[editContent]",
+									className: `text-sm ${depth === 0 ? "font-bold" : depth === 1 ? "font-semibold" : depth === 2 ? "font-medium" : ""}`,
+									children: node.name
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									"data-uid": "src/pages/Reports/TreeReportTab.tsx:53:19",
+									"data-prohibitions": "[editContent]",
+									className: "text-[9px] uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded ml-2",
+									children: node.level
+								})
+							]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/Reports/TreeReportTab.tsx:57:17",
+							"data-prohibitions": "[editContent]",
+							className: "font-mono text-sm bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-semibold",
+							children: count
+						})]
+					}), renderNode(node.id, depth + 1)]
+				}, node.id);
+			})
+		});
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		"data-uid": "src/pages/Reports/TreeReportTab.tsx:70:5",
+		"data-prohibitions": "[editContent]",
+		className: "animate-slide-up",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+			"data-uid": "src/pages/Reports/TreeReportTab.tsx:71:7",
+			"data-prohibitions": "[]",
+			className: "bg-muted/30 pb-4 border-b",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
+				"data-uid": "src/pages/Reports/TreeReportTab.tsx:72:9",
+				"data-prohibitions": "[]",
+				className: "text-lg",
+				children: "Estrutura de Quantidades"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+				"data-uid": "src/pages/Reports/TreeReportTab.tsx:73:9",
+				"data-prohibitions": "[]",
+				children: "Visualize as instâncias agrupadas hierarquicamente (Categoria > Item > Marca)."
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+			"data-uid": "src/pages/Reports/TreeReportTab.tsx:77:7",
+			"data-prohibitions": "[editContent]",
+			className: "p-4 sm:p-6",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/Reports/TreeReportTab.tsx:78:9",
+				"data-prohibitions": "[editContent]",
+				className: "bg-card border rounded-lg p-2 shadow-sm",
+				children: renderNode(null)
+			})
+		})]
+	});
+}
+//#endregion
+//#region src/pages/Reports/Index.tsx
+function ReportsPage() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Reports/Index.tsx:9:5",
+		"data-prohibitions": "[]",
+		className: "space-y-6 animate-fade-in",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			"data-uid": "src/pages/Reports/Index.tsx:10:7",
+			"data-prohibitions": "[]",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				"data-uid": "src/pages/Reports/Index.tsx:11:9",
+				"data-prohibitions": "[]",
+				className: "text-2xl font-bold tracking-tight",
+				children: "Relatórios Gerenciais"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				"data-uid": "src/pages/Reports/Index.tsx:12:9",
+				"data-prohibitions": "[]",
+				className: "text-muted-foreground",
+				children: "Acompanhe o histórico, inventários de equipes, gere auditorias e visualize a árvore mercadológica."
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
+			"data-uid": "src/pages/Reports/Index.tsx:18:7",
+			"data-prohibitions": "[]",
+			defaultValue: "history",
+			className: "space-y-4",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
+					"data-uid": "src/pages/Reports/Index.tsx:19:9",
+					"data-prohibitions": "[]",
+					className: "bg-muted/50 border overflow-x-auto max-w-full justify-start",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:20:11",
+							"data-prohibitions": "[]",
+							value: "history",
+							children: "Histórico Detalhado"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:21:11",
+							"data-prohibitions": "[]",
+							value: "team-inventory",
+							children: "Inventário por Equipe"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:22:11",
+							"data-prohibitions": "[]",
+							value: "checklist",
+							children: "Checklist Surpresa"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:23:11",
+							"data-prohibitions": "[]",
+							value: "tree",
+							children: "Árvore Mercadológica"
+						})
+					]
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:26:9",
+					"data-prohibitions": "[]",
+					value: "history",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HistoryTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:27:11",
+						"data-prohibitions": "[editContent]"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:29:9",
+					"data-prohibitions": "[]",
+					value: "team-inventory",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamInventoryTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:30:11",
+						"data-prohibitions": "[editContent]"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:32:9",
+					"data-prohibitions": "[]",
+					value: "checklist",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChecklistTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:33:11",
+						"data-prohibitions": "[editContent]"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:35:9",
+					"data-prohibitions": "[]",
+					value: "tree",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreeReportTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:36:11",
+						"data-prohibitions": "[editContent]"
+					})
+				})
+			]
 		})]
 	});
 }
@@ -59243,4 +60994,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-CVGOjJC-.js.map
+//# sourceMappingURL=index-O6CB9jSE.js.map

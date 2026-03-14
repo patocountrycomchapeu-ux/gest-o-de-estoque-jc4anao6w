@@ -10,6 +10,7 @@ interface AddInventoryPayload {
   hasAssetNumber: boolean
   assets: string[]
   qty: number
+  price?: number
 }
 
 interface UpdateInventoryPayload {
@@ -17,6 +18,7 @@ interface UpdateInventoryPayload {
   hasAssetNumber?: boolean
   assetNumber?: string
   photos?: string[]
+  reason?: string
 }
 
 interface AppContextType extends AppState {
@@ -62,6 +64,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         status: 'present' as ToolStatus,
         photos: [],
         lastUpdated: now,
+        price: info.price || 0,
       }))
       const newHistory = newItems.map((item) => ({
         id: `h_${Date.now()}_${item.id}`,
@@ -83,11 +86,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const updateInventoryItem = useCallback((id: string, updates: UpdateInventoryPayload) => {
     setState((prev) => {
       const now = new Date().toISOString()
+      const item = prev.inventory.find((i) => i.id === id)
+      const newHistory = []
+
+      if (item && updates.condition && updates.condition !== item.condition) {
+        newHistory.push({
+          id: `h_${Date.now()}_cond`,
+          inventoryId: id,
+          date: now,
+          type: 'status_change' as const,
+          description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ''}`,
+          user: prev.currentUser.name,
+        })
+      }
+
       return {
         ...prev,
         inventory: prev.inventory.map((inv) =>
           inv.id === id ? { ...inv, ...updates, lastUpdated: now } : inv,
         ),
+        history: [...newHistory, ...prev.history],
       }
     })
     toast({ title: 'Item Atualizado' })
