@@ -8,6 +8,7 @@ import Index from './pages/Index'
 import TreePage from './pages/Tree/Index'
 import TeamsPage from './pages/Teams/Index'
 import TeamDetail from './pages/Teams/TeamDetail'
+import AuditoriaPage from './pages/Teams/Auditoria'
 import ReportsPage from './pages/Reports/Index'
 import { AppProvider } from './store/AppStore'
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/arvore" element={<TreePage />} />
             <Route path="/equipes" element={<TeamsPage />} />
             <Route path="/equipes/:id" element={<TeamDetail />} />
+            <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
             <Route path="/relatorios" element={<ReportsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />

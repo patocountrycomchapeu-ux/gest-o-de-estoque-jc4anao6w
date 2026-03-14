@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Condition } from '@/types'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function AllocateDialog({
   teamId,
@@ -32,21 +33,32 @@ export function AllocateDialog({
   const { nodes, addInventoryItem, getNodePath } = useAppStore()
   const [selectedMarcaId, setSelectedMarcaId] = useState<string>('')
   const [qty, setQty] = useState(1)
+  const [assets, setAssets] = useState<string[]>([''])
   const [condition, setCondition] = useState<Condition>('good')
 
   const leafItems = useMemo(() => nodes.filter((n) => n.level === 'marca'), [nodes])
 
-  const handleSave = () => {
-    if (!selectedMarcaId || qty < 1) return
-    addInventoryItem({
-      teamId,
-      treeNodeId: selectedMarcaId,
-      quantity: qty,
-      condition,
+  const handleQtyChange = (newQty: number) => {
+    const validQty = Math.max(1, newQty)
+    setQty(validQty)
+    setAssets((prev) => Array.from({ length: validQty }, (_, i) => prev[i] || ''))
+  }
+
+  const handleAssetChange = (index: number, val: string) => {
+    setAssets((prev) => {
+      const copy = [...prev]
+      copy[index] = val
+      return copy
     })
+  }
+
+  const handleSave = () => {
+    if (!selectedMarcaId || assets.some((a) => !a.trim())) return
+    addInventoryItem({ teamId, treeNodeId: selectedMarcaId, condition, assets })
     onOpenChange(false)
     setSelectedMarcaId('')
     setQty(1)
+    setAssets([''])
     setCondition('good')
   }
 
@@ -54,9 +66,9 @@ export function AllocateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>Alocar Ferramentas (Instâncias)</DialogTitle>
+          <DialogTitle>Alocar Ferramentas</DialogTitle>
           <DialogDescription>
-            Selecione a marca e item. O sistema criará instâncias únicas para cada unidade alocada.
+            Adicione ferramentas e informe o Número de Patrimônio único de cada uma.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -86,7 +98,7 @@ export function AllocateDialog({
                 type="number"
                 min={1}
                 value={qty}
-                onChange={(e) => setQty(Number(e.target.value))}
+                onChange={(e) => handleQtyChange(Number(e.target.value))}
               />
             </div>
             <div className="space-y-2">
@@ -103,13 +115,31 @@ export function AllocateDialog({
               </Select>
             </div>
           </div>
+          <div className="space-y-2">
+            <Label>Números de Patrimônio (Obrigatório)</Label>
+            <ScrollArea className="h-[120px] rounded-md border p-2 bg-muted/30">
+              <div className="space-y-2 pr-4">
+                {assets.map((asset, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
+                    <Input
+                      placeholder="Ex: PAT-12345"
+                      value={asset}
+                      onChange={(e) => handleAssetChange(idx, e.target.value)}
+                      className="h-8"
+                    />
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={!selectedMarcaId || qty < 1}>
-            Alocar
+          <Button onClick={handleSave} disabled={!selectedMarcaId || assets.some((a) => !a.trim())}>
+            Salvar Instâncias
           </Button>
         </DialogFooter>
       </DialogContent>

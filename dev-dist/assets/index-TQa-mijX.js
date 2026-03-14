@@ -18123,7 +18123,7 @@ function handleAndDispatchCustomEvent$1(name, handler, detail, { discrete }) {
 	if (discrete) dispatchDiscreteCustomEvent(target, event);
 	else target.dispatchEvent(event);
 }
-var Root$6 = DismissableLayer;
+var Root$8 = DismissableLayer;
 var Branch = DismissableLayerBranch;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-use-layout-effect@1.1.1_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
@@ -18144,7 +18144,7 @@ var Portal$2 = import_react.forwardRef((props, forwardedRef) => {
 Portal$2.displayName = PORTAL_NAME$3;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-presence@1.1.5_@types+react-dom@19.2.3_@types+react@19.2.14__@types+rea_c01c26c80b5ab5e3ecefbda6eca51ad1/node_modules/@radix-ui/react-presence/dist/index.mjs
-function useStateMachine(initialState, machine) {
+function useStateMachine$1(initialState, machine) {
 	return import_react.useReducer((state, event) => {
 		return machine[state][event] ?? state;
 	}, initialState);
@@ -18162,7 +18162,7 @@ function usePresence(present) {
 	const stylesRef = import_react.useRef(null);
 	const prevPresentRef = import_react.useRef(present);
 	const prevAnimationNameRef = import_react.useRef("none");
-	const [state, send] = useStateMachine(present ? "mounted" : "unmounted", {
+	const [state, send] = useStateMachine$1(present ? "mounted" : "unmounted", {
 		mounted: {
 			UNMOUNT: "unmounted",
 			ANIMATION_OUT: "unmountSuspended"
@@ -18323,12 +18323,12 @@ var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 VisuallyHidden.displayName = NAME$3;
-var Root$5 = VisuallyHidden;
+var Root$7 = VisuallyHidden;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-toast@1.2.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_4581e89c6ba13e4159ce65546c8b2a16/node_modules/@radix-ui/react-toast/dist/index.mjs
 var PROVIDER_NAME$1 = "ToastProvider";
-var [Collection$1, useCollection$1, createCollectionScope$1] = createCollection("Toast");
-var [createToastContext, createToastScope] = createContextScope$1("Toast", [createCollectionScope$1]);
+var [Collection$2, useCollection$2, createCollectionScope$2] = createCollection("Toast");
+var [createToastContext, createToastScope] = createContextScope$1("Toast", [createCollectionScope$2]);
 var [ToastProviderProvider, useToastProviderContext] = createToastContext(PROVIDER_NAME$1);
 var ToastProvider$1 = (props) => {
 	const { __scopeToast, label = "Notification", duration = 5e3, swipeDirection = "right", swipeThreshold = 50, children } = props;
@@ -18337,7 +18337,7 @@ var ToastProvider$1 = (props) => {
 	const isFocusedToastEscapeKeyDownRef = import_react.useRef(false);
 	const isClosePausedRef = import_react.useRef(false);
 	if (!label.trim()) console.error(`Invalid prop \`label\` supplied to \`${PROVIDER_NAME$1}\`. Expected non-empty \`string\`.`);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.Provider, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$2.Provider, {
 		scope: __scopeToast,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastProviderProvider, {
 			scope: __scopeToast,
@@ -18357,14 +18357,14 @@ var ToastProvider$1 = (props) => {
 	});
 };
 ToastProvider$1.displayName = PROVIDER_NAME$1;
-var VIEWPORT_NAME$1 = "ToastViewport";
+var VIEWPORT_NAME$2 = "ToastViewport";
 var VIEWPORT_DEFAULT_HOTKEY = ["F8"];
 var VIEWPORT_PAUSE = "toast.viewportPause";
 var VIEWPORT_RESUME = "toast.viewportResume";
 var ToastViewport$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeToast, hotkey = VIEWPORT_DEFAULT_HOTKEY, label = "Notifications ({hotkey})", ...viewportProps } = props;
-	const context = useToastProviderContext(VIEWPORT_NAME$1, __scopeToast);
-	const getItems = useCollection$1(__scopeToast);
+	const context = useToastProviderContext(VIEWPORT_NAME$2, __scopeToast);
+	const getItems = useCollection$2(__scopeToast);
 	const wrapperRef = import_react.useRef(null);
 	const headFocusProxyRef = import_react.useRef(null);
 	const tailFocusProxyRef = import_react.useRef(null);
@@ -18441,7 +18441,7 @@ var ToastViewport$1 = import_react.forwardRef((props, forwardedRef) => {
 					}
 					const sortedCandidates = getSortedTabbableCandidates({ tabbingDirection: isTabbingBackwards ? "backwards" : "forwards" });
 					const index = sortedCandidates.findIndex((candidate) => candidate === focusedElement);
-					if (focusFirst$1(sortedCandidates.slice(index + 1))) event.preventDefault();
+					if (focusFirst$2(sortedCandidates.slice(index + 1))) event.preventDefault();
 					else isTabbingBackwards ? headFocusProxyRef.current?.focus() : tailFocusProxyRef.current?.focus();
 				}
 			};
@@ -18459,10 +18459,10 @@ var ToastViewport$1 = import_react.forwardRef((props, forwardedRef) => {
 			hasToasts && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FocusProxy, {
 				ref: headFocusProxyRef,
 				onFocusFromOutsideViewport: () => {
-					focusFirst$1(getSortedTabbableCandidates({ tabbingDirection: "forwards" }));
+					focusFirst$2(getSortedTabbableCandidates({ tabbingDirection: "forwards" }));
 				}
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.Slot, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$2.Slot, {
 				scope: __scopeToast,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.ol, {
 					tabIndex: -1,
@@ -18473,13 +18473,13 @@ var ToastViewport$1 = import_react.forwardRef((props, forwardedRef) => {
 			hasToasts && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FocusProxy, {
 				ref: tailFocusProxyRef,
 				onFocusFromOutsideViewport: () => {
-					focusFirst$1(getSortedTabbableCandidates({ tabbingDirection: "backwards" }));
+					focusFirst$2(getSortedTabbableCandidates({ tabbingDirection: "backwards" }));
 				}
 			})
 		]
 	});
 });
-ToastViewport$1.displayName = VIEWPORT_NAME$1;
+ToastViewport$1.displayName = VIEWPORT_NAME$2;
 var FOCUS_PROXY_NAME = "ToastFocusProxy";
 var FocusProxy = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeToast, onFocusFromOutsideViewport, ...proxyProps } = props;
@@ -18621,9 +18621,9 @@ var ToastImpl = import_react.forwardRef((props, forwardedRef) => {
 	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToastInteractiveProvider, {
 		scope: __scopeToast,
 		onClose: handleClose,
-		children: import_react_dom.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.ItemSlot, {
+		children: import_react_dom.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$2.ItemSlot, {
 			scope: __scopeToast,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$8, {
 				asChild: true,
 				onEscapeKeyDown: composeEventHandlers(onEscapeKeyDown, () => {
 					if (!context.isFocusedToastEscapeKeyDownRef.current) handleClose();
@@ -18843,7 +18843,7 @@ function getTabbableCandidates$1(container) {
 	while (walker.nextNode()) nodes.push(walker.currentNode);
 	return nodes;
 }
-function focusFirst$1(candidates) {
+function focusFirst$2(candidates) {
 	const previouslyFocusedElement = document.activeElement;
 	return candidates.some((candidate) => {
 		if (candidate === previouslyFocusedElement) return true;
@@ -18852,8 +18852,8 @@ function focusFirst$1(candidates) {
 	});
 }
 var Provider$1 = ToastProvider$1;
-var Viewport$1 = ToastViewport$1;
-var Root2$2 = Toast$2;
+var Viewport$2 = ToastViewport$1;
+var Root2$3 = Toast$2;
 var Title$1 = ToastTitle$1;
 var Description$1 = ToastDescription$1;
 var Action = ToastAction$1;
@@ -19089,6 +19089,34 @@ var ChevronUp = createLucideIcon("chevron-up", [["path", {
 	d: "m18 15-6-6-6 6",
 	key: "153udz"
 }]]);
+var CircleCheck = createLucideIcon("circle-check", [["circle", {
+	cx: "12",
+	cy: "12",
+	r: "10",
+	key: "1mglay"
+}], ["path", {
+	d: "m9 12 2 2 4-4",
+	key: "dzmm74"
+}]]);
+var ClipboardCheck = createLucideIcon("clipboard-check", [
+	["rect", {
+		width: "8",
+		height: "4",
+		x: "8",
+		y: "2",
+		rx: "1",
+		ry: "1",
+		key: "tgr4d6"
+	}],
+	["path", {
+		d: "M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2",
+		key: "116196"
+	}],
+	["path", {
+		d: "m9 14 2 2 4-4",
+		key: "df797q"
+	}]
+]);
 var Download = createLucideIcon("download", [
 	["path", {
 		d: "M12 15V3",
@@ -20732,14 +20760,14 @@ function cn$1(...inputs) {
 //#endregion
 //#region src/components/ui/toast.tsx
 var ToastProvider = Provider$1;
-var ToastViewport = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Viewport$1, {
+var ToastViewport = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Viewport$2, {
 	"data-uid": "src/components/ui/toast.tsx:15:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1("fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]", className),
 	...props
 }));
-ToastViewport.displayName = Viewport$1.displayName;
+ToastViewport.displayName = Viewport$2.displayName;
 var toastVariants = cva("group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full", {
 	variants: { variant: {
 		default: "border bg-background text-foreground",
@@ -20748,7 +20776,7 @@ var toastVariants = cva("group pointer-events-auto relative flex w-full items-ce
 	defaultVariants: { variant: "default" }
 });
 var Toast$1 = import_react.forwardRef(({ className, variant, ...props }, ref) => {
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$2, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$3, {
 		"data-uid": "src/components/ui/toast.tsx:47:5",
 		"data-prohibitions": "[editContent]",
 		ref,
@@ -20756,7 +20784,7 @@ var Toast$1 = import_react.forwardRef(({ className, variant, ...props }, ref) =>
 		...props
 	});
 });
-Toast$1.displayName = Root2$2.displayName;
+Toast$1.displayName = Root2$3.displayName;
 var ToastAction = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Action, {
 	"data-uid": "src/components/ui/toast.tsx:60:3",
 	"data-prohibitions": "[editContent]",
@@ -23482,7 +23510,7 @@ var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Arrow$1.displayName = NAME$2;
-var Root$4 = Arrow$1;
+var Root$6 = Arrow$1;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-use-size@1.1.1_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-use-size/dist/index.mjs
 function useSize(element) {
@@ -23553,11 +23581,11 @@ var PopperAnchor = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 PopperAnchor.displayName = ANCHOR_NAME;
-var CONTENT_NAME$3 = "PopperContent";
-var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$3);
+var CONTENT_NAME$4 = "PopperContent";
+var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$4);
 var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopePopper, side = "bottom", sideOffset = 0, align = "center", alignOffset = 0, arrowPadding = 0, avoidCollisions = true, collisionBoundary = [], collisionPadding: collisionPaddingProp = 0, sticky = "partial", hideWhenDetached = false, updatePositionStrategy = "optimized", onPlaced, ...contentProps } = props;
-	const context = usePopperContext(CONTENT_NAME$3, __scopePopper);
+	const context = usePopperContext(CONTENT_NAME$4, __scopePopper);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
 	const [arrow$4, setArrow] = import_react.useState(null);
@@ -23670,7 +23698,7 @@ var PopperContent = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-PopperContent.displayName = CONTENT_NAME$3;
+PopperContent.displayName = CONTENT_NAME$4;
 var ARROW_NAME$2 = "PopperArrow";
 var OPPOSITE_SIDE = {
 	top: "bottom",
@@ -23703,7 +23731,7 @@ var PopperArrow = import_react.forwardRef(function PopperArrow2(props, forwarded
 			}[contentContext.placedSide],
 			visibility: contentContext.shouldHideArrow ? "hidden" : void 0
 		},
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
 			...arrowProps,
 			ref: forwardedRef,
 			style: {
@@ -23758,9 +23786,9 @@ function getSideAndAlignFromPlacement(placement) {
 	const [side, align = "center"] = placement.split("-");
 	return [side, align];
 }
-var Root2$1 = Popper;
+var Root2$2 = Popper;
 var Anchor = PopperAnchor;
-var Content$1 = PopperContent;
+var Content$2 = PopperContent;
 var Arrow = PopperArrow;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-tooltip@1.2.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_9074d9fb06315b089b2bee17c4c65951/node_modules/@radix-ui/react-tooltip/dist/index.mjs
@@ -23854,7 +23882,7 @@ var Tooltip$2 = (props) => {
 			}
 		};
 	}, []);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$1, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$2, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContextProvider, {
 			scope: __scopeTooltip,
@@ -23886,11 +23914,11 @@ var Tooltip$2 = (props) => {
 	});
 };
 Tooltip$2.displayName = TOOLTIP_NAME;
-var TRIGGER_NAME$2 = "TooltipTrigger";
+var TRIGGER_NAME$3 = "TooltipTrigger";
 var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...triggerProps } = props;
-	const context = useTooltipContext(TRIGGER_NAME$2, __scopeTooltip);
-	const providerContext = useTooltipProviderContext(TRIGGER_NAME$2, __scopeTooltip);
+	const context = useTooltipContext(TRIGGER_NAME$3, __scopeTooltip);
+	const providerContext = useTooltipProviderContext(TRIGGER_NAME$3, __scopeTooltip);
 	const popperScope = usePopperScope$1(__scopeTooltip);
 	const composedRefs = useComposedRefs(forwardedRef, import_react.useRef(null), context.onTriggerChange);
 	const isPointerDownRef = import_react.useRef(false);
@@ -23931,7 +23959,7 @@ var TooltipTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipTrigger$1.displayName = TRIGGER_NAME$2;
+TooltipTrigger$1.displayName = TRIGGER_NAME$3;
 var PORTAL_NAME$2 = "TooltipPortal";
 var [PortalProvider$1, usePortalContext$1] = createTooltipContext(PORTAL_NAME$2, { forceMount: void 0 });
 var TooltipPortal = (props) => {
@@ -23951,11 +23979,11 @@ var TooltipPortal = (props) => {
 	});
 };
 TooltipPortal.displayName = PORTAL_NAME$2;
-var CONTENT_NAME$2 = "TooltipContent";
+var CONTENT_NAME$3 = "TooltipContent";
 var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext$1(CONTENT_NAME$2, props.__scopeTooltip);
+	const portalContext = usePortalContext$1(CONTENT_NAME$3, props.__scopeTooltip);
 	const { forceMount = portalContext.forceMount, side = "top", ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$2, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.disableHoverableContent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContentImpl, {
@@ -23970,8 +23998,8 @@ var TooltipContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var TooltipContentHoverable = import_react.forwardRef((props, forwardedRef) => {
-	const context = useTooltipContext(CONTENT_NAME$2, props.__scopeTooltip);
-	const providerContext = useTooltipProviderContext(CONTENT_NAME$2, props.__scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, props.__scopeTooltip);
+	const providerContext = useTooltipProviderContext(CONTENT_NAME$3, props.__scopeTooltip);
 	const ref = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, ref);
 	const [pointerGraceArea, setPointerGraceArea] = import_react.useState(null);
@@ -24048,7 +24076,7 @@ var [VisuallyHiddenContentContextProvider, useVisuallyHiddenContentContext] = cr
 var Slottable = /* @__PURE__ */ createSlottable("TooltipContent");
 var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, children, "aria-label": ariaLabel, onEscapeKeyDown, onPointerDownOutside, ...contentProps } = props;
-	const context = useTooltipContext(CONTENT_NAME$2, __scopeTooltip);
+	const context = useTooltipContext(CONTENT_NAME$3, __scopeTooltip);
 	const popperScope = usePopperScope$1(__scopeTooltip);
 	const { onClose } = context;
 	import_react.useEffect(() => {
@@ -24071,7 +24099,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 		onPointerDownOutside,
 		onFocusOutside: (event) => event.preventDefault(),
 		onDismiss: onClose,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$2, {
 			"data-state": context.stateAttribute,
 			...popperScope,
 			...contentProps,
@@ -24087,7 +24115,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
 				scope: __scopeTooltip,
 				isInside: true,
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$7, {
 					id: context.contentId,
 					role: "tooltip",
 					children: ariaLabel || children
@@ -24096,7 +24124,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-TooltipContent$1.displayName = CONTENT_NAME$2;
+TooltipContent$1.displayName = CONTENT_NAME$3;
 var ARROW_NAME$1 = "TooltipArrow";
 var TooltipArrow = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeTooltip, ...arrowProps } = props;
@@ -24240,13 +24268,13 @@ function getHullPresorted(points) {
 }
 var Provider = TooltipProvider$1;
 var Root3 = Tooltip$2;
-var Trigger$2 = TooltipTrigger$1;
+var Trigger$3 = TooltipTrigger$1;
 var Content2$1 = TooltipContent$1;
 //#endregion
 //#region src/components/ui/tooltip.tsx
 var TooltipProvider = Provider;
 var Tooltip$1 = Root3;
-var TooltipTrigger = Trigger$2;
+var TooltipTrigger = Trigger$3;
 var TooltipContent = import_react.forwardRef(({ className, sideOffset = 4, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2$1, {
 	"data-uid": "src/components/ui/tooltip.tsx:17:3",
 	"data-prohibitions": "[editContent]",
@@ -24478,10 +24506,10 @@ Separator$2.displayName = NAME$1;
 function isValidOrientation(orientation) {
 	return ORIENTATIONS.includes(orientation);
 }
-var Root$3 = Separator$2;
+var Root$5 = Separator$2;
 //#endregion
 //#region src/components/ui/separator.tsx
-var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
+var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
 	"data-uid": "src/components/ui/separator.tsx:11:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -24490,12 +24518,12 @@ var Separator$1 = import_react.forwardRef(({ className, orientation = "horizonta
 	className: cn$1("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
 	...props
 }));
-Separator$1.displayName = Root$3.displayName;
+Separator$1.displayName = Root$5.displayName;
 //#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-focus-scope@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_f62f3af4ca2ba305a7aecf04c8534604/node_modules/@radix-ui/react-focus-scope/dist/index.mjs
 var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
 var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
-var EVENT_OPTIONS = {
+var EVENT_OPTIONS$1 = {
 	bubbles: false,
 	cancelable: true
 };
@@ -24555,18 +24583,18 @@ var FocusScope = import_react.forwardRef((props, forwardedRef) => {
 			focusScopesStack.add(focusScope);
 			const previouslyFocusedElement = document.activeElement;
 			if (!container.contains(previouslyFocusedElement)) {
-				const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
+				const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS$1);
 				container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
 				container.dispatchEvent(mountEvent);
 				if (!mountEvent.defaultPrevented) {
-					focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
+					focusFirst$1(removeLinks(getTabbableCandidates(container)), { select: true });
 					if (document.activeElement === previouslyFocusedElement) focus(container);
 				}
 			}
 			return () => {
 				container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
 				setTimeout(() => {
-					const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
+					const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS$1);
 					container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
 					container.dispatchEvent(unmountEvent);
 					if (!unmountEvent.defaultPrevented) focus(previouslyFocusedElement ?? document.body, { select: true });
@@ -24612,7 +24640,7 @@ var FocusScope = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 FocusScope.displayName = FOCUS_SCOPE_NAME;
-function focusFirst(candidates, { select = false } = {}) {
+function focusFirst$1(candidates, { select = false } = {}) {
 	const previouslyFocusedElement = document.activeElement;
 	for (const candidate of candidates) {
 		focus(candidate, { select });
@@ -25554,10 +25582,10 @@ var Dialog$1 = (props) => {
 	});
 };
 Dialog$1.displayName = DIALOG_NAME;
-var TRIGGER_NAME$1 = "DialogTrigger";
+var TRIGGER_NAME$2 = "DialogTrigger";
 var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
-	const context = useDialogContext(TRIGGER_NAME$1, __scopeDialog);
+	const context = useDialogContext(TRIGGER_NAME$2, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 		type: "button",
@@ -25570,7 +25598,7 @@ var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
 	});
 });
-DialogTrigger$1.displayName = TRIGGER_NAME$1;
+DialogTrigger$1.displayName = TRIGGER_NAME$2;
 var PORTAL_NAME$1 = "DialogPortal";
 var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME$1, { forceMount: void 0 });
 var DialogPortal$1 = (props) => {
@@ -25623,11 +25651,11 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-var CONTENT_NAME$1 = "DialogContent";
+var CONTENT_NAME$2 = "DialogContent";
 var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const portalContext = usePortalContext(CONTENT_NAME$1, props.__scopeDialog);
+	const portalContext = usePortalContext(CONTENT_NAME$2, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$2, props.__scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
 		present: forceMount || context.open,
 		children: context.modal ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentModal, {
@@ -25639,9 +25667,9 @@ var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-DialogContent$1.displayName = CONTENT_NAME$1;
+DialogContent$1.displayName = CONTENT_NAME$2;
 var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$2, props.__scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
 	import_react.useEffect(() => {
@@ -25666,7 +25694,7 @@ var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
-	const context = useDialogContext(CONTENT_NAME$1, props.__scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$2, props.__scopeDialog);
 	const hasInteractedOutsideRef = import_react.useRef(false);
 	const hasPointerDownOutsideRef = import_react.useRef(false);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogContentImpl, {
@@ -25697,7 +25725,7 @@ var DialogContentNonModal = import_react.forwardRef((props, forwardedRef) => {
 });
 var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
-	const context = useDialogContext(CONTENT_NAME$1, __scopeDialog);
+	const context = useDialogContext(CONTENT_NAME$2, __scopeDialog);
 	const contentRef = import_react.useRef(null);
 	const composedRefs = useComposedRefs(forwardedRef, contentRef);
 	useFocusGuards();
@@ -25761,7 +25789,7 @@ function getState(open) {
 }
 var TITLE_WARNING_NAME = "DialogTitleWarning";
 var [WarningProvider, useWarningContext] = createContext2(TITLE_WARNING_NAME, {
-	contentName: CONTENT_NAME$1,
+	contentName: CONTENT_NAME$2,
 	titleName: TITLE_NAME,
 	docsSlug: "dialog"
 });
@@ -25794,16 +25822,16 @@ var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	]);
 	return null;
 };
-var Root$2 = Dialog$1;
+var Root$4 = Dialog$1;
 var Portal$1 = DialogPortal$1;
 var Overlay = DialogOverlay$1;
-var Content = DialogContent$1;
+var Content$1 = DialogContent$1;
 var Title = DialogTitle$1;
 var Description = DialogDescription$1;
 var Close = DialogClose$1;
 //#endregion
 //#region src/components/ui/sheet.tsx
-var Sheet = Root$2;
+var Sheet = Root$4;
 var SheetPortal = Portal$1;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	"data-uid": "src/components/ui/sheet.tsx:21:3",
@@ -25828,7 +25856,7 @@ var SheetContent = import_react.forwardRef(({ side = "right", className, childre
 	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SheetOverlay, {
 		"data-uid": "src/components/ui/sheet.tsx:61:5",
 		"data-prohibitions": "[editContent]"
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
 		"data-uid": "src/components/ui/sheet.tsx:62:5",
 		"data-prohibitions": "[editContent]",
 		ref,
@@ -25851,7 +25879,7 @@ var SheetContent = import_react.forwardRef(({ side = "right", className, childre
 		})]
 	})]
 }));
-SheetContent.displayName = Content.displayName;
+SheetContent.displayName = Content$1.displayName;
 var SheetHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	"data-uid": "src/components/ui/sheet.tsx:74:3",
 	"data-prohibitions": "[editContent]",
@@ -26686,19 +26714,19 @@ function useImageLoadingStatus(src, { referrerPolicy, crossOrigin }) {
 	]);
 	return loadingStatus;
 }
-var Root$1 = Avatar$1;
+var Root$3 = Avatar$1;
 var Image = AvatarImage$1;
 var Fallback = AvatarFallback$1;
 //#endregion
 //#region src/components/ui/avatar.tsx
-var Avatar = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+var Avatar = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
 	"data-uid": "src/components/ui/avatar.tsx:11:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className),
 	...props
 }));
-Avatar.displayName = Root$1.displayName;
+Avatar.displayName = Root$3.displayName;
 var AvatarImage = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, {
 	"data-uid": "src/components/ui/avatar.tsx:23:3",
 	"data-prohibitions": "[editContent]",
@@ -26907,26 +26935,8 @@ var initialNodes = [
 		parentId: "c2"
 	},
 	{
-		id: "i3",
-		name: "Chave de Fenda",
-		level: "item",
-		parentId: "c2"
-	},
-	{
-		id: "i4",
-		name: "Picareta",
-		level: "item",
-		parentId: "c2"
-	},
-	{
 		id: "m1",
 		name: "Makita",
-		level: "marca",
-		parentId: "i1"
-	},
-	{
-		id: "m2",
-		name: "Bosch",
 		level: "marca",
 		parentId: "i1"
 	},
@@ -26935,18 +26945,6 @@ var initialNodes = [
 		name: "Tramontina",
 		level: "marca",
 		parentId: "i2"
-	},
-	{
-		id: "m4",
-		name: "Gerdau",
-		level: "marca",
-		parentId: "i3"
-	},
-	{
-		id: "m5",
-		name: "Minas",
-		level: "marca",
-		parentId: "i4"
 	}
 ];
 var initialTeams = [{
@@ -26960,46 +26958,52 @@ var initialTeams = [{
 	description: "Reparos Rápidos",
 	location: "Setor Sul"
 }];
-var initialInventory = [
-	{
-		id: "inv1",
-		teamId: "t1",
-		treeNodeId: "m1",
-		condition: "good",
-		photos: ["https://img.usecurling.com/p/200/200?q=drill"],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-	},
-	{
-		id: "inv2",
-		teamId: "t1",
-		treeNodeId: "m3",
-		condition: "damaged",
-		photos: ["https://img.usecurling.com/p/200/200?q=screwdriver"],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-	},
-	{
-		id: "inv3",
-		teamId: "t2",
-		treeNodeId: "m2",
-		condition: "repair",
-		photos: ["https://img.usecurling.com/p/200/200?q=tools"],
-		lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-	}
-];
+var initialInventory = [{
+	id: "inv1",
+	assetNumber: "PAT-10001",
+	teamId: "t1",
+	treeNodeId: "m1",
+	condition: "good",
+	status: "present",
+	photos: ["https://img.usecurling.com/p/200/200?q=drill"],
+	lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+}, {
+	id: "inv2",
+	assetNumber: "PAT-10002",
+	teamId: "t1",
+	treeNodeId: "m3",
+	condition: "damaged",
+	status: "borrowed",
+	borrowedTo: "João (Equipe Beta)",
+	photos: ["https://img.usecurling.com/p/200/200?q=screwdriver"],
+	lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
+}];
 var initialData = {
 	nodes: [...initialNodes],
 	teams: [...initialTeams],
 	inventory: [...initialInventory],
-	activities: [{
-		id: "a1",
-		date: (/* @__PURE__ */ new Date(Date.now() - 36e5)).toISOString(),
-		description: "Equipe Tacha 1 reportou 'Chave Phillips (Tramontina)' como Danificado.",
-		type: "status_change"
-	}, {
-		id: "a2",
+	activities: [],
+	history: [{
+		id: "h1",
+		inventoryId: "inv1",
 		date: (/* @__PURE__ */ new Date(Date.now() - 864e5)).toISOString(),
-		description: "1x 'Parafusadeira Impacto 12V (Makita)' alocada para Equipe Tacha 1.",
-		type: "allocation"
+		type: "allocation",
+		description: "Alocado inicialmente para a Equipe Tacha 1.",
+		user: "Sistema"
+	}, {
+		id: "h2",
+		inventoryId: "inv2",
+		date: (/* @__PURE__ */ new Date(Date.now() - 36e5)).toISOString(),
+		type: "audit",
+		description: "Auditado como Emprestado - João (Equipe Beta)",
+		user: "Carlos Líder"
+	}],
+	checklists: [{
+		id: "chk1",
+		teamId: "t1",
+		date: (/* @__PURE__ */ new Date(Date.now() - 36e5)).toISOString(),
+		leaderName: "Carlos Líder",
+		discrepancies: 1
 	}]
 };
 //#endregion
@@ -27007,81 +27011,146 @@ var initialData = {
 var AppContext = (0, import_react.createContext)(void 0);
 function AppProvider({ children }) {
 	const [state, setState] = (0, import_react.useState)(initialData);
-	const addNode = (0, import_react.useCallback)((nodeInfo) => {
+	const addNode = (0, import_react.useCallback)((n) => {
 		const newNode = {
-			...nodeInfo,
+			...n,
 			id: `n_${Date.now()}_${Math.floor(Math.random() * 1e3)}`
 		};
-		setState((prev) => ({
-			...prev,
-			nodes: [...prev.nodes, newNode]
+		setState((p) => ({
+			...p,
+			nodes: [...p.nodes, newNode]
 		}));
 		toast$1({
 			title: "Nó adicionado",
-			description: `${nodeInfo.name} foi criado com sucesso.`
+			description: `${n.name} criado com sucesso.`
 		});
 	}, []);
-	const addInventoryItem = (0, import_react.useCallback)((itemInfo) => {
+	const addInventoryItem = (0, import_react.useCallback)((info) => {
 		setState((prev) => {
-			const newItems = [];
-			for (let i = 0; i < itemInfo.quantity; i++) newItems.push({
+			const now = (/* @__PURE__ */ new Date()).toISOString();
+			const newItems = info.assets.map((asset, i) => ({
 				id: `inv_${Date.now()}_${i}`,
-				teamId: itemInfo.teamId,
-				treeNodeId: itemInfo.treeNodeId,
-				condition: itemInfo.condition,
+				assetNumber: asset,
+				teamId: info.teamId,
+				treeNodeId: info.treeNodeId,
+				condition: info.condition,
+				status: "present",
 				photos: [],
-				lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-			});
-			const node = prev.nodes.find((n) => n.id === itemInfo.treeNodeId);
-			const team = prev.teams.find((t) => t.id === itemInfo.teamId);
-			const activity = {
-				id: `act_${Date.now()}`,
-				date: (/* @__PURE__ */ new Date()).toISOString(),
-				description: `${itemInfo.quantity}x instâncias de '${node?.name}' alocada(s) para ${team?.name}.`,
-				type: "allocation"
-			};
+				lastUpdated: now
+			}));
+			const newHistory = newItems.map((item) => ({
+				id: `h_${Date.now()}_${item.id}`,
+				inventoryId: item.id,
+				date: now,
+				type: "allocation",
+				description: `Alocado com patrimônio ${item.assetNumber}`,
+				user: "Sistema"
+			}));
 			return {
 				...prev,
 				inventory: [...prev.inventory, ...newItems],
-				activities: [activity, ...prev.activities]
+				history: [...newHistory, ...prev.history]
 			};
 		});
 		toast$1({
 			title: "Instâncias Alocadas",
-			description: `${itemInfo.quantity} unidade(s) vinculada(s) à equipe.`
+			description: `${info.assets.length} unidade(s) salva(s).`
 		});
 	}, []);
-	const updateInventoryCondition = (0, import_react.useCallback)((id, condition, photos) => {
+	const updateInventoryItem = (0, import_react.useCallback)((id, updates) => {
 		setState((prev) => {
-			const currentItem = prev.inventory.find((i) => i.id === id);
-			if (!currentItem) return prev;
-			const updatedInventory = prev.inventory.map((item) => item.id === id ? {
-				...item,
-				condition,
-				photos,
-				lastUpdated: (/* @__PURE__ */ new Date()).toISOString()
-			} : item);
-			const node = prev.nodes.find((n) => n.id === currentItem.treeNodeId);
-			const team = prev.teams.find((t) => t.id === currentItem.teamId);
-			const activity = {
-				id: `act_${Date.now()}`,
-				date: (/* @__PURE__ */ new Date()).toISOString(),
-				description: `${team?.name} atualizou unidade de '${node?.name}' para ${{
-					good: "Bom",
-					damaged: "Danificado",
-					repair: "Para Reparo"
-				}[condition]}.`,
-				type: "status_change"
-			};
+			const item = prev.inventory.find((i) => i.id === id);
+			if (!item) return prev;
+			const now = (/* @__PURE__ */ new Date()).toISOString();
+			const newHistory = [];
+			if (updates.condition && updates.condition !== item.condition) newHistory.push({
+				id: `h_${Date.now()}_1`,
+				inventoryId: id,
+				date: now,
+				type: "status_change",
+				description: `Condição alterada para ${updates.condition}`,
+				user: "Sistema"
+			});
+			if (updates.assetNumber && updates.assetNumber !== item.assetNumber) newHistory.push({
+				id: `h_${Date.now()}_2`,
+				inventoryId: id,
+				date: now,
+				type: "system",
+				description: `Patrimônio alterado de ${item.assetNumber} para ${updates.assetNumber}`,
+				user: "Sistema"
+			});
+			const updated = prev.inventory.map((inv) => inv.id === id ? {
+				...inv,
+				...updates,
+				lastUpdated: now
+			} : inv);
 			return {
 				...prev,
-				inventory: updatedInventory,
-				activities: [activity, ...prev.activities]
+				inventory: updated,
+				history: [...newHistory, ...prev.history]
 			};
 		});
 		toast$1({
-			title: "Status Atualizado",
-			description: "A condição e evidências foram salvas."
+			title: "Item Atualizado",
+			description: "As alterações foram salvas e registradas."
+		});
+	}, []);
+	const submitChecklist = (0, import_react.useCallback)((teamId, leader, items, extra) => {
+		setState((prev) => {
+			const now = (/* @__PURE__ */ new Date()).toISOString();
+			const newHistory = [];
+			const updatedInv = prev.inventory.map((inv) => {
+				if (inv.teamId === teamId && items[inv.id]) {
+					const { status, notes } = items[inv.id];
+					if (inv.status !== status || notes) {
+						const desc = `Auditado: ${status === "present" ? "Presente" : status === "missing" ? "Faltando" : "Emprestado"}${notes ? ` - ${notes}` : ""}`;
+						newHistory.push({
+							id: `h_${Date.now()}_${inv.id}`,
+							inventoryId: inv.id,
+							date: now,
+							type: "audit",
+							description: desc,
+							user: leader
+						});
+					}
+					return {
+						...inv,
+						status,
+						borrowedTo: status === "borrowed" ? notes : void 0,
+						lastUpdated: now
+					};
+				}
+				return inv;
+			});
+			extra.forEach((ex, i) => {
+				const existing = prev.inventory.find((inv) => inv.assetNumber === ex.assetNumber);
+				if (existing) newHistory.push({
+					id: `hex_${Date.now()}_${i}`,
+					inventoryId: existing.id,
+					date: now,
+					type: "audit",
+					description: `Encontrado sobrando na equipe - ${ex.notes}`,
+					user: leader
+				});
+			});
+			const discrepancies = Object.values(items).filter((i) => i.status !== "present").length + extra.length;
+			const checklist = {
+				id: `chk_${Date.now()}`,
+				teamId,
+				date: now,
+				leaderName: leader,
+				discrepancies
+			};
+			return {
+				...prev,
+				inventory: updatedInv,
+				history: [...newHistory, ...prev.history],
+				checklists: [checklist, ...prev.checklists]
+			};
+		});
+		toast$1({
+			title: "Auditoria Concluída",
+			description: "O checklist foi salvo no histórico."
 		});
 	}, []);
 	const getNodePath = (0, import_react.useCallback)((nodeId) => {
@@ -27100,27 +27169,29 @@ function AppProvider({ children }) {
 		...state,
 		addNode,
 		addInventoryItem,
-		updateInventoryCondition,
+		updateInventoryItem,
+		submitChecklist,
 		getNodePath
 	}), [
 		state,
 		addNode,
 		addInventoryItem,
-		updateInventoryCondition,
+		updateInventoryItem,
+		submitChecklist,
 		getNodePath
 	]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:132:10",
+		"data-uid": "src/store/AppStore.tsx:199:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
 	});
 }
-function useAppStore() {
-	const context = (0, import_react.useContext)(AppContext);
-	if (!context) throw new Error("useAppStore must be used within AppProvider");
-	return context;
-}
+var useAppStore = () => {
+	const ctx = (0, import_react.useContext)(AppContext);
+	if (!ctx) throw new Error("useAppStore failed");
+	return ctx;
+};
 //#endregion
 //#region src/components/ui/card.tsx
 var Card = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -52977,7 +53048,7 @@ function TreeNodeItem({ node, allNodes, onAddChild }) {
 }
 //#endregion
 //#region src/components/ui/dialog.tsx
-var Dialog = Root$2;
+var Dialog = Root$4;
 var DialogPortal = Portal$1;
 var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	"data-uid": "src/components/ui/dialog.tsx:20:3",
@@ -52993,7 +53064,7 @@ var DialogContent = import_react.forwardRef(({ className, children, ...props }, 
 	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {
 		"data-uid": "src/components/ui/dialog.tsx:36:5",
 		"data-prohibitions": "[editContent]"
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content$1, {
 		"data-uid": "src/components/ui/dialog.tsx:37:5",
 		"data-prohibitions": "[editContent]",
 		ref,
@@ -53016,7 +53087,7 @@ var DialogContent = import_react.forwardRef(({ className, children, ...props }, 
 		})]
 	})]
 }));
-DialogContent.displayName = Content.displayName;
+DialogContent.displayName = Content$1.displayName;
 var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 	"data-uid": "src/components/ui/dialog.tsx:56:3",
 	"data-prohibitions": "[editContent]",
@@ -53062,18 +53133,18 @@ var Label$2 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 Label$2.displayName = NAME;
-var Root = Label$2;
+var Root$2 = Label$2;
 //#endregion
 //#region src/components/ui/label.tsx
 var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
-var Label$1 = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+var Label$1 = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
 	"data-uid": "src/components/ui/label.tsx:16:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1(labelVariants(), className),
 	...props
 }));
-Label$1.displayName = Root.displayName;
+Label$1.displayName = Root$2.displayName;
 //#endregion
 //#region src/pages/Tree/Index.tsx
 var nextLevelMap = {
@@ -53450,6 +53521,25 @@ var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* 
 }));
 TableCaption.displayName = "TableCaption";
 //#endregion
+//#region src/components/ui/badge.tsx
+var badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
+	variants: { variant: {
+		default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+		secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+		destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+		outline: "text-foreground"
+	} },
+	defaultVariants: { variant: "default" }
+});
+function Badge({ className, variant, ...props }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		"data-uid": "src/components/ui/badge.tsx:30:10",
+		"data-prohibitions": "[editContent]",
+		className: cn$1(badgeVariants({ variant }), className),
+		...props
+	});
+}
+//#endregion
 //#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+number@1.1.1/node_modules/@radix-ui/number/dist/index.mjs
 function clamp(value, [min, max]) {
 	return Math.min(max, Math.max(min, value));
@@ -53486,8 +53576,8 @@ var OPEN_KEYS = [
 ];
 var SELECTION_KEYS = [" ", "Enter"];
 var SELECT_NAME = "Select";
-var [Collection, useCollection, createCollectionScope] = createCollection(SELECT_NAME);
-var [createSelectContext, createSelectScope] = createContextScope$1(SELECT_NAME, [createCollectionScope, createPopperScope]);
+var [Collection$1, useCollection$1, createCollectionScope$1] = createCollection(SELECT_NAME);
+var [createSelectContext, createSelectScope] = createContextScope$1(SELECT_NAME, [createCollectionScope$1, createPopperScope]);
 var usePopperScope = createPopperScope();
 var [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
 var [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
@@ -53514,7 +53604,7 @@ var Select$1 = (props) => {
 	const isFormControl = trigger ? form || !!trigger.closest("form") : true;
 	const [nativeOptionsSet, setNativeOptionsSet] = import_react.useState(/* @__PURE__ */ new Set());
 	const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$1, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2$2, {
 		...popperScope,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectProvider, {
 			required,
@@ -53533,7 +53623,7 @@ var Select$1 = (props) => {
 			dir: direction,
 			triggerPointerDownPosRef,
 			disabled,
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.Provider, {
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.Provider, {
 				scope: __scopeSelect,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectNativeOptionsProvider, {
 					scope: props.__scopeSelect,
@@ -53565,14 +53655,14 @@ var Select$1 = (props) => {
 	});
 };
 Select$1.displayName = SELECT_NAME;
-var TRIGGER_NAME = "SelectTrigger";
+var TRIGGER_NAME$1 = "SelectTrigger";
 var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, disabled = false, ...triggerProps } = props;
 	const popperScope = usePopperScope(__scopeSelect);
-	const context = useSelectContext(TRIGGER_NAME, __scopeSelect);
+	const context = useSelectContext(TRIGGER_NAME$1, __scopeSelect);
 	const isDisabled = context.disabled || disabled;
 	const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
-	const getItems = useCollection(__scopeSelect);
+	const getItems = useCollection$1(__scopeSelect);
 	const pointerTypeRef = import_react.useRef("touch");
 	const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
 		const enabledItems = getItems().filter((item) => !item.disabled);
@@ -53631,7 +53721,7 @@ var SelectTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-SelectTrigger$1.displayName = TRIGGER_NAME;
+SelectTrigger$1.displayName = TRIGGER_NAME$1;
 var VALUE_NAME = "SelectValue";
 var SelectValue$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
@@ -53669,9 +53759,9 @@ var SelectPortal = (props) => {
 	});
 };
 SelectPortal.displayName = PORTAL_NAME;
-var CONTENT_NAME = "SelectContent";
+var CONTENT_NAME$1 = "SelectContent";
 var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
-	const context = useSelectContext(CONTENT_NAME, props.__scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$1, props.__scopeSelect);
 	const [fragment, setFragment] = import_react.useState();
 	useLayoutEffect2(() => {
 		setFragment(new DocumentFragment());
@@ -53680,7 +53770,7 @@ var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		const frag = fragment;
 		return frag ? import_react_dom.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContentProvider, {
 			scope: props.__scopeSelect,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.Slot, {
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.Slot, {
 				scope: props.__scopeSelect,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: props.children })
 			})
@@ -53691,20 +53781,20 @@ var SelectContent$1 = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-SelectContent$1.displayName = CONTENT_NAME;
+SelectContent$1.displayName = CONTENT_NAME$1;
 var CONTENT_MARGIN = 10;
-var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME);
+var [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME$1);
 var CONTENT_IMPL_NAME = "SelectContentImpl";
 var Slot = /* @__PURE__ */ createSlot$1("SelectContent.RemoveScroll");
 var SelectContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, position = "item-aligned", onCloseAutoFocus, onEscapeKeyDown, onPointerDownOutside, side, sideOffset, align, alignOffset, arrowPadding, collisionBoundary, collisionPadding, sticky, hideWhenDetached, avoidCollisions, ...contentProps } = props;
-	const context = useSelectContext(CONTENT_NAME, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$1, __scopeSelect);
 	const [content, setContent] = import_react.useState(null);
 	const [viewport, setViewport] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
 	const [selectedItem, setSelectedItem] = import_react.useState(null);
 	const [selectedItemText, setSelectedItemText] = import_react.useState(null);
-	const getItems = useCollection(__scopeSelect);
+	const getItems = useCollection$1(__scopeSelect);
 	const [isPositioned, setIsPositioned] = import_react.useState(false);
 	const firstValidItemFoundRef = import_react.useRef(false);
 	import_react.useEffect(() => {
@@ -53888,12 +53978,12 @@ SelectContentImpl.displayName = CONTENT_IMPL_NAME;
 var ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition";
 var SelectItemAlignedPosition = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, onPlaced, ...popperProps } = props;
-	const context = useSelectContext(CONTENT_NAME, __scopeSelect);
-	const contentContext = useSelectContentContext(CONTENT_NAME, __scopeSelect);
+	const context = useSelectContext(CONTENT_NAME$1, __scopeSelect);
+	const contentContext = useSelectContentContext(CONTENT_NAME$1, __scopeSelect);
 	const [contentWrapper, setContentWrapper] = import_react.useState(null);
 	const [content, setContent] = import_react.useState(null);
 	const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-	const getItems = useCollection(__scopeSelect);
+	const getItems = useCollection$1(__scopeSelect);
 	const shouldExpandOnScrollRef = import_react.useRef(false);
 	const shouldRepositionRef = import_react.useRef(true);
 	const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
@@ -54015,7 +54105,7 @@ var POPPER_POSITION_NAME = "SelectPopperPosition";
 var SelectPopperPosition = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, align = "start", collisionPadding = CONTENT_MARGIN, ...popperProps } = props;
 	const popperScope = usePopperScope(__scopeSelect);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content$1, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content$2, {
 		...popperScope,
 		...popperProps,
 		ref: forwardedRef,
@@ -54033,18 +54123,18 @@ var SelectPopperPosition = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME, {});
-var VIEWPORT_NAME = "SelectViewport";
+var [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME$1, {});
+var VIEWPORT_NAME$1 = "SelectViewport";
 var SelectViewport = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, nonce, ...viewportProps } = props;
-	const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
-	const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
+	const contentContext = useSelectContentContext(VIEWPORT_NAME$1, __scopeSelect);
+	const viewportContext = useSelectViewportContext(VIEWPORT_NAME$1, __scopeSelect);
 	const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
 	const prevScrollTopRef = import_react.useRef(0);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", {
 		dangerouslySetInnerHTML: { __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}` },
 		nonce
-	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.Slot, {
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.Slot, {
 		scope: __scopeSelect,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
 			"data-radix-select-viewport": "",
@@ -54084,9 +54174,9 @@ var SelectViewport = import_react.forwardRef((props, forwardedRef) => {
 		})
 	})] });
 });
-SelectViewport.displayName = VIEWPORT_NAME;
-var GROUP_NAME = "SelectGroup";
-var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
+SelectViewport.displayName = VIEWPORT_NAME$1;
+var GROUP_NAME$1 = "SelectGroup";
+var [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME$1);
 var SelectGroup$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, ...groupProps } = props;
 	const groupId = useId();
@@ -54101,7 +54191,7 @@ var SelectGroup$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-SelectGroup$1.displayName = GROUP_NAME;
+SelectGroup$1.displayName = GROUP_NAME$1;
 var LABEL_NAME = "SelectLabel";
 var SelectLabel$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, ...labelProps } = props;
@@ -54113,12 +54203,12 @@ var SelectLabel$1 = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 SelectLabel$1.displayName = LABEL_NAME;
-var ITEM_NAME = "SelectItem";
-var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
+var ITEM_NAME$1 = "SelectItem";
+var [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME$1);
 var SelectItem$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, value, disabled = false, textValue: textValueProp, ...itemProps } = props;
-	const context = useSelectContext(ITEM_NAME, __scopeSelect);
-	const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
+	const context = useSelectContext(ITEM_NAME$1, __scopeSelect);
+	const contentContext = useSelectContentContext(ITEM_NAME$1, __scopeSelect);
 	const isSelected = context.value === value;
 	const [textValue, setTextValue] = import_react.useState(textValueProp ?? "");
 	const [isFocused, setIsFocused] = import_react.useState(false);
@@ -54141,7 +54231,7 @@ var SelectItem$1 = import_react.forwardRef((props, forwardedRef) => {
 		onItemTextChange: import_react.useCallback((node) => {
 			setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
 		}, []),
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.ItemSlot, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$1.ItemSlot, {
 			scope: __scopeSelect,
 			value,
 			disabled,
@@ -54185,7 +54275,7 @@ var SelectItem$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-SelectItem$1.displayName = ITEM_NAME;
+SelectItem$1.displayName = ITEM_NAME$1;
 var ITEM_TEXT_NAME = "SelectItemText";
 var SelectItemText = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, className, style, ...itemTextProps } = props;
@@ -54290,7 +54380,7 @@ var SelectScrollButtonImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
 	const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
 	const autoScrollTimerRef = import_react.useRef(null);
-	const getItems = useCollection(__scopeSelect);
+	const getItems = useCollection$1(__scopeSelect);
 	const clearAutoScrollTimer = import_react.useCallback(() => {
 		if (autoScrollTimerRef.current !== null) {
 			window.clearInterval(autoScrollTimerRef.current);
@@ -54405,23 +54495,23 @@ function useTypeaheadSearch(onSearchChange) {
 function findNextItem(items, search, currentItem) {
 	const normalizedSearch = search.length > 1 && Array.from(search).every((char) => char === search[0]) ? search[0] : search;
 	const currentItemIndex = currentItem ? items.indexOf(currentItem) : -1;
-	let wrappedItems = wrapArray(items, Math.max(currentItemIndex, 0));
+	let wrappedItems = wrapArray$1(items, Math.max(currentItemIndex, 0));
 	if (normalizedSearch.length === 1) wrappedItems = wrappedItems.filter((v) => v !== currentItem);
 	const nextItem = wrappedItems.find((item) => item.textValue.toLowerCase().startsWith(normalizedSearch.toLowerCase()));
 	return nextItem !== currentItem ? nextItem : void 0;
 }
-function wrapArray(array, startIndex) {
+function wrapArray$1(array, startIndex) {
 	return array.map((_, index) => array[(startIndex + index) % array.length]);
 }
-var Root2 = Select$1;
-var Trigger = SelectTrigger$1;
+var Root2$1 = Select$1;
+var Trigger$1 = SelectTrigger$1;
 var Value = SelectValue$1;
 var Icon = SelectIcon;
 var Portal = SelectPortal;
 var Content2 = SelectContent$1;
-var Viewport = SelectViewport;
+var Viewport$1 = SelectViewport;
 var Label = SelectLabel$1;
-var Item = SelectItem$1;
+var Item$1 = SelectItem$1;
 var ItemText = SelectItemText;
 var ItemIndicator = SelectItemIndicator;
 var ScrollUpButton = SelectScrollUpButton$1;
@@ -54429,9 +54519,9 @@ var ScrollDownButton = SelectScrollDownButton$1;
 var Separator = SelectSeparator$1;
 //#endregion
 //#region src/components/ui/select.tsx
-var Select = Root2;
+var Select = Root2$1;
 var SelectValue = Value;
-var SelectTrigger = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Trigger, {
+var SelectTrigger = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Trigger$1, {
 	"data-uid": "src/components/ui/select.tsx:18:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -54448,7 +54538,7 @@ var SelectTrigger = import_react.forwardRef(({ className, children, ...props }, 
 		})
 	})]
 }));
-SelectTrigger.displayName = Trigger.displayName;
+SelectTrigger.displayName = Trigger$1.displayName;
 var SelectScrollUpButton = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollUpButton, {
 	"data-uid": "src/components/ui/select.tsx:38:3",
 	"data-prohibitions": "[editContent]",
@@ -54490,7 +54580,7 @@ var SelectContent = import_react.forwardRef(({ className, children, position = "
 				"data-uid": "src/components/ui/select.tsx:78:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Viewport, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Viewport$1, {
 				"data-uid": "src/components/ui/select.tsx:79:7",
 				"data-prohibitions": "[editContent]",
 				className: cn$1("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"),
@@ -54512,7 +54602,7 @@ var SelectLabel = import_react.forwardRef(({ className, ...props }, ref) => /* @
 	...props
 }));
 SelectLabel.displayName = Label.displayName;
-var SelectItem = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Item, {
+var SelectItem = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Item$1, {
 	"data-uid": "src/components/ui/select.tsx:110:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -54537,7 +54627,7 @@ var SelectItem = import_react.forwardRef(({ className, children, ...props }, ref
 		children
 	})]
 }));
-SelectItem.displayName = Item.displayName;
+SelectItem.displayName = Item$1.displayName;
 var SelectSeparator = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Separator, {
 	"data-uid": "src/components/ui/select.tsx:133:3",
 	"data-prohibitions": "[editContent]",
@@ -54547,176 +54637,927 @@ var SelectSeparator = import_react.forwardRef(({ className, ...props }, ref) => 
 }));
 SelectSeparator.displayName = Separator.displayName;
 //#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-scroll-area@1.2.10_@types+react-dom@19.2.3_@types+react@19.2.14__@types_155614c2fe5222bb9b221068b09efefc/node_modules/@radix-ui/react-scroll-area/dist/index.mjs
+function useStateMachine(initialState, machine) {
+	return import_react.useReducer((state, event) => {
+		return machine[state][event] ?? state;
+	}, initialState);
+}
+var SCROLL_AREA_NAME = "ScrollArea";
+var [createScrollAreaContext, createScrollAreaScope] = createContextScope$1(SCROLL_AREA_NAME);
+var [ScrollAreaProvider, useScrollAreaContext] = createScrollAreaContext(SCROLL_AREA_NAME);
+var ScrollArea$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeScrollArea, type = "hover", dir, scrollHideDelay = 600, ...scrollAreaProps } = props;
+	const [scrollArea, setScrollArea] = import_react.useState(null);
+	const [viewport, setViewport] = import_react.useState(null);
+	const [content, setContent] = import_react.useState(null);
+	const [scrollbarX, setScrollbarX] = import_react.useState(null);
+	const [scrollbarY, setScrollbarY] = import_react.useState(null);
+	const [cornerWidth, setCornerWidth] = import_react.useState(0);
+	const [cornerHeight, setCornerHeight] = import_react.useState(0);
+	const [scrollbarXEnabled, setScrollbarXEnabled] = import_react.useState(false);
+	const [scrollbarYEnabled, setScrollbarYEnabled] = import_react.useState(false);
+	const composedRefs = useComposedRefs(forwardedRef, (node) => setScrollArea(node));
+	const direction = useDirection(dir);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaProvider, {
+		scope: __scopeScrollArea,
+		type,
+		dir: direction,
+		scrollHideDelay,
+		scrollArea,
+		viewport,
+		onViewportChange: setViewport,
+		content,
+		onContentChange: setContent,
+		scrollbarX,
+		onScrollbarXChange: setScrollbarX,
+		scrollbarXEnabled,
+		onScrollbarXEnabledChange: setScrollbarXEnabled,
+		scrollbarY,
+		onScrollbarYChange: setScrollbarY,
+		scrollbarYEnabled,
+		onScrollbarYEnabledChange: setScrollbarYEnabled,
+		onCornerWidthChange: setCornerWidth,
+		onCornerHeightChange: setCornerHeight,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			dir: direction,
+			...scrollAreaProps,
+			ref: composedRefs,
+			style: {
+				position: "relative",
+				["--radix-scroll-area-corner-width"]: cornerWidth + "px",
+				["--radix-scroll-area-corner-height"]: cornerHeight + "px",
+				...props.style
+			}
+		})
+	});
+});
+ScrollArea$1.displayName = SCROLL_AREA_NAME;
+var VIEWPORT_NAME = "ScrollAreaViewport";
+var ScrollAreaViewport = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeScrollArea, children, nonce, ...viewportProps } = props;
+	const context = useScrollAreaContext(VIEWPORT_NAME, __scopeScrollArea);
+	const composedRefs = useComposedRefs(forwardedRef, import_react.useRef(null), context.onViewportChange);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", {
+		dangerouslySetInnerHTML: { __html: `[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}` },
+		nonce
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		"data-radix-scroll-area-viewport": "",
+		...viewportProps,
+		ref: composedRefs,
+		style: {
+			overflowX: context.scrollbarXEnabled ? "scroll" : "hidden",
+			overflowY: context.scrollbarYEnabled ? "scroll" : "hidden",
+			...props.style
+		},
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			ref: context.onContentChange,
+			style: {
+				minWidth: "100%",
+				display: "table"
+			},
+			children
+		})
+	})] });
+});
+ScrollAreaViewport.displayName = VIEWPORT_NAME;
+var SCROLLBAR_NAME = "ScrollAreaScrollbar";
+var ScrollAreaScrollbar = import_react.forwardRef((props, forwardedRef) => {
+	const { forceMount, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const { onScrollbarXEnabledChange, onScrollbarYEnabledChange } = context;
+	const isHorizontal = props.orientation === "horizontal";
+	import_react.useEffect(() => {
+		isHorizontal ? onScrollbarXEnabledChange(true) : onScrollbarYEnabledChange(true);
+		return () => {
+			isHorizontal ? onScrollbarXEnabledChange(false) : onScrollbarYEnabledChange(false);
+		};
+	}, [
+		isHorizontal,
+		onScrollbarXEnabledChange,
+		onScrollbarYEnabledChange
+	]);
+	return context.type === "hover" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarHover, {
+		...scrollbarProps,
+		ref: forwardedRef,
+		forceMount
+	}) : context.type === "scroll" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarScroll, {
+		...scrollbarProps,
+		ref: forwardedRef,
+		forceMount
+	}) : context.type === "auto" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarAuto, {
+		...scrollbarProps,
+		ref: forwardedRef,
+		forceMount
+	}) : context.type === "always" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarVisible, {
+		...scrollbarProps,
+		ref: forwardedRef
+	}) : null;
+});
+ScrollAreaScrollbar.displayName = SCROLLBAR_NAME;
+var ScrollAreaScrollbarHover = import_react.forwardRef((props, forwardedRef) => {
+	const { forceMount, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const [visible, setVisible] = import_react.useState(false);
+	import_react.useEffect(() => {
+		const scrollArea = context.scrollArea;
+		let hideTimer = 0;
+		if (scrollArea) {
+			const handlePointerEnter = () => {
+				window.clearTimeout(hideTimer);
+				setVisible(true);
+			};
+			const handlePointerLeave = () => {
+				hideTimer = window.setTimeout(() => setVisible(false), context.scrollHideDelay);
+			};
+			scrollArea.addEventListener("pointerenter", handlePointerEnter);
+			scrollArea.addEventListener("pointerleave", handlePointerLeave);
+			return () => {
+				window.clearTimeout(hideTimer);
+				scrollArea.removeEventListener("pointerenter", handlePointerEnter);
+				scrollArea.removeEventListener("pointerleave", handlePointerLeave);
+			};
+		}
+	}, [context.scrollArea, context.scrollHideDelay]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || visible,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarAuto, {
+			"data-state": visible ? "visible" : "hidden",
+			...scrollbarProps,
+			ref: forwardedRef
+		})
+	});
+});
+var ScrollAreaScrollbarScroll = import_react.forwardRef((props, forwardedRef) => {
+	const { forceMount, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const isHorizontal = props.orientation === "horizontal";
+	const debounceScrollEnd = useDebounceCallback(() => send("SCROLL_END"), 100);
+	const [state, send] = useStateMachine("hidden", {
+		hidden: { SCROLL: "scrolling" },
+		scrolling: {
+			SCROLL_END: "idle",
+			POINTER_ENTER: "interacting"
+		},
+		interacting: {
+			SCROLL: "interacting",
+			POINTER_LEAVE: "idle"
+		},
+		idle: {
+			HIDE: "hidden",
+			SCROLL: "scrolling",
+			POINTER_ENTER: "interacting"
+		}
+	});
+	import_react.useEffect(() => {
+		if (state === "idle") {
+			const hideTimer = window.setTimeout(() => send("HIDE"), context.scrollHideDelay);
+			return () => window.clearTimeout(hideTimer);
+		}
+	}, [
+		state,
+		context.scrollHideDelay,
+		send
+	]);
+	import_react.useEffect(() => {
+		const viewport = context.viewport;
+		const scrollDirection = isHorizontal ? "scrollLeft" : "scrollTop";
+		if (viewport) {
+			let prevScrollPos = viewport[scrollDirection];
+			const handleScroll = () => {
+				const scrollPos = viewport[scrollDirection];
+				if (prevScrollPos !== scrollPos) {
+					send("SCROLL");
+					debounceScrollEnd();
+				}
+				prevScrollPos = scrollPos;
+			};
+			viewport.addEventListener("scroll", handleScroll);
+			return () => viewport.removeEventListener("scroll", handleScroll);
+		}
+	}, [
+		context.viewport,
+		isHorizontal,
+		send,
+		debounceScrollEnd
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || state !== "hidden",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarVisible, {
+			"data-state": state === "hidden" ? "hidden" : "visible",
+			...scrollbarProps,
+			ref: forwardedRef,
+			onPointerEnter: composeEventHandlers(props.onPointerEnter, () => send("POINTER_ENTER")),
+			onPointerLeave: composeEventHandlers(props.onPointerLeave, () => send("POINTER_LEAVE"))
+		})
+	});
+});
+var ScrollAreaScrollbarAuto = import_react.forwardRef((props, forwardedRef) => {
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const { forceMount, ...scrollbarProps } = props;
+	const [visible, setVisible] = import_react.useState(false);
+	const isHorizontal = props.orientation === "horizontal";
+	const handleResize = useDebounceCallback(() => {
+		if (context.viewport) {
+			const isOverflowX = context.viewport.offsetWidth < context.viewport.scrollWidth;
+			const isOverflowY = context.viewport.offsetHeight < context.viewport.scrollHeight;
+			setVisible(isHorizontal ? isOverflowX : isOverflowY);
+		}
+	}, 10);
+	useResizeObserver(context.viewport, handleResize);
+	useResizeObserver(context.content, handleResize);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || visible,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarVisible, {
+			"data-state": visible ? "visible" : "hidden",
+			...scrollbarProps,
+			ref: forwardedRef
+		})
+	});
+});
+var ScrollAreaScrollbarVisible = import_react.forwardRef((props, forwardedRef) => {
+	const { orientation = "vertical", ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const thumbRef = import_react.useRef(null);
+	const pointerOffsetRef = import_react.useRef(0);
+	const [sizes, setSizes] = import_react.useState({
+		content: 0,
+		viewport: 0,
+		scrollbar: {
+			size: 0,
+			paddingStart: 0,
+			paddingEnd: 0
+		}
+	});
+	const thumbRatio = getThumbRatio(sizes.viewport, sizes.content);
+	const commonProps = {
+		...scrollbarProps,
+		sizes,
+		onSizesChange: setSizes,
+		hasThumb: Boolean(thumbRatio > 0 && thumbRatio < 1),
+		onThumbChange: (thumb) => thumbRef.current = thumb,
+		onThumbPointerUp: () => pointerOffsetRef.current = 0,
+		onThumbPointerDown: (pointerPos) => pointerOffsetRef.current = pointerPos
+	};
+	function getScrollPosition(pointerPos, dir) {
+		return getScrollPositionFromPointer(pointerPos, pointerOffsetRef.current, sizes, dir);
+	}
+	if (orientation === "horizontal") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarX, {
+		...commonProps,
+		ref: forwardedRef,
+		onThumbPositionChange: () => {
+			if (context.viewport && thumbRef.current) {
+				const scrollPos = context.viewport.scrollLeft;
+				const offset = getThumbOffsetFromScroll(scrollPos, sizes, context.dir);
+				thumbRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+			}
+		},
+		onWheelScroll: (scrollPos) => {
+			if (context.viewport) context.viewport.scrollLeft = scrollPos;
+		},
+		onDragScroll: (pointerPos) => {
+			if (context.viewport) context.viewport.scrollLeft = getScrollPosition(pointerPos, context.dir);
+		}
+	});
+	if (orientation === "vertical") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarY, {
+		...commonProps,
+		ref: forwardedRef,
+		onThumbPositionChange: () => {
+			if (context.viewport && thumbRef.current) {
+				const scrollPos = context.viewport.scrollTop;
+				const offset = getThumbOffsetFromScroll(scrollPos, sizes);
+				thumbRef.current.style.transform = `translate3d(0, ${offset}px, 0)`;
+			}
+		},
+		onWheelScroll: (scrollPos) => {
+			if (context.viewport) context.viewport.scrollTop = scrollPos;
+		},
+		onDragScroll: (pointerPos) => {
+			if (context.viewport) context.viewport.scrollTop = getScrollPosition(pointerPos);
+		}
+	});
+	return null;
+});
+var ScrollAreaScrollbarX = import_react.forwardRef((props, forwardedRef) => {
+	const { sizes, onSizesChange, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const [computedStyle, setComputedStyle] = import_react.useState();
+	const ref = import_react.useRef(null);
+	const composeRefs = useComposedRefs(forwardedRef, ref, context.onScrollbarXChange);
+	import_react.useEffect(() => {
+		if (ref.current) setComputedStyle(getComputedStyle(ref.current));
+	}, [ref]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarImpl, {
+		"data-orientation": "horizontal",
+		...scrollbarProps,
+		ref: composeRefs,
+		sizes,
+		style: {
+			bottom: 0,
+			left: context.dir === "rtl" ? "var(--radix-scroll-area-corner-width)" : 0,
+			right: context.dir === "ltr" ? "var(--radix-scroll-area-corner-width)" : 0,
+			["--radix-scroll-area-thumb-width"]: getThumbSize(sizes) + "px",
+			...props.style
+		},
+		onThumbPointerDown: (pointerPos) => props.onThumbPointerDown(pointerPos.x),
+		onDragScroll: (pointerPos) => props.onDragScroll(pointerPos.x),
+		onWheelScroll: (event, maxScrollPos) => {
+			if (context.viewport) {
+				const scrollPos = context.viewport.scrollLeft + event.deltaX;
+				props.onWheelScroll(scrollPos);
+				if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) event.preventDefault();
+			}
+		},
+		onResize: () => {
+			if (ref.current && context.viewport && computedStyle) onSizesChange({
+				content: context.viewport.scrollWidth,
+				viewport: context.viewport.offsetWidth,
+				scrollbar: {
+					size: ref.current.clientWidth,
+					paddingStart: toInt(computedStyle.paddingLeft),
+					paddingEnd: toInt(computedStyle.paddingRight)
+				}
+			});
+		}
+	});
+});
+var ScrollAreaScrollbarY = import_react.forwardRef((props, forwardedRef) => {
+	const { sizes, onSizesChange, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, props.__scopeScrollArea);
+	const [computedStyle, setComputedStyle] = import_react.useState();
+	const ref = import_react.useRef(null);
+	const composeRefs = useComposedRefs(forwardedRef, ref, context.onScrollbarYChange);
+	import_react.useEffect(() => {
+		if (ref.current) setComputedStyle(getComputedStyle(ref.current));
+	}, [ref]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbarImpl, {
+		"data-orientation": "vertical",
+		...scrollbarProps,
+		ref: composeRefs,
+		sizes,
+		style: {
+			top: 0,
+			right: context.dir === "ltr" ? 0 : void 0,
+			left: context.dir === "rtl" ? 0 : void 0,
+			bottom: "var(--radix-scroll-area-corner-height)",
+			["--radix-scroll-area-thumb-height"]: getThumbSize(sizes) + "px",
+			...props.style
+		},
+		onThumbPointerDown: (pointerPos) => props.onThumbPointerDown(pointerPos.y),
+		onDragScroll: (pointerPos) => props.onDragScroll(pointerPos.y),
+		onWheelScroll: (event, maxScrollPos) => {
+			if (context.viewport) {
+				const scrollPos = context.viewport.scrollTop + event.deltaY;
+				props.onWheelScroll(scrollPos);
+				if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) event.preventDefault();
+			}
+		},
+		onResize: () => {
+			if (ref.current && context.viewport && computedStyle) onSizesChange({
+				content: context.viewport.scrollHeight,
+				viewport: context.viewport.offsetHeight,
+				scrollbar: {
+					size: ref.current.clientHeight,
+					paddingStart: toInt(computedStyle.paddingTop),
+					paddingEnd: toInt(computedStyle.paddingBottom)
+				}
+			});
+		}
+	});
+});
+var [ScrollbarProvider, useScrollbarContext] = createScrollAreaContext(SCROLLBAR_NAME);
+var ScrollAreaScrollbarImpl = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeScrollArea, sizes, hasThumb, onThumbChange, onThumbPointerUp, onThumbPointerDown, onThumbPositionChange, onDragScroll, onWheelScroll, onResize, ...scrollbarProps } = props;
+	const context = useScrollAreaContext(SCROLLBAR_NAME, __scopeScrollArea);
+	const [scrollbar, setScrollbar] = import_react.useState(null);
+	const composeRefs = useComposedRefs(forwardedRef, (node) => setScrollbar(node));
+	const rectRef = import_react.useRef(null);
+	const prevWebkitUserSelectRef = import_react.useRef("");
+	const viewport = context.viewport;
+	const maxScrollPos = sizes.content - sizes.viewport;
+	const handleWheelScroll = useCallbackRef$1(onWheelScroll);
+	const handleThumbPositionChange = useCallbackRef$1(onThumbPositionChange);
+	const handleResize = useDebounceCallback(onResize, 10);
+	function handleDragScroll(event) {
+		if (rectRef.current) onDragScroll({
+			x: event.clientX - rectRef.current.left,
+			y: event.clientY - rectRef.current.top
+		});
+	}
+	import_react.useEffect(() => {
+		const handleWheel = (event) => {
+			const element = event.target;
+			if (scrollbar?.contains(element)) handleWheelScroll(event, maxScrollPos);
+		};
+		document.addEventListener("wheel", handleWheel, { passive: false });
+		return () => document.removeEventListener("wheel", handleWheel, { passive: false });
+	}, [
+		viewport,
+		scrollbar,
+		maxScrollPos,
+		handleWheelScroll
+	]);
+	import_react.useEffect(handleThumbPositionChange, [sizes, handleThumbPositionChange]);
+	useResizeObserver(scrollbar, handleResize);
+	useResizeObserver(context.content, handleResize);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollbarProvider, {
+		scope: __scopeScrollArea,
+		scrollbar,
+		hasThumb,
+		onThumbChange: useCallbackRef$1(onThumbChange),
+		onThumbPointerUp: useCallbackRef$1(onThumbPointerUp),
+		onThumbPositionChange: handleThumbPositionChange,
+		onThumbPointerDown: useCallbackRef$1(onThumbPointerDown),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			...scrollbarProps,
+			ref: composeRefs,
+			style: {
+				position: "absolute",
+				...scrollbarProps.style
+			},
+			onPointerDown: composeEventHandlers(props.onPointerDown, (event) => {
+				if (event.button === 0) {
+					event.target.setPointerCapture(event.pointerId);
+					rectRef.current = scrollbar.getBoundingClientRect();
+					prevWebkitUserSelectRef.current = document.body.style.webkitUserSelect;
+					document.body.style.webkitUserSelect = "none";
+					if (context.viewport) context.viewport.style.scrollBehavior = "auto";
+					handleDragScroll(event);
+				}
+			}),
+			onPointerMove: composeEventHandlers(props.onPointerMove, handleDragScroll),
+			onPointerUp: composeEventHandlers(props.onPointerUp, (event) => {
+				const element = event.target;
+				if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId);
+				document.body.style.webkitUserSelect = prevWebkitUserSelectRef.current;
+				if (context.viewport) context.viewport.style.scrollBehavior = "";
+				rectRef.current = null;
+			})
+		})
+	});
+});
+var THUMB_NAME = "ScrollAreaThumb";
+var ScrollAreaThumb = import_react.forwardRef((props, forwardedRef) => {
+	const { forceMount, ...thumbProps } = props;
+	const scrollbarContext = useScrollbarContext(THUMB_NAME, props.__scopeScrollArea);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || scrollbarContext.hasThumb,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaThumbImpl, {
+			ref: forwardedRef,
+			...thumbProps
+		})
+	});
+});
+var ScrollAreaThumbImpl = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeScrollArea, style, ...thumbProps } = props;
+	const scrollAreaContext = useScrollAreaContext(THUMB_NAME, __scopeScrollArea);
+	const scrollbarContext = useScrollbarContext(THUMB_NAME, __scopeScrollArea);
+	const { onThumbPositionChange } = scrollbarContext;
+	const composedRef = useComposedRefs(forwardedRef, (node) => scrollbarContext.onThumbChange(node));
+	const removeUnlinkedScrollListenerRef = import_react.useRef(void 0);
+	const debounceScrollEnd = useDebounceCallback(() => {
+		if (removeUnlinkedScrollListenerRef.current) {
+			removeUnlinkedScrollListenerRef.current();
+			removeUnlinkedScrollListenerRef.current = void 0;
+		}
+	}, 100);
+	import_react.useEffect(() => {
+		const viewport = scrollAreaContext.viewport;
+		if (viewport) {
+			const handleScroll = () => {
+				debounceScrollEnd();
+				if (!removeUnlinkedScrollListenerRef.current) {
+					removeUnlinkedScrollListenerRef.current = addUnlinkedScrollListener(viewport, onThumbPositionChange);
+					onThumbPositionChange();
+				}
+			};
+			onThumbPositionChange();
+			viewport.addEventListener("scroll", handleScroll);
+			return () => viewport.removeEventListener("scroll", handleScroll);
+		}
+	}, [
+		scrollAreaContext.viewport,
+		debounceScrollEnd,
+		onThumbPositionChange
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		"data-state": scrollbarContext.hasThumb ? "visible" : "hidden",
+		...thumbProps,
+		ref: composedRef,
+		style: {
+			width: "var(--radix-scroll-area-thumb-width)",
+			height: "var(--radix-scroll-area-thumb-height)",
+			...style
+		},
+		onPointerDownCapture: composeEventHandlers(props.onPointerDownCapture, (event) => {
+			const thumbRect = event.target.getBoundingClientRect();
+			const x = event.clientX - thumbRect.left;
+			const y = event.clientY - thumbRect.top;
+			scrollbarContext.onThumbPointerDown({
+				x,
+				y
+			});
+		}),
+		onPointerUp: composeEventHandlers(props.onPointerUp, scrollbarContext.onThumbPointerUp)
+	});
+});
+ScrollAreaThumb.displayName = THUMB_NAME;
+var CORNER_NAME = "ScrollAreaCorner";
+var ScrollAreaCorner = import_react.forwardRef((props, forwardedRef) => {
+	const context = useScrollAreaContext(CORNER_NAME, props.__scopeScrollArea);
+	const hasBothScrollbarsVisible = Boolean(context.scrollbarX && context.scrollbarY);
+	return context.type !== "scroll" && hasBothScrollbarsVisible ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaCornerImpl, {
+		...props,
+		ref: forwardedRef
+	}) : null;
+});
+ScrollAreaCorner.displayName = CORNER_NAME;
+var ScrollAreaCornerImpl = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeScrollArea, ...cornerProps } = props;
+	const context = useScrollAreaContext(CORNER_NAME, __scopeScrollArea);
+	const [width, setWidth] = import_react.useState(0);
+	const [height, setHeight] = import_react.useState(0);
+	const hasSize = Boolean(width && height);
+	useResizeObserver(context.scrollbarX, () => {
+		const height2 = context.scrollbarX?.offsetHeight || 0;
+		context.onCornerHeightChange(height2);
+		setHeight(height2);
+	});
+	useResizeObserver(context.scrollbarY, () => {
+		const width2 = context.scrollbarY?.offsetWidth || 0;
+		context.onCornerWidthChange(width2);
+		setWidth(width2);
+	});
+	return hasSize ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+		...cornerProps,
+		ref: forwardedRef,
+		style: {
+			width,
+			height,
+			position: "absolute",
+			right: context.dir === "ltr" ? 0 : void 0,
+			left: context.dir === "rtl" ? 0 : void 0,
+			bottom: 0,
+			...props.style
+		}
+	}) : null;
+});
+function toInt(value) {
+	return value ? parseInt(value, 10) : 0;
+}
+function getThumbRatio(viewportSize, contentSize) {
+	const ratio = viewportSize / contentSize;
+	return isNaN(ratio) ? 0 : ratio;
+}
+function getThumbSize(sizes) {
+	const ratio = getThumbRatio(sizes.viewport, sizes.content);
+	const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+	const thumbSize = (sizes.scrollbar.size - scrollbarPadding) * ratio;
+	return Math.max(thumbSize, 18);
+}
+function getScrollPositionFromPointer(pointerPos, pointerOffset, sizes, dir = "ltr") {
+	const thumbSizePx = getThumbSize(sizes);
+	const thumbCenter = thumbSizePx / 2;
+	const offset = pointerOffset || thumbCenter;
+	const thumbOffsetFromEnd = thumbSizePx - offset;
+	const minPointerPos = sizes.scrollbar.paddingStart + offset;
+	const maxPointerPos = sizes.scrollbar.size - sizes.scrollbar.paddingEnd - thumbOffsetFromEnd;
+	const maxScrollPos = sizes.content - sizes.viewport;
+	const scrollRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+	return linearScale([minPointerPos, maxPointerPos], scrollRange)(pointerPos);
+}
+function getThumbOffsetFromScroll(scrollPos, sizes, dir = "ltr") {
+	const thumbSizePx = getThumbSize(sizes);
+	const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+	const scrollbar = sizes.scrollbar.size - scrollbarPadding;
+	const maxScrollPos = sizes.content - sizes.viewport;
+	const maxThumbPos = scrollbar - thumbSizePx;
+	const scrollWithoutMomentum = clamp(scrollPos, dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0]);
+	return linearScale([0, maxScrollPos], [0, maxThumbPos])(scrollWithoutMomentum);
+}
+function linearScale(input, output) {
+	return (value) => {
+		if (input[0] === input[1] || output[0] === output[1]) return output[0];
+		const ratio = (output[1] - output[0]) / (input[1] - input[0]);
+		return output[0] + ratio * (value - input[0]);
+	};
+}
+function isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos) {
+	return scrollPos > 0 && scrollPos < maxScrollPos;
+}
+var addUnlinkedScrollListener = (node, handler = () => {}) => {
+	let prevPosition = {
+		left: node.scrollLeft,
+		top: node.scrollTop
+	};
+	let rAF = 0;
+	(function loop() {
+		const position = {
+			left: node.scrollLeft,
+			top: node.scrollTop
+		};
+		const isHorizontalScroll = prevPosition.left !== position.left;
+		const isVerticalScroll = prevPosition.top !== position.top;
+		if (isHorizontalScroll || isVerticalScroll) handler();
+		prevPosition = position;
+		rAF = window.requestAnimationFrame(loop);
+	})();
+	return () => window.cancelAnimationFrame(rAF);
+};
+function useDebounceCallback(callback, delay) {
+	const handleCallback = useCallbackRef$1(callback);
+	const debounceTimerRef = import_react.useRef(0);
+	import_react.useEffect(() => () => window.clearTimeout(debounceTimerRef.current), []);
+	return import_react.useCallback(() => {
+		window.clearTimeout(debounceTimerRef.current);
+		debounceTimerRef.current = window.setTimeout(handleCallback, delay);
+	}, [handleCallback, delay]);
+}
+function useResizeObserver(element, onResize) {
+	const handleResize = useCallbackRef$1(onResize);
+	useLayoutEffect2(() => {
+		let rAF = 0;
+		if (element) {
+			const resizeObserver = new ResizeObserver(() => {
+				cancelAnimationFrame(rAF);
+				rAF = window.requestAnimationFrame(handleResize);
+			});
+			resizeObserver.observe(element);
+			return () => {
+				window.cancelAnimationFrame(rAF);
+				resizeObserver.unobserve(element);
+			};
+		}
+	}, [element, handleResize]);
+}
+var Root$1 = ScrollArea$1;
+var Viewport = ScrollAreaViewport;
+var Corner = ScrollAreaCorner;
+//#endregion
+//#region src/components/ui/scroll-area.tsx
+var ScrollArea = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Root$1, {
+	"data-uid": "src/components/ui/scroll-area.tsx:11:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("relative overflow-hidden", className),
+	...props,
+	children: [
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Viewport, {
+			"data-uid": "src/components/ui/scroll-area.tsx:16:5",
+			"data-prohibitions": "[editContent]",
+			className: "h-full w-full rounded-[inherit]",
+			children
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollBar, {
+			"data-uid": "src/components/ui/scroll-area.tsx:19:5",
+			"data-prohibitions": "[editContent]"
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Corner, {
+			"data-uid": "src/components/ui/scroll-area.tsx:20:5",
+			"data-prohibitions": "[editContent]"
+		})
+	]
+}));
+ScrollArea.displayName = Root$1.displayName;
+var ScrollBar = import_react.forwardRef(({ className, orientation = "vertical", ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaScrollbar, {
+	"data-uid": "src/components/ui/scroll-area.tsx:29:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	orientation,
+	className: cn$1("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
+	...props,
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollAreaThumb, {
+		"data-uid": "src/components/ui/scroll-area.tsx:40:5",
+		"data-prohibitions": "[editContent]",
+		className: "relative flex-1 rounded-full bg-border"
+	})
+}));
+ScrollBar.displayName = ScrollAreaScrollbar.displayName;
+//#endregion
 //#region src/pages/Teams/AllocateDialog.tsx
 function AllocateDialog({ teamId, open, onOpenChange }) {
 	const { nodes, addInventoryItem, getNodePath } = useAppStore();
 	const [selectedMarcaId, setSelectedMarcaId] = (0, import_react.useState)("");
 	const [qty, setQty] = (0, import_react.useState)(1);
+	const [assets, setAssets] = (0, import_react.useState)([""]);
 	const [condition, setCondition] = (0, import_react.useState)("good");
 	const leafItems = (0, import_react.useMemo)(() => nodes.filter((n) => n.level === "marca"), [nodes]);
+	const handleQtyChange = (newQty) => {
+		const validQty = Math.max(1, newQty);
+		setQty(validQty);
+		setAssets((prev) => Array.from({ length: validQty }, (_, i) => prev[i] || ""));
+	};
+	const handleAssetChange = (index, val) => {
+		setAssets((prev) => {
+			const copy = [...prev];
+			copy[index] = val;
+			return copy;
+		});
+	};
 	const handleSave = () => {
-		if (!selectedMarcaId || qty < 1) return;
+		if (!selectedMarcaId || assets.some((a) => !a.trim())) return;
 		addInventoryItem({
 			teamId,
 			treeNodeId: selectedMarcaId,
-			quantity: qty,
-			condition
+			condition,
+			assets
 		});
 		onOpenChange(false);
 		setSelectedMarcaId("");
 		setQty(1);
+		setAssets([""]);
 		setCondition("good");
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/AllocateDialog.tsx:54:5",
+		"data-uid": "src/pages/Teams/AllocateDialog.tsx:66:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/AllocateDialog.tsx:55:7",
+			"data-uid": "src/pages/Teams/AllocateDialog.tsx:67:7",
 			"data-prohibitions": "[editContent]",
 			className: "sm:max-w-[450px]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:56:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:68:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:57:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:69:11",
 						"data-prohibitions": "[]",
-						children: "Alocar Ferramentas (Instâncias)"
+						children: "Alocar Ferramentas"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:58:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:70:11",
 						"data-prohibitions": "[]",
-						children: "Selecione a marca e item. O sistema criará instâncias únicas para cada unidade alocada."
+						children: "Adicione ferramentas e informe o Número de Patrimônio único de cada uma."
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:62:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:74:9",
 					"data-prohibitions": "[editContent]",
 					className: "grid gap-4 py-4",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:63:11",
-						"data-prohibitions": "[editContent]",
-						className: "space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:64:13",
-							"data-prohibitions": "[]",
-							children: "Item (Marca)"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:65:13",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:75:11",
 							"data-prohibitions": "[editContent]",
-							value: selectedMarcaId,
-							onValueChange: setSelectedMarcaId,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:66:15",
-								"data-prohibitions": "[]",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:67:17",
-									"data-prohibitions": "[editContent]",
-									placeholder: "Selecione..."
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:69:15",
-								"data-prohibitions": "[editContent]",
-								children: leafItems.map((item) => {
-									const itemName = getNodePath(item.id).find((n) => n.level === "item")?.name || "?";
-									return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectItem, {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:74:21",
-										"data-prohibitions": "[editContent]",
-										value: item.id,
-										children: [
-											itemName,
-											" (",
-											item.name,
-											")"
-										]
-									}, item.id);
-								})
-							})]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:82:11",
-						"data-prohibitions": "[]",
-						className: "grid grid-cols-2 gap-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:83:13",
-							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:84:15",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:76:13",
 								"data-prohibitions": "[]",
-								children: "Quantidade"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:85:15",
-								"data-prohibitions": "[editContent]",
-								type: "number",
-								min: 1,
-								value: qty,
-								onChange: (e) => setQty(Number(e.target.value))
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:92:13",
-							"data-prohibitions": "[]",
-							className: "space-y-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:93:15",
-								"data-prohibitions": "[]",
-								children: "Condição Inicial"
+								children: "Item (Marca)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:94:15",
-								"data-prohibitions": "[]",
-								value: condition,
-								onValueChange: (v) => setCondition(v),
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:77:13",
+								"data-prohibitions": "[editContent]",
+								value: selectedMarcaId,
+								onValueChange: setSelectedMarcaId,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:95:17",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:78:15",
 									"data-prohibitions": "[]",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:96:19",
-										"data-prohibitions": "[editContent]"
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:79:17",
+										"data-prohibitions": "[editContent]",
+										placeholder: "Selecione..."
 									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:98:17",
-									"data-prohibitions": "[]",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:99:19",
-											"data-prohibitions": "[]",
-											value: "good",
-											children: "Bom Estado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:100:19",
-											"data-prohibitions": "[]",
-											value: "damaged",
-											children: "Danificado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:101:19",
-											"data-prohibitions": "[]",
-											value: "repair",
-											children: "Para Reparo"
-										})
-									]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:81:15",
+									"data-prohibitions": "[editContent]",
+									children: leafItems.map((item) => {
+										const itemName = getNodePath(item.id).find((n) => n.level === "item")?.name || "?";
+										return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectItem, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:86:21",
+											"data-prohibitions": "[editContent]",
+											value: item.id,
+											children: [
+												itemName,
+												" (",
+												item.name,
+												")"
+											]
+										}, item.id);
+									})
 								})]
 							})]
-						})]
-					})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:94:11",
+							"data-prohibitions": "[]",
+							className: "grid grid-cols-2 gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:95:13",
+								"data-prohibitions": "[]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:96:15",
+									"data-prohibitions": "[]",
+									children: "Quantidade"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:97:15",
+									"data-prohibitions": "[editContent]",
+									type: "number",
+									min: 1,
+									value: qty,
+									onChange: (e) => handleQtyChange(Number(e.target.value))
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:104:13",
+								"data-prohibitions": "[]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:105:15",
+									"data-prohibitions": "[]",
+									children: "Condição Inicial"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:106:15",
+									"data-prohibitions": "[]",
+									value: condition,
+									onValueChange: (v) => setCondition(v),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:107:17",
+										"data-prohibitions": "[]",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:108:19",
+											"data-prohibitions": "[editContent]"
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:110:17",
+										"data-prohibitions": "[]",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/AllocateDialog.tsx:111:19",
+												"data-prohibitions": "[]",
+												value: "good",
+												children: "Bom Estado"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/AllocateDialog.tsx:112:19",
+												"data-prohibitions": "[]",
+												value: "damaged",
+												children: "Danificado"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/AllocateDialog.tsx:113:19",
+												"data-prohibitions": "[]",
+												value: "repair",
+												children: "Para Reparo"
+											})
+										]
+									})]
+								})]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:118:11",
+							"data-prohibitions": "[editContent]",
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:119:13",
+								"data-prohibitions": "[]",
+								children: "Números de Patrimônio (Obrigatório)"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollArea, {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:120:13",
+								"data-prohibitions": "[editContent]",
+								className: "h-[120px] rounded-md border p-2 bg-muted/30",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:121:15",
+									"data-prohibitions": "[editContent]",
+									className: "space-y-2 pr-4",
+									children: assets.map((asset, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:123:19",
+										"data-prohibitions": "[editContent]",
+										className: "flex items-center gap-2",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:124:21",
+											"data-prohibitions": "[editContent]",
+											className: "text-xs text-muted-foreground w-6 text-right",
+											children: [idx + 1, "."]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:125:21",
+											"data-prohibitions": "[editContent]",
+											placeholder: "Ex: PAT-12345",
+											value: asset,
+											onChange: (e) => handleAssetChange(idx, e.target.value),
+											className: "h-8"
+										})]
+									}, idx))
+								})
+							})]
+						})
+					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:107:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:137:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:108:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:138:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => onOpenChange(false),
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:111:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:141:11",
 						"data-prohibitions": "[]",
 						onClick: handleSave,
-						disabled: !selectedMarcaId || qty < 1,
-						children: "Alocar"
+						disabled: !selectedMarcaId || assets.some((a) => !a.trim()),
+						children: "Salvar Instâncias"
 					})]
 				})
 			]
@@ -54724,192 +55565,617 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 	});
 }
 //#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-roving-focus@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14__@type_4eeb29c998b846c35358e2f929e7490e/node_modules/@radix-ui/react-roving-focus/dist/index.mjs
+var ENTRY_FOCUS = "rovingFocusGroup.onEntryFocus";
+var EVENT_OPTIONS = {
+	bubbles: false,
+	cancelable: true
+};
+var GROUP_NAME = "RovingFocusGroup";
+var [Collection, useCollection, createCollectionScope] = createCollection(GROUP_NAME);
+var [createRovingFocusGroupContext, createRovingFocusGroupScope] = createContextScope$1(GROUP_NAME, [createCollectionScope]);
+var [RovingFocusProvider, useRovingFocusContext] = createRovingFocusGroupContext(GROUP_NAME);
+var RovingFocusGroup = import_react.forwardRef((props, forwardedRef) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.Provider, {
+		scope: props.__scopeRovingFocusGroup,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.Slot, {
+			scope: props.__scopeRovingFocusGroup,
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RovingFocusGroupImpl, {
+				...props,
+				ref: forwardedRef
+			})
+		})
+	});
+});
+RovingFocusGroup.displayName = GROUP_NAME;
+var RovingFocusGroupImpl = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeRovingFocusGroup, orientation, loop = false, dir, currentTabStopId: currentTabStopIdProp, defaultCurrentTabStopId, onCurrentTabStopIdChange, onEntryFocus, preventScrollOnEntryFocus = false, ...groupProps } = props;
+	const ref = import_react.useRef(null);
+	const composedRefs = useComposedRefs(forwardedRef, ref);
+	const direction = useDirection(dir);
+	const [currentTabStopId, setCurrentTabStopId] = useControllableState({
+		prop: currentTabStopIdProp,
+		defaultProp: defaultCurrentTabStopId ?? null,
+		onChange: onCurrentTabStopIdChange,
+		caller: GROUP_NAME
+	});
+	const [isTabbingBackOut, setIsTabbingBackOut] = import_react.useState(false);
+	const handleEntryFocus = useCallbackRef$1(onEntryFocus);
+	const getItems = useCollection(__scopeRovingFocusGroup);
+	const isClickFocusRef = import_react.useRef(false);
+	const [focusableItemsCount, setFocusableItemsCount] = import_react.useState(0);
+	import_react.useEffect(() => {
+		const node = ref.current;
+		if (node) {
+			node.addEventListener(ENTRY_FOCUS, handleEntryFocus);
+			return () => node.removeEventListener(ENTRY_FOCUS, handleEntryFocus);
+		}
+	}, [handleEntryFocus]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RovingFocusProvider, {
+		scope: __scopeRovingFocusGroup,
+		orientation,
+		dir: direction,
+		loop,
+		currentTabStopId,
+		onItemFocus: import_react.useCallback((tabStopId) => setCurrentTabStopId(tabStopId), [setCurrentTabStopId]),
+		onItemShiftTab: import_react.useCallback(() => setIsTabbingBackOut(true), []),
+		onFocusableItemAdd: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount + 1), []),
+		onFocusableItemRemove: import_react.useCallback(() => setFocusableItemsCount((prevCount) => prevCount - 1), []),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			tabIndex: isTabbingBackOut || focusableItemsCount === 0 ? -1 : 0,
+			"data-orientation": orientation,
+			...groupProps,
+			ref: composedRefs,
+			style: {
+				outline: "none",
+				...props.style
+			},
+			onMouseDown: composeEventHandlers(props.onMouseDown, () => {
+				isClickFocusRef.current = true;
+			}),
+			onFocus: composeEventHandlers(props.onFocus, (event) => {
+				const isKeyboardFocus = !isClickFocusRef.current;
+				if (event.target === event.currentTarget && isKeyboardFocus && !isTabbingBackOut) {
+					const entryFocusEvent = new CustomEvent(ENTRY_FOCUS, EVENT_OPTIONS);
+					event.currentTarget.dispatchEvent(entryFocusEvent);
+					if (!entryFocusEvent.defaultPrevented) {
+						const items = getItems().filter((item) => item.focusable);
+						focusFirst([
+							items.find((item) => item.active),
+							items.find((item) => item.id === currentTabStopId),
+							...items
+						].filter(Boolean).map((item) => item.ref.current), preventScrollOnEntryFocus);
+					}
+				}
+				isClickFocusRef.current = false;
+			}),
+			onBlur: composeEventHandlers(props.onBlur, () => setIsTabbingBackOut(false))
+		})
+	});
+});
+var ITEM_NAME = "RovingFocusGroupItem";
+var RovingFocusGroupItem = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeRovingFocusGroup, focusable = true, active = false, tabStopId, children, ...itemProps } = props;
+	const autoId = useId();
+	const id = tabStopId || autoId;
+	const context = useRovingFocusContext(ITEM_NAME, __scopeRovingFocusGroup);
+	const isCurrentTabStop = context.currentTabStopId === id;
+	const getItems = useCollection(__scopeRovingFocusGroup);
+	const { onFocusableItemAdd, onFocusableItemRemove, currentTabStopId } = context;
+	import_react.useEffect(() => {
+		if (focusable) {
+			onFocusableItemAdd();
+			return () => onFocusableItemRemove();
+		}
+	}, [
+		focusable,
+		onFocusableItemAdd,
+		onFocusableItemRemove
+	]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection.ItemSlot, {
+		scope: __scopeRovingFocusGroup,
+		id,
+		focusable,
+		active,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
+			tabIndex: isCurrentTabStop ? 0 : -1,
+			"data-orientation": context.orientation,
+			...itemProps,
+			ref: forwardedRef,
+			onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
+				if (!focusable) event.preventDefault();
+				else context.onItemFocus(id);
+			}),
+			onFocus: composeEventHandlers(props.onFocus, () => context.onItemFocus(id)),
+			onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
+				if (event.key === "Tab" && event.shiftKey) {
+					context.onItemShiftTab();
+					return;
+				}
+				if (event.target !== event.currentTarget) return;
+				const focusIntent = getFocusIntent(event, context.orientation, context.dir);
+				if (focusIntent !== void 0) {
+					if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+					event.preventDefault();
+					let candidateNodes = getItems().filter((item) => item.focusable).map((item) => item.ref.current);
+					if (focusIntent === "last") candidateNodes.reverse();
+					else if (focusIntent === "prev" || focusIntent === "next") {
+						if (focusIntent === "prev") candidateNodes.reverse();
+						const currentIndex = candidateNodes.indexOf(event.currentTarget);
+						candidateNodes = context.loop ? wrapArray(candidateNodes, currentIndex + 1) : candidateNodes.slice(currentIndex + 1);
+					}
+					setTimeout(() => focusFirst(candidateNodes));
+				}
+			}),
+			children: typeof children === "function" ? children({
+				isCurrentTabStop,
+				hasTabStop: currentTabStopId != null
+			}) : children
+		})
+	});
+});
+RovingFocusGroupItem.displayName = ITEM_NAME;
+var MAP_KEY_TO_FOCUS_INTENT = {
+	ArrowLeft: "prev",
+	ArrowUp: "prev",
+	ArrowRight: "next",
+	ArrowDown: "next",
+	PageUp: "first",
+	Home: "first",
+	PageDown: "last",
+	End: "last"
+};
+function getDirectionAwareKey(key, dir) {
+	if (dir !== "rtl") return key;
+	return key === "ArrowLeft" ? "ArrowRight" : key === "ArrowRight" ? "ArrowLeft" : key;
+}
+function getFocusIntent(event, orientation, dir) {
+	const key = getDirectionAwareKey(event.key, dir);
+	if (orientation === "vertical" && ["ArrowLeft", "ArrowRight"].includes(key)) return void 0;
+	if (orientation === "horizontal" && ["ArrowUp", "ArrowDown"].includes(key)) return void 0;
+	return MAP_KEY_TO_FOCUS_INTENT[key];
+}
+function focusFirst(candidates, preventScroll = false) {
+	const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
+	for (const candidate of candidates) {
+		if (candidate === PREVIOUSLY_FOCUSED_ELEMENT) return;
+		candidate.focus({ preventScroll });
+		if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT) return;
+	}
+}
+function wrapArray(array, startIndex) {
+	return array.map((_, index) => array[(startIndex + index) % array.length]);
+}
+var Root = RovingFocusGroup;
+var Item = RovingFocusGroupItem;
+//#endregion
+//#region ../../cache/modules/gestao-de-estoque-77bb3/node_modules/.pnpm/@radix-ui+react-tabs@1.1.13_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_2ad0945e3cb98dc5bbfaaf29c105e977/node_modules/@radix-ui/react-tabs/dist/index.mjs
+var TABS_NAME = "Tabs";
+var [createTabsContext, createTabsScope] = createContextScope$1(TABS_NAME, [createRovingFocusGroupScope]);
+var useRovingFocusGroupScope = createRovingFocusGroupScope();
+var [TabsProvider, useTabsContext] = createTabsContext(TABS_NAME);
+var Tabs$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value: valueProp, onValueChange, defaultValue, orientation = "horizontal", dir, activationMode = "automatic", ...tabsProps } = props;
+	const direction = useDirection(dir);
+	const [value, setValue] = useControllableState({
+		prop: valueProp,
+		onChange: onValueChange,
+		defaultProp: defaultValue ?? "",
+		caller: TABS_NAME
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsProvider, {
+		scope: __scopeTabs,
+		baseId: useId(),
+		value,
+		onValueChange: setValue,
+		orientation,
+		dir: direction,
+		activationMode,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			dir: direction,
+			"data-orientation": orientation,
+			...tabsProps,
+			ref: forwardedRef
+		})
+	});
+});
+Tabs$1.displayName = TABS_NAME;
+var TAB_LIST_NAME = "TabsList";
+var TabsList$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, loop = true, ...listProps } = props;
+	const context = useTabsContext(TAB_LIST_NAME, __scopeTabs);
+	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+		asChild: true,
+		...rovingFocusGroupScope,
+		orientation: context.orientation,
+		dir: context.dir,
+		loop,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			role: "tablist",
+			"aria-orientation": context.orientation,
+			...listProps,
+			ref: forwardedRef
+		})
+	});
+});
+TabsList$1.displayName = TAB_LIST_NAME;
+var TRIGGER_NAME = "TabsTrigger";
+var TabsTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value, disabled = false, ...triggerProps } = props;
+	const context = useTabsContext(TRIGGER_NAME, __scopeTabs);
+	const rovingFocusGroupScope = useRovingFocusGroupScope(__scopeTabs);
+	const triggerId = makeTriggerId(context.baseId, value);
+	const contentId = makeContentId(context.baseId, value);
+	const isSelected = value === context.value;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Item, {
+		asChild: true,
+		...rovingFocusGroupScope,
+		focusable: !disabled,
+		active: isSelected,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
+			type: "button",
+			role: "tab",
+			"aria-selected": isSelected,
+			"aria-controls": contentId,
+			"data-state": isSelected ? "active" : "inactive",
+			"data-disabled": disabled ? "" : void 0,
+			disabled,
+			id: triggerId,
+			...triggerProps,
+			ref: forwardedRef,
+			onMouseDown: composeEventHandlers(props.onMouseDown, (event) => {
+				if (!disabled && event.button === 0 && event.ctrlKey === false) context.onValueChange(value);
+				else event.preventDefault();
+			}),
+			onKeyDown: composeEventHandlers(props.onKeyDown, (event) => {
+				if ([" ", "Enter"].includes(event.key)) context.onValueChange(value);
+			}),
+			onFocus: composeEventHandlers(props.onFocus, () => {
+				const isAutomaticActivation = context.activationMode !== "manual";
+				if (!isSelected && !disabled && isAutomaticActivation) context.onValueChange(value);
+			})
+		})
+	});
+});
+TabsTrigger$1.displayName = TRIGGER_NAME;
+var CONTENT_NAME = "TabsContent";
+var TabsContent$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { __scopeTabs, value, forceMount, children, ...contentProps } = props;
+	const context = useTabsContext(CONTENT_NAME, __scopeTabs);
+	const triggerId = makeTriggerId(context.baseId, value);
+	const contentId = makeContentId(context.baseId, value);
+	const isSelected = value === context.value;
+	const isMountAnimationPreventedRef = import_react.useRef(isSelected);
+	import_react.useEffect(() => {
+		const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
+		return () => cancelAnimationFrame(rAF);
+	}, []);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Presence, {
+		present: forceMount || isSelected,
+		children: ({ present }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.div, {
+			"data-state": isSelected ? "active" : "inactive",
+			"data-orientation": context.orientation,
+			role: "tabpanel",
+			"aria-labelledby": triggerId,
+			hidden: !present,
+			id: contentId,
+			tabIndex: 0,
+			...contentProps,
+			ref: forwardedRef,
+			style: {
+				...props.style,
+				animationDuration: isMountAnimationPreventedRef.current ? "0s" : void 0
+			},
+			children: present && children
+		})
+	});
+});
+TabsContent$1.displayName = CONTENT_NAME;
+function makeTriggerId(baseId, value) {
+	return `${baseId}-trigger-${value}`;
+}
+function makeContentId(baseId, value) {
+	return `${baseId}-content-${value}`;
+}
+var Root2 = Tabs$1;
+var List = TabsList$1;
+var Trigger = TabsTrigger$1;
+var Content = TabsContent$1;
+//#endregion
+//#region src/components/ui/tabs.tsx
+var Tabs = Root2;
+var TabsList = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(List, {
+	"data-uid": "src/components/ui/tabs.tsx:13:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground", className),
+	...props
+}));
+TabsList.displayName = List.displayName;
+var TabsTrigger = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trigger, {
+	"data-uid": "src/components/ui/tabs.tsx:28:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm", className),
+	...props
+}));
+TabsTrigger.displayName = Trigger.displayName;
+var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content, {
+	"data-uid": "src/components/ui/tabs.tsx:43:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2", className),
+	...props
+}));
+TabsContent.displayName = Content.displayName;
+//#endregion
 //#region src/pages/Teams/UpdateDialog.tsx
 function UpdateDialog({ item, open, onOpenChange }) {
-	const { updateInventoryCondition } = useAppStore();
+	const { updateInventoryItem, history } = useAppStore();
 	const [condition, setCondition] = (0, import_react.useState)("good");
+	const [assetNumber, setAssetNumber] = (0, import_react.useState)("");
 	const [photos, setPhotos] = (0, import_react.useState)([]);
 	(0, import_react.useEffect)(() => {
 		if (item) {
 			setCondition(item.condition);
+			setAssetNumber(item.assetNumber);
 			setPhotos(item.photos || []);
 		}
 	}, [item]);
 	const handleSave = () => {
-		if (item) updateInventoryCondition(item.id, condition, photos);
+		if (item) updateInventoryItem(item.id, {
+			condition,
+			assetNumber,
+			photos
+		});
 		onOpenChange(false);
 	};
 	const handleFileChange = (e) => {
 		const file = e.target.files?.[0];
-		if (file) {
-			const url = URL.createObjectURL(file);
-			setPhotos((prev) => [...prev, url]);
-		}
+		if (file) setPhotos((prev) => [...prev, URL.createObjectURL(file)]);
 	};
-	const removePhoto = (index) => {
-		setPhotos((prev) => prev.filter((_, i) => i !== index));
-	};
+	const itemHistory = history.filter((h) => h.inventoryId === item?.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/UpdateDialog.tsx:64:5",
+		"data-uid": "src/pages/Teams/UpdateDialog.tsx:62:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/UpdateDialog.tsx:65:7",
+			"data-uid": "src/pages/Teams/UpdateDialog.tsx:63:7",
 			"data-prohibitions": "[editContent]",
-			className: "sm:max-w-[450px]",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:66:9",
-					"data-prohibitions": "[editContent]",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:67:11",
-						"data-prohibitions": "[editContent]",
-						children: ["Perfil da Instância ", item?.id]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:68:11",
-						"data-prohibitions": "[]",
-						children: "Atualize a condição da unidade e gerencie sua galeria de evidências."
-					})]
-				}),
-				item && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:73:11",
-					"data-prohibitions": "[editContent]",
-					className: "grid gap-6 py-4",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:74:13",
-						"data-prohibitions": "[]",
-						className: "space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:75:15",
-							"data-prohibitions": "[]",
-							children: "Condição Atual"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:76:15",
-							"data-prohibitions": "[]",
-							value: condition,
-							onValueChange: (v) => setCondition(v),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:77:17",
-								"data-prohibitions": "[]",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:78:19",
-									"data-prohibitions": "[editContent]"
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:17",
-								"data-prohibitions": "[]",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:81:19",
-										"data-prohibitions": "[]",
-										value: "good",
-										children: "Bom Estado"
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:82:19",
-										"data-prohibitions": "[]",
-										value: "damaged",
-										children: "Danificado"
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:83:19",
-										"data-prohibitions": "[]",
-										value: "repair",
-										children: "Para Reparo"
-									})
-								]
-							})]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:88:13",
-						"data-prohibitions": "[editContent]",
-						className: "space-y-3 border rounded-md p-4 bg-muted/30",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$1, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:89:15",
-							"data-prohibitions": "[]",
-							className: "flex items-center gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:90:17",
-								"data-prohibitions": "[editContent]",
-								className: "h-4 w-4"
-							}), " Galeria de Evidências Visuais"]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:92:15",
-							"data-prohibitions": "[editContent]",
-							className: "grid grid-cols-3 gap-2",
-							children: [photos.map((p, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:94:19",
-								"data-prohibitions": "[]",
-								className: "relative aspect-square rounded-md overflow-hidden border group bg-background",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:98:21",
-									"data-prohibitions": "[editContent]",
-									src: p,
-									alt: `Evidência ${i + 1}`,
-									className: "w-full h-full object-cover"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:103:21",
-									"data-prohibitions": "[]",
-									variant: "destructive",
-									size: "icon",
-									className: "absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
-									onClick: () => removePhoto(i),
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:109:23",
-										"data-prohibitions": "[editContent]",
-										className: "h-3 w-3"
-									})
-								})]
-							}, i)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:114:17",
-								"data-prohibitions": "[]",
-								htmlFor: "dropzone-file",
-								className: "flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/50 border-muted-foreground/40 transition-colors",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:118:19",
-									"data-prohibitions": "[]",
-									className: "flex flex-col items-center justify-center",
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:119:21",
-										"data-prohibitions": "[editContent]",
-										className: "w-6 h-6 text-muted-foreground mb-1"
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:120:21",
-										"data-prohibitions": "[]",
-										className: "text-[10px] text-muted-foreground font-medium",
-										children: "Adicionar"
-									})]
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:122:19",
-									"data-prohibitions": "[editContent]",
-									id: "dropzone-file",
-									type: "file",
-									className: "hidden",
-									accept: "image/*",
-									onChange: handleFileChange
-								})]
-							})]
-						})]
-					})]
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:134:9",
+			className: "sm:max-w-[500px]",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
+				"data-uid": "src/pages/Teams/UpdateDialog.tsx:64:9",
+				"data-prohibitions": "[]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:65:11",
 					"data-prohibitions": "[]",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:135:11",
+					children: "Perfil da Ferramenta"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:66:11",
+					"data-prohibitions": "[]",
+					children: "Gerencie as informações e visualize a linha do tempo desta instância."
+				})]
+			}), item && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
+				"data-uid": "src/pages/Teams/UpdateDialog.tsx:71:11",
+				"data-prohibitions": "[editContent]",
+				defaultValue: "details",
+				className: "mt-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:72:13",
 						"data-prohibitions": "[]",
-						variant: "outline",
-						onClick: () => onOpenChange(false),
-						children: "Cancelar"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:138:11",
-						"data-prohibitions": "[]",
-						onClick: handleSave,
-						children: "Salvar Alterações"
-					})]
-				})
-			]
+						className: "grid w-full grid-cols-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:73:15",
+							"data-prohibitions": "[]",
+							value: "details",
+							children: "Detalhes e Fotos"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:74:15",
+							"data-prohibitions": "[]",
+							value: "history",
+							children: "Histórico"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsContent, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:77:13",
+						"data-prohibitions": "[editContent]",
+						value: "details",
+						className: "space-y-4 py-4",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:78:15",
+								"data-prohibitions": "[]",
+								className: "grid grid-cols-2 gap-4",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:79:17",
+									"data-prohibitions": "[]",
+									className: "space-y-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:19",
+										"data-prohibitions": "[]",
+										children: "Nº Patrimônio"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:81:19",
+										"data-prohibitions": "[editContent]",
+										value: assetNumber,
+										onChange: (e) => setAssetNumber(e.target.value)
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:83:17",
+									"data-prohibitions": "[]",
+									className: "space-y-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:84:19",
+										"data-prohibitions": "[]",
+										children: "Condição"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:85:19",
+										"data-prohibitions": "[]",
+										value: condition,
+										onValueChange: (v) => setCondition(v),
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:86:21",
+											"data-prohibitions": "[]",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:87:23",
+												"data-prohibitions": "[editContent]"
+											})
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:89:21",
+											"data-prohibitions": "[]",
+											children: [
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													"data-uid": "src/pages/Teams/UpdateDialog.tsx:90:23",
+													"data-prohibitions": "[]",
+													value: "good",
+													children: "Bom Estado"
+												}),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													"data-uid": "src/pages/Teams/UpdateDialog.tsx:91:23",
+													"data-prohibitions": "[]",
+													value: "damaged",
+													children: "Danificado"
+												}),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													"data-uid": "src/pages/Teams/UpdateDialog.tsx:92:23",
+													"data-prohibitions": "[]",
+													value: "repair",
+													children: "Para Reparo"
+												})
+											]
+										})]
+									})]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:97:15",
+								"data-prohibitions": "[editContent]",
+								className: "space-y-3 border rounded-md p-4 bg-muted/30",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$1, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:98:17",
+									"data-prohibitions": "[]",
+									className: "flex items-center gap-2",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:99:19",
+										"data-prohibitions": "[editContent]",
+										className: "h-4 w-4"
+									}), " Evidências Visuais"]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:101:17",
+									"data-prohibitions": "[editContent]",
+									className: "grid grid-cols-4 gap-2",
+									children: [photos.map((p, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:103:21",
+										"data-prohibitions": "[]",
+										className: "relative aspect-square rounded-md overflow-hidden border group bg-background",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:107:23",
+											"data-prohibitions": "[editContent]",
+											src: p,
+											alt: `Evidência ${i}`,
+											className: "w-full h-full object-cover"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:108:23",
+											"data-prohibitions": "[]",
+											variant: "destructive",
+											size: "icon",
+											className: "absolute top-1 right-1 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity",
+											onClick: () => setPhotos((prev) => prev.filter((_, idx) => idx !== i)),
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:114:25",
+												"data-prohibitions": "[editContent]",
+												className: "h-3 w-3"
+											})
+										})]
+									}, i)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:118:19",
+										"data-prohibitions": "[]",
+										className: "flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/50 transition-colors",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:119:21",
+											"data-prohibitions": "[editContent]",
+											className: "w-5 h-5 text-muted-foreground"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:120:21",
+											"data-prohibitions": "[editContent]",
+											type: "file",
+											className: "hidden",
+											accept: "image/*",
+											onChange: handleFileChange
+										})]
+									})]
+								})]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:129:15",
+								"data-prohibitions": "[]",
+								className: "w-full",
+								onClick: handleSave,
+								children: "Salvar Alterações"
+							})
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:134:13",
+						"data-prohibitions": "[editContent]",
+						value: "history",
+						className: "py-4",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollArea, {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:135:15",
+							"data-prohibitions": "[editContent]",
+							className: "h-[280px] pr-4",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:136:17",
+								"data-prohibitions": "[editContent]",
+								className: "space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent",
+								children: itemHistory.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:138:21",
+									"data-prohibitions": "[]",
+									className: "text-sm text-center text-muted-foreground pt-4",
+									children: "Nenhum evento registrado."
+								}) : itemHistory.map((evt) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:143:23",
+									"data-prohibitions": "[editContent]",
+									className: "relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:147:25",
+										"data-prohibitions": "[editContent]",
+										className: "flex items-center justify-center w-5 h-5 rounded-full border-2 border-background bg-primary shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 ml-0.5 md:ml-0"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:148:25",
+										"data-prohibitions": "[editContent]",
+										className: "w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg border bg-card shadow-sm text-left",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:149:27",
+											"data-prohibitions": "[editContent]",
+											className: "flex items-center justify-between mb-1",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:150:29",
+												"data-prohibitions": "[editContent]",
+												className: "font-medium text-sm text-foreground",
+												children: evt.user
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("time", {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:151:29",
+												"data-prohibitions": "[editContent]",
+												className: "text-xs text-muted-foreground",
+												children: new Date(evt.date).toLocaleDateString()
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:155:27",
+											"data-prohibitions": "[editContent]",
+											className: "text-xs text-muted-foreground",
+											children: evt.description
+										})]
+									})]
+								}, evt.id))
+							})
+						})
+					})
+				]
+			})]
 		})
 	});
 }
@@ -54931,19 +56197,19 @@ var statusMap = {
 };
 function TeamDetail() {
 	const { id } = useParams();
-	const { teams, inventory, getNodePath } = useAppStore();
+	const { teams, inventory, checklists, getNodePath } = useAppStore();
 	const [allocateOpen, setAllocateOpen] = (0, import_react.useState)(false);
 	const [updateItem, setUpdateItem] = (0, import_react.useState)(null);
 	const team = teams.find((t) => t.id === id);
 	if (!team) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Teams/TeamDetail.tsx:35:7",
+		"data-uid": "src/pages/Teams/TeamDetail.tsx:36:7",
 		"data-prohibitions": "[]",
 		className: "p-8 text-center",
 		children: [
 			"Equipe não encontrada.",
 			" ",
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:37:9",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:38:9",
 				"data-prohibitions": "[]",
 				to: "/equipes",
 				className: "text-blue-500 underline",
@@ -54952,45 +56218,47 @@ function TeamDetail() {
 		]
 	});
 	const teamInventory = inventory.filter((i) => i.teamId === id);
+	const lastChecklist = checklists.filter((c) => c.teamId === id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Teams/TeamDetail.tsx:46:5",
+		"data-uid": "src/pages/Teams/TeamDetail.tsx:51:5",
 		"data-prohibitions": "[editContent]",
 		className: "space-y-6 animate-fade-in",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:47:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:52:7",
 				"data-prohibitions": "[editContent]",
-				className: "flex items-center gap-4",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:48:9",
+				className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:53:9",
+					"data-prohibitions": "[editContent]",
+					className: "flex items-center gap-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:54:11",
 						"data-prohibitions": "[]",
 						variant: "ghost",
 						size: "icon",
 						asChild: true,
 						className: "rounded-full bg-muted/50",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:49:11",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:55:13",
 							"data-prohibitions": "[]",
 							to: "/equipes",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:50:13",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:56:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4"
 							})
 						})
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:53:9",
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:59:11",
 						"data-prohibitions": "[editContent]",
-						className: "flex-1",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:54:11",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:60:13",
 							"data-prohibitions": "[editContent]",
 							className: "text-2xl font-bold tracking-tight",
 							children: team.name
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:55:11",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:61:13",
 							"data-prohibitions": "[editContent]",
 							className: "text-muted-foreground",
 							children: [
@@ -54999,60 +56267,115 @@ function TeamDetail() {
 								team.location
 							]
 						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:59:9",
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:66:9",
+					"data-prohibitions": "[]",
+					className: "flex gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:67:11",
 						"data-prohibitions": "[]",
+						variant: "outline",
 						onClick: () => setAllocateOpen(true),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:60:11",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:68:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-4 w-4 mr-2"
-						}), " Alocar Instâncias"]
-					})
-				]
+						}), " Alocar"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:70:11",
+						"data-prohibitions": "[]",
+						asChild: true,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:71:13",
+							"data-prohibitions": "[]",
+							to: `/equipes/${team.id}/auditoria`,
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCheck, {
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:72:15",
+								"data-prohibitions": "[editContent]",
+								className: "h-4 w-4 mr-2"
+							}), " Realizar Auditoria"]
+						})
+					})]
+				})]
+			}),
+			lastChecklist && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:79:9",
+				"data-prohibitions": "[editContent]",
+				className: "bg-muted/20 border-primary/20",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:80:11",
+					"data-prohibitions": "[editContent]",
+					className: "p-4 flex justify-between items-center",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:81:13",
+						"data-prohibitions": "[editContent]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:82:15",
+							"data-prohibitions": "[editContent]",
+							className: "text-sm font-medium",
+							children: ["Última Auditoria: ", new Date(lastChecklist.date).toLocaleDateString()]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:85:15",
+							"data-prohibitions": "[editContent]",
+							className: "text-xs text-muted-foreground",
+							children: ["Realizada por ", lastChecklist.leaderName]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:89:13",
+						"data-prohibitions": "[editContent]",
+						variant: lastChecklist.discrepancies > 0 ? "destructive" : "secondary",
+						className: "text-xs",
+						children: lastChecklist.discrepancies === 0 ? "Tudo Certo" : `${lastChecklist.discrepancies} Discrepâncias`
+					})]
+				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:64:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:101:7",
 				"data-prohibitions": "[editContent]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:65:9",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:102:9",
 					"data-prohibitions": "[editContent]",
 					className: "p-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:66:11",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:103:11",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:67:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:104:13",
 							"data-prohibitions": "[]",
 							className: "bg-muted/40",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:68:15",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:105:15",
 								"data-prohibitions": "[]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:69:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:106:17",
 										"data-prohibitions": "[]",
 										className: "w-16 text-center",
 										children: "Fotos"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:70:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:107:17",
 										"data-prohibitions": "[]",
-										children: "Identificador"
+										children: "Patrimônio"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:71:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:108:17",
 										"data-prohibitions": "[]",
 										children: "Item (Marca)"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:72:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:109:17",
 										"data-prohibitions": "[]",
-										children: "Estado"
+										children: "Condição"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:73:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:110:17",
+										"data-prohibitions": "[]",
+										children: "Disponibilidade"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:111:17",
 										"data-prohibitions": "[]",
 										className: "text-right",
 										children: "Ações"
@@ -55060,56 +56383,54 @@ function TeamDetail() {
 								]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:76:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:114:13",
 							"data-prohibitions": "[editContent]",
 							children: [teamInventory.map((item) => {
 								const path = getNodePath(item.treeNodeId);
 								const marcaNode = path.find((n) => n.level === "marca");
 								const itemNode = path.find((n) => n.level === "item");
-								const fullPath = path.map((n) => n.name).join(" > ");
-								const status = statusMap[item.condition];
-								const mainPhoto = item.photos?.[0];
+								const statusInfo = statusMap[item.condition];
 								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:86:19",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:121:19",
 									"data-prohibitions": "[editContent]",
 									className: "group",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:87:21",
-											"data-prohibitions": "[editContent]",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:122:21",
+											"data-prohibitions": "[]",
 											className: "text-center",
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Avatar, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:88:23",
-												"data-prohibitions": "[editContent]",
-												className: "h-10 w-10 mx-auto rounded-md border border-border/50",
-												children: mainPhoto ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:90:27",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Avatar, {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:123:23",
+												"data-prohibitions": "[]",
+												className: "h-10 w-10 mx-auto rounded-md border",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:124:25",
 													"data-prohibitions": "[editContent]",
-													src: mainPhoto,
+													src: item.photos?.[0],
 													className: "object-cover"
-												}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:92:27",
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:125:25",
 													"data-prohibitions": "[]",
-													className: "rounded-md bg-muted",
+													className: "bg-muted",
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
-														"data-uid": "src/pages/Teams/TeamDetail.tsx:93:29",
+														"data-uid": "src/pages/Teams/TeamDetail.tsx:126:27",
 														"data-prohibitions": "[editContent]",
 														className: "h-4 w-4 text-muted-foreground/50"
 													})
-												})
+												})]
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:98:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:130:21",
 											"data-prohibitions": "[editContent]",
-											className: "font-mono text-xs text-muted-foreground",
-											children: item.id
+											className: "font-mono text-xs font-semibold",
+											children: item.assetNumber
 										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:101:21",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:133:21",
 											"data-prohibitions": "[editContent]",
-											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:102:23",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:134:23",
 												"data-prohibitions": "[editContent]",
 												className: "font-medium",
 												children: [
@@ -55118,37 +56439,54 @@ function TeamDetail() {
 													marcaNode?.name || "Marca",
 													")"
 												]
-											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:105:23",
-												"data-prohibitions": "[editContent]",
-												className: "text-xs text-muted-foreground mt-0.5 line-clamp-1",
-												title: fullPath,
-												children: fullPath
-											})]
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:112:21",
-											"data-prohibitions": "[editContent]",
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:113:23",
-												"data-prohibitions": "[editContent]",
-												className: `inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${item.condition === "good" ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400" : item.condition === "damaged" ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"}`,
-												children: status.label
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:119:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:138:21",
+											"data-prohibitions": "[editContent]",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:139:23",
+												"data-prohibitions": "[editContent]",
+												variant: "outline",
+												className: `text-xs ${item.condition === "good" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-red-100 text-red-800 border-red-200"}`,
+												children: statusInfo.label
+											})
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:146:21",
+											"data-prohibitions": "[editContent]",
+											children: item.status === "present" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:148:25",
+												"data-prohibitions": "[]",
+												variant: "secondary",
+												className: "bg-blue-100 text-blue-800",
+												children: "Presente"
+											}) : item.status === "missing" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:152:25",
+												"data-prohibitions": "[]",
+												variant: "destructive",
+												children: "Faltando"
+											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:154:25",
+												"data-prohibitions": "[]",
+												variant: "outline",
+												className: "bg-amber-100 text-amber-800 border-amber-200",
+												title: item.borrowedTo,
+												children: "Emprestado"
+											})
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:163:21",
 											"data-prohibitions": "[]",
 											className: "text-right",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:120:23",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:164:23",
 												"data-prohibitions": "[]",
 												variant: "ghost",
 												size: "sm",
 												onClick: () => setUpdateItem(item),
-												className: "text-muted-foreground hover:text-foreground",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings2, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:126:25",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:165:25",
 													"data-prohibitions": "[editContent]",
 													className: "h-4 w-4 mr-2"
 												}), " Perfil"]
@@ -55157,14 +56495,14 @@ function TeamDetail() {
 									]
 								}, item.id);
 							}), teamInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:133:17",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:172:17",
 								"data-prohibitions": "[]",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:134:19",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:173:19",
 									"data-prohibitions": "[]",
-									colSpan: 5,
+									colSpan: 6,
 									className: "h-32 text-center text-muted-foreground",
-									children: "Nenhuma ferramenta alocada para esta equipe."
+									children: "Nenhuma ferramenta alocada."
 								})
 							})]
 						})]
@@ -55172,18 +56510,352 @@ function TeamDetail() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AllocateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:144:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:183:7",
 				"data-prohibitions": "[editContent]",
 				teamId: team.id,
 				open: allocateOpen,
 				onOpenChange: setAllocateOpen
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UpdateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:145:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:184:7",
 				"data-prohibitions": "[editContent]",
 				item: updateItem,
 				open: !!updateItem,
 				onOpenChange: (o) => !o && setUpdateItem(null)
+			})
+		]
+	});
+}
+//#endregion
+//#region src/pages/Teams/Auditoria.tsx
+function AuditoriaPage() {
+	const { id } = useParams();
+	const navigate = useNavigate();
+	const { teams, inventory, getNodePath, submitChecklist } = useAppStore();
+	const team = teams.find((t) => t.id === id);
+	const teamInventory = (0, import_react.useMemo)(() => inventory.filter((i) => i.teamId === id), [inventory, id]);
+	const [leaderName, setLeaderName] = (0, import_react.useState)("");
+	const [items, setItems] = (0, import_react.useState)(() => {
+		const init = {};
+		teamInventory.forEach((i) => {
+			init[i.id] = {
+				status: i.status || "present",
+				notes: i.borrowedTo || ""
+			};
+		});
+		return init;
+	});
+	const [extraItems, setExtraItems] = (0, import_react.useState)([]);
+	if (!team) return null;
+	const handleStatusChange = (invId, status) => {
+		setItems((prev) => ({
+			...prev,
+			[invId]: {
+				...prev[invId],
+				status
+			}
+		}));
+	};
+	const handleNotesChange = (invId, notes) => {
+		setItems((prev) => ({
+			...prev,
+			[invId]: {
+				...prev[invId],
+				notes
+			}
+		}));
+	};
+	const handleSubmit = () => {
+		if (!leaderName.trim()) return alert("Informe o nome do líder responsável.");
+		submitChecklist(team.id, leaderName, items, extraItems.filter((e) => e.assetNumber.trim()));
+		navigate(`/equipes/${team.id}`);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Teams/Auditoria.tsx:66:5",
+		"data-prohibitions": "[editContent]",
+		className: "space-y-6 max-w-5xl mx-auto animate-fade-in",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Teams/Auditoria.tsx:67:7",
+				"data-prohibitions": "[editContent]",
+				className: "flex items-center gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:68:9",
+					"data-prohibitions": "[]",
+					variant: "ghost",
+					size: "icon",
+					asChild: true,
+					className: "rounded-full bg-muted/50",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:69:11",
+						"data-prohibitions": "[]",
+						to: `/equipes/${team.id}`,
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:70:13",
+							"data-prohibitions": "[editContent]",
+							className: "h-4 w-4"
+						})
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:73:9",
+					"data-prohibitions": "[editContent]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:74:11",
+						"data-prohibitions": "[]",
+						className: "text-2xl font-bold tracking-tight",
+						children: "Checklist de Inventário"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:75:11",
+						"data-prohibitions": "[editContent]",
+						className: "text-muted-foreground",
+						children: ["Auditoria de ferramentas - ", team.name]
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+				"data-uid": "src/pages/Teams/Auditoria.tsx:79:7",
+				"data-prohibitions": "[editContent]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:80:9",
+					"data-prohibitions": "[]",
+					className: "bg-muted/30 pb-4",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:81:11",
+						"data-prohibitions": "[]",
+						className: "max-w-xs space-y-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$1, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:82:13",
+							"data-prohibitions": "[]",
+							children: "Líder Responsável pela Auditoria"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:83:13",
+							"data-prohibitions": "[editContent]",
+							placeholder: "Seu nome...",
+							value: leaderName,
+							onChange: (e) => setLeaderName(e.target.value)
+						})]
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:90:9",
+					"data-prohibitions": "[editContent]",
+					className: "p-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:91:11",
+						"data-prohibitions": "[editContent]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:92:13",
+							"data-prohibitions": "[]",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:93:15",
+								"data-prohibitions": "[]",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:94:17",
+										"data-prohibitions": "[]",
+										children: "Patrimônio"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:95:17",
+										"data-prohibitions": "[]",
+										children: "Ferramenta (Marca)"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:96:17",
+										"data-prohibitions": "[]",
+										className: "w-[200px]",
+										children: "Status Encontrado"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:97:17",
+										"data-prohibitions": "[]",
+										children: "Observações (P/ Emprestados)"
+									})
+								]
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:100:13",
+							"data-prohibitions": "[editContent]",
+							children: teamInventory.map((item) => {
+								const path = getNodePath(item.treeNodeId);
+								const name = `${path.find((n) => n.level === "item")?.name} (${path.find((n) => n.level === "marca")?.name})`;
+								const st = items[item.id];
+								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+									"data-uid": "src/pages/Teams/Auditoria.tsx:106:19",
+									"data-prohibitions": "[editContent]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:107:21",
+											"data-prohibitions": "[editContent]",
+											className: "font-mono text-xs",
+											children: item.assetNumber
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:108:21",
+											"data-prohibitions": "[editContent]",
+											className: "font-medium",
+											children: name
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:109:21",
+											"data-prohibitions": "[editContent]",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:110:23",
+												"data-prohibitions": "[editContent]",
+												value: st?.status,
+												onValueChange: (v) => handleStatusChange(item.id, v),
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:114:25",
+													"data-prohibitions": "[editContent]",
+													className: `h-8 ${st?.status === "present" ? "bg-blue-50" : st?.status === "missing" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50"}`,
+													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+														"data-uid": "src/pages/Teams/Auditoria.tsx:117:27",
+														"data-prohibitions": "[editContent]"
+													})
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:119:25",
+													"data-prohibitions": "[]",
+													children: [
+														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+															"data-uid": "src/pages/Teams/Auditoria.tsx:120:27",
+															"data-prohibitions": "[]",
+															value: "present",
+															children: "Presente"
+														}),
+														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+															"data-uid": "src/pages/Teams/Auditoria.tsx:121:27",
+															"data-prohibitions": "[]",
+															value: "missing",
+															children: "Faltando (Não Localizado)"
+														}),
+														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+															"data-uid": "src/pages/Teams/Auditoria.tsx:122:27",
+															"data-prohibitions": "[]",
+															value: "borrowed",
+															children: "Emprestado"
+														})
+													]
+												})]
+											})
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:126:21",
+											"data-prohibitions": "[editContent]",
+											children: st?.status === "borrowed" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:128:25",
+												"data-prohibitions": "[editContent]",
+												className: "h-8 text-xs",
+												placeholder: "Com quem está?",
+												value: st.notes,
+												onChange: (e) => handleNotesChange(item.id, e.target.value)
+											})
+										})
+									]
+								}, item.id);
+							})
+						})]
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+				"data-uid": "src/pages/Teams/Auditoria.tsx:144:7",
+				"data-prohibitions": "[editContent]",
+				className: "border-dashed border-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:145:9",
+					"data-prohibitions": "[]",
+					className: "pb-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:146:11",
+						"data-prohibitions": "[]",
+						className: "text-lg flex justify-between items-center",
+						children: ["Itens Sobrando (Não esperados)", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							"data-uid": "src/pages/Teams/Auditoria.tsx:148:13",
+							"data-prohibitions": "[]",
+							variant: "outline",
+							size: "sm",
+							onClick: () => setExtraItems([...extraItems, {
+								assetNumber: "",
+								notes: ""
+							}]),
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:153:15",
+								"data-prohibitions": "[editContent]",
+								className: "h-4 w-4 mr-2"
+							}), " Adicionar Item"]
+						})]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:156:11",
+						"data-prohibitions": "[]",
+						children: "Registre ferramentas de outras equipes que estão com vocês atualmente."
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:160:9",
+					"data-prohibitions": "[editContent]",
+					className: "space-y-3",
+					children: [extraItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:162:13",
+						"data-prohibitions": "[]",
+						className: "text-sm text-muted-foreground text-center py-4",
+						children: "Nenhum item extra adicionado."
+					}), extraItems.map((ex, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:167:13",
+						"data-prohibitions": "[]",
+						className: "flex items-center gap-3",
+						children: [
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:168:15",
+								"data-prohibitions": "[editContent]",
+								placeholder: "Nº Patrimônio (PAT-XXX)",
+								className: "w-[200px]",
+								value: ex.assetNumber,
+								onChange: (e) => {
+									const n = [...extraItems];
+									n[idx].assetNumber = e.target.value;
+									setExtraItems(n);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:178:15",
+								"data-prohibitions": "[editContent]",
+								placeholder: "Observações (De onde veio?)",
+								className: "flex-1",
+								value: ex.notes,
+								onChange: (e) => {
+									const n = [...extraItems];
+									n[idx].notes = e.target.value;
+									setExtraItems(n);
+								}
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:188:15",
+								"data-prohibitions": "[]",
+								variant: "ghost",
+								size: "icon",
+								onClick: () => setExtraItems(extraItems.filter((_, i) => i !== idx)),
+								className: "text-destructive",
+								children: "×"
+							})
+						]
+					}, idx))]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/Teams/Auditoria.tsx:201:7",
+				"data-prohibitions": "[]",
+				className: "flex justify-end",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Teams/Auditoria.tsx:202:9",
+					"data-prohibitions": "[]",
+					size: "lg",
+					onClick: handleSubmit,
+					disabled: !leaderName.trim(),
+					className: "w-full sm:w-auto",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
+						"data-uid": "src/pages/Teams/Auditoria.tsx:208:11",
+						"data-prohibitions": "[editContent]",
+						className: "h-5 w-5 mr-2"
+					}), " Finalizar Auditoria e Salvar"]
+				})
 			})
 		]
 	});
@@ -55563,90 +57235,99 @@ function ReportsPage() {
 //#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
-	"data-uid": "src/App.tsx:15:3",
+	"data-uid": "src/App.tsx:16:3",
 	"data-prohibitions": "[]",
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-		"data-uid": "src/App.tsx:16:5",
+		"data-uid": "src/App.tsx:17:5",
 		"data-prohibitions": "[]",
 		future: {
 			v7_startTransition: false,
 			v7_relativeSplatPath: false
 		},
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-			"data-uid": "src/App.tsx:17:7",
+			"data-uid": "src/App.tsx:18:7",
 			"data-prohibitions": "[]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-					"data-uid": "src/App.tsx:18:9",
-					"data-prohibitions": "[editContent]"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 					"data-uid": "src/App.tsx:19:9",
 					"data-prohibitions": "[editContent]"
 				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, {
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 					"data-uid": "src/App.tsx:20:9",
+					"data-prohibitions": "[editContent]"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, {
+					"data-uid": "src/App.tsx:21:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-						"data-uid": "src/App.tsx:21:11",
+						"data-uid": "src/App.tsx:22:11",
 						"data-prohibitions": "[]",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-							"data-uid": "src/App.tsx:21:27",
+							"data-uid": "src/App.tsx:22:27",
 							"data-prohibitions": "[editContent]"
 						}),
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-								"data-uid": "src/App.tsx:22:13",
+								"data-uid": "src/App.tsx:23:13",
 								"data-prohibitions": "[editContent]",
 								path: "/",
 								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-									"data-uid": "src/App.tsx:22:38",
-									"data-prohibitions": "[editContent]"
-								})
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-								"data-uid": "src/App.tsx:23:13",
-								"data-prohibitions": "[editContent]",
-								path: "/arvore",
-								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreePage, {
-									"data-uid": "src/App.tsx:23:44",
+									"data-uid": "src/App.tsx:23:38",
 									"data-prohibitions": "[editContent]"
 								})
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 								"data-uid": "src/App.tsx:24:13",
 								"data-prohibitions": "[editContent]",
-								path: "/equipes",
-								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamsPage, {
-									"data-uid": "src/App.tsx:24:45",
+								path: "/arvore",
+								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreePage, {
+									"data-uid": "src/App.tsx:24:44",
 									"data-prohibitions": "[editContent]"
 								})
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 								"data-uid": "src/App.tsx:25:13",
 								"data-prohibitions": "[editContent]",
-								path: "/equipes/:id",
-								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamDetail, {
-									"data-uid": "src/App.tsx:25:49",
+								path: "/equipes",
+								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamsPage, {
+									"data-uid": "src/App.tsx:25:45",
 									"data-prohibitions": "[editContent]"
 								})
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 								"data-uid": "src/App.tsx:26:13",
 								"data-prohibitions": "[editContent]",
+								path: "/equipes/:id",
+								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamDetail, {
+									"data-uid": "src/App.tsx:26:49",
+									"data-prohibitions": "[editContent]"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+								"data-uid": "src/App.tsx:27:13",
+								"data-prohibitions": "[editContent]",
+								path: "/equipes/:id/auditoria",
+								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuditoriaPage, {
+									"data-uid": "src/App.tsx:27:59",
+									"data-prohibitions": "[editContent]"
+								})
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+								"data-uid": "src/App.tsx:28:13",
+								"data-prohibitions": "[editContent]",
 								path: "/relatorios",
 								element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReportsPage, {
-									"data-uid": "src/App.tsx:26:48",
+									"data-uid": "src/App.tsx:28:48",
 									"data-prohibitions": "[editContent]"
 								})
 							})
 						]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:28:11",
+						"data-uid": "src/App.tsx:30:11",
 						"data-prohibitions": "[editContent]",
 						path: "*",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound, {
-							"data-uid": "src/App.tsx:28:36",
+							"data-uid": "src/App.tsx:30:36",
 							"data-prohibitions": "[editContent]"
 						})
 					})]
@@ -55663,4 +57344,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-DWEzl6_A.js.map
+//# sourceMappingURL=index-TQa-mijX.js.map

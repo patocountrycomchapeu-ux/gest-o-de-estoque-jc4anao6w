@@ -9,13 +9,8 @@ const initialNodes = [
   { id: 'c2', name: 'Chaves', level: 'categoria', parentId: 's2' },
   { id: 'i1', name: 'Parafusadeira Impacto 12V', level: 'item', parentId: 'c1' },
   { id: 'i2', name: 'Chave Phillips', level: 'item', parentId: 'c2' },
-  { id: 'i3', name: 'Chave de Fenda', level: 'item', parentId: 'c2' },
-  { id: 'i4', name: 'Picareta', level: 'item', parentId: 'c2' },
   { id: 'm1', name: 'Makita', level: 'marca', parentId: 'i1' },
-  { id: 'm2', name: 'Bosch', level: 'marca', parentId: 'i1' },
   { id: 'm3', name: 'Tramontina', level: 'marca', parentId: 'i2' },
-  { id: 'm4', name: 'Gerdau', level: 'marca', parentId: 'i3' },
-  { id: 'm5', name: 'Minas', level: 'marca', parentId: 'i4' },
 ] as const
 
 const initialTeams = [
@@ -26,26 +21,23 @@ const initialTeams = [
 const initialInventory = [
   {
     id: 'inv1',
+    assetNumber: 'PAT-10001',
     teamId: 't1',
     treeNodeId: 'm1',
     condition: 'good',
+    status: 'present',
     photos: ['https://img.usecurling.com/p/200/200?q=drill'],
     lastUpdated: new Date().toISOString(),
   },
   {
     id: 'inv2',
+    assetNumber: 'PAT-10002',
     teamId: 't1',
     treeNodeId: 'm3',
     condition: 'damaged',
+    status: 'borrowed',
+    borrowedTo: 'João (Equipe Beta)',
     photos: ['https://img.usecurling.com/p/200/200?q=screwdriver'],
-    lastUpdated: new Date().toISOString(),
-  },
-  {
-    id: 'inv3',
-    teamId: 't2',
-    treeNodeId: 'm2',
-    condition: 'repair',
-    photos: ['https://img.usecurling.com/p/200/200?q=tools'],
     lastUpdated: new Date().toISOString(),
   },
 ] as const
@@ -54,18 +46,32 @@ export const initialData: AppState = {
   nodes: [...initialNodes] as any,
   teams: [...initialTeams],
   inventory: [...initialInventory] as any,
-  activities: [
+  activities: [],
+  history: [
     {
-      id: 'a1',
-      date: new Date(Date.now() - 3600000).toISOString(),
-      description: "Equipe Tacha 1 reportou 'Chave Phillips (Tramontina)' como Danificado.",
-      type: 'status_change',
+      id: 'h1',
+      inventoryId: 'inv1',
+      date: new Date(Date.now() - 86400000).toISOString(),
+      type: 'allocation',
+      description: 'Alocado inicialmente para a Equipe Tacha 1.',
+      user: 'Sistema',
     },
     {
-      id: 'a2',
-      date: new Date(Date.now() - 86400000).toISOString(),
-      description: "1x 'Parafusadeira Impacto 12V (Makita)' alocada para Equipe Tacha 1.",
-      type: 'allocation',
+      id: 'h2',
+      inventoryId: 'inv2',
+      date: new Date(Date.now() - 3600000).toISOString(),
+      type: 'audit',
+      description: 'Auditado como Emprestado - João (Equipe Beta)',
+      user: 'Carlos Líder',
+    },
+  ],
+  checklists: [
+    {
+      id: 'chk1',
+      teamId: 't1',
+      date: new Date(Date.now() - 3600000).toISOString(),
+      leaderName: 'Carlos Líder',
+      discrepancies: 1,
     },
   ],
 }

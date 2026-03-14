@@ -1,19 +1,32 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
-import { AppState, TreeNode, Team, InventoryItem, Activity, Condition } from '@/types'
+import { AppState, TreeNode, InventoryItem, Condition, ToolStatus, Checklist } from '@/types'
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
 
-interface AddInventoryItemPayload {
+interface AddInventoryPayload {
   teamId: string
   treeNodeId: string
   condition: Condition
-  quantity: number
+  assets: string[]
+}
+interface UpdateInventoryPayload {
+  condition?: Condition
+  assetNumber?: string
+  photos?: string[]
+}
+interface AuditItems {
+  [id: string]: { status: ToolStatus; notes: string }
+}
+interface ExtraItem {
+  assetNumber: string
+  notes: string
 }
 
 interface AppContextType extends AppState {
   addNode: (node: Omit<TreeNode, 'id'>) => void
-  addInventoryItem: (item: AddInventoryItemPayload) => void
-  updateInventoryCondition: (id: string, condition: Condition, photos: string[]) => void
+  addInventoryItem: (item: AddInventoryPayload) => void
+  updateInventoryItem: (id: string, updates: UpdateInventoryPayload) => void
+  submitChecklist: (teamId: string, leader: string, items: AuditItems, extra: ExtraItem[]) => void
   getNodePath: (nodeId: string) => TreeNode[]
 }
 
@@ -22,80 +35,136 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState>(initialData)
 
-  const addNode = useCallback((nodeInfo: Omit<TreeNode, 'id'>) => {
-    const newNode: TreeNode = {
-      ...nodeInfo,
-      id: `n_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-    }
-    setState((prev) => ({ ...prev, nodes: [...prev.nodes, newNode] }))
-    toast({ title: 'Nó adicionado', description: `${nodeInfo.name} foi criado com sucesso.` })
+  const addNode = useCallback((n: Omit<TreeNode, 'id'>) => {
+    const newNode = { ...n, id: `n_${Date.now()}_${Math.floor(Math.random() * 1000)}` }
+    setState((p) => ({ ...p, nodes: [...p.nodes, newNode] }))
+    toast({ title: 'Nó adicionado', description: `${n.name} criado com sucesso.` })
   }, [])
 
-  const addInventoryItem = useCallback((itemInfo: AddInventoryItemPayload) => {
+  const addInventoryItem = useCallback((info: AddInventoryPayload) => {
     setState((prev) => {
-      const newItems: InventoryItem[] = []
-      for (let i = 0; i < itemInfo.quantity; i++) {
-        newItems.push({
-          id: `inv_${Date.now()}_${i}`,
-          teamId: itemInfo.teamId,
-          treeNodeId: itemInfo.treeNodeId,
-          condition: itemInfo.condition,
-          photos: [],
-          lastUpdated: new Date().toISOString(),
-        })
-      }
-
-      const node = prev.nodes.find((n) => n.id === itemInfo.treeNodeId)
-      const team = prev.teams.find((t) => t.id === itemInfo.teamId)
-      const activity: Activity = {
-        id: `act_${Date.now()}`,
-        date: new Date().toISOString(),
-        description: `${itemInfo.quantity}x instâncias de '${node?.name}' alocada(s) para ${team?.name}.`,
-        type: 'allocation',
-      }
+      const now = new Date().toISOString()
+      const newItems = info.assets.map((asset, i) => ({
+        id: `inv_${Date.now()}_${i}`,
+        assetNumber: asset,
+        teamId: info.teamId,
+        treeNodeId: info.treeNodeId,
+        condition: info.condition,
+        status: 'present' as ToolStatus,
+        photos: [],
+        lastUpdated: now,
+      }))
+      const newHistory = newItems.map((item) => ({
+        id: `h_${Date.now()}_${item.id}`,
+        inventoryId: item.id,
+        date: now,
+        type: 'allocation' as const,
+        description: `Alocado com patrimônio ${item.assetNumber}`,
+        user: 'Sistema',
+      }))
       return {
         ...prev,
         inventory: [...prev.inventory, ...newItems],
-        activities: [activity, ...prev.activities],
+        history: [...newHistory, ...prev.history],
       }
     })
     toast({
       title: 'Instâncias Alocadas',
-      description: `${itemInfo.quantity} unidade(s) vinculada(s) à equipe.`,
+      description: `${info.assets.length} unidade(s) salva(s).`,
     })
   }, [])
 
-  const updateInventoryCondition = useCallback(
-    (id: string, condition: Condition, photos: string[]) => {
+  const updateInventoryItem = useCallback((id: string, updates: UpdateInventoryPayload) => {
+    setState((prev) => {
+      const item = prev.inventory.find((i) => i.id === id)
+      if (!item) return prev
+      const now = new Date().toISOString()
+      const newHistory = []
+      if (updates.condition && updates.condition !== item.condition) {
+        newHistory.push({
+          id: `h_${Date.now()}_1`,
+          inventoryId: id,
+          date: now,
+          type: 'status_change' as const,
+          description: `Condição alterada para ${updates.condition}`,
+          user: 'Sistema',
+        })
+      }
+      if (updates.assetNumber && updates.assetNumber !== item.assetNumber) {
+        newHistory.push({
+          id: `h_${Date.now()}_2`,
+          inventoryId: id,
+          date: now,
+          type: 'system' as const,
+          description: `Patrimônio alterado de ${item.assetNumber} para ${updates.assetNumber}`,
+          user: 'Sistema',
+        })
+      }
+      const updated = prev.inventory.map((inv) =>
+        inv.id === id ? { ...inv, ...updates, lastUpdated: now } : inv,
+      )
+      return { ...prev, inventory: updated, history: [...newHistory, ...prev.history] }
+    })
+    toast({ title: 'Item Atualizado', description: 'As alterações foram salvas e registradas.' })
+  }, [])
+
+  const submitChecklist = useCallback(
+    (teamId: string, leader: string, items: AuditItems, extra: ExtraItem[]) => {
       setState((prev) => {
-        const currentItem = prev.inventory.find((i) => i.id === id)
-        if (!currentItem) return prev
-
-        const updatedInventory = prev.inventory.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                condition,
-                photos,
-                lastUpdated: new Date().toISOString(),
-              }
-            : item,
-        )
-
-        const node = prev.nodes.find((n) => n.id === currentItem.treeNodeId)
-        const team = prev.teams.find((t) => t.id === currentItem.teamId)
-        const condMap = { good: 'Bom', damaged: 'Danificado', repair: 'Para Reparo' }
-
-        const activity: Activity = {
-          id: `act_${Date.now()}`,
-          date: new Date().toISOString(),
-          description: `${team?.name} atualizou unidade de '${node?.name}' para ${condMap[condition]}.`,
-          type: 'status_change',
+        const now = new Date().toISOString()
+        const newHistory = []
+        const updatedInv = prev.inventory.map((inv) => {
+          if (inv.teamId === teamId && items[inv.id]) {
+            const { status, notes } = items[inv.id]
+            if (inv.status !== status || notes) {
+              const desc = `Auditado: ${status === 'present' ? 'Presente' : status === 'missing' ? 'Faltando' : 'Emprestado'}${notes ? ` - ${notes}` : ''}`
+              newHistory.push({
+                id: `h_${Date.now()}_${inv.id}`,
+                inventoryId: inv.id,
+                date: now,
+                type: 'audit' as const,
+                description: desc,
+                user: leader,
+              })
+            }
+            return {
+              ...inv,
+              status,
+              borrowedTo: status === 'borrowed' ? notes : undefined,
+              lastUpdated: now,
+            }
+          }
+          return inv
+        })
+        extra.forEach((ex, i) => {
+          const existing = prev.inventory.find((inv) => inv.assetNumber === ex.assetNumber)
+          if (existing)
+            newHistory.push({
+              id: `hex_${Date.now()}_${i}`,
+              inventoryId: existing.id,
+              date: now,
+              type: 'audit' as const,
+              description: `Encontrado sobrando na equipe - ${ex.notes}`,
+              user: leader,
+            })
+        })
+        const discrepancies =
+          Object.values(items).filter((i) => i.status !== 'present').length + extra.length
+        const checklist: Checklist = {
+          id: `chk_${Date.now()}`,
+          teamId,
+          date: now,
+          leaderName: leader,
+          discrepancies,
         }
-
-        return { ...prev, inventory: updatedInventory, activities: [activity, ...prev.activities] }
+        return {
+          ...prev,
+          inventory: updatedInv,
+          history: [...newHistory, ...prev.history],
+          checklists: [checklist, ...prev.checklists],
+        }
       })
-      toast({ title: 'Status Atualizado', description: 'A condição e evidências foram salvas.' })
+      toast({ title: 'Auditoria Concluída', description: 'O checklist foi salvo no histórico.' })
     },
     [],
   )
@@ -109,9 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (node) {
           path.unshift(node)
           currentId = node.parentId
-        } else {
-          break
-        }
+        } else break
       }
       return path
     },
@@ -123,17 +190,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       ...state,
       addNode,
       addInventoryItem,
-      updateInventoryCondition,
+      updateInventoryItem,
+      submitChecklist,
       getNodePath,
     }),
-    [state, addNode, addInventoryItem, updateInventoryCondition, getNodePath],
+    [state, addNode, addInventoryItem, updateInventoryItem, submitChecklist, getNodePath],
   )
-
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
 
-export function useAppStore() {
-  const context = useContext(AppContext)
-  if (!context) throw new Error('useAppStore must be used within AppProvider')
-  return context
+export const useAppStore = () => {
+  const ctx = useContext(AppContext)
+  if (!ctx) throw new Error('useAppStore failed')
+  return ctx
 }

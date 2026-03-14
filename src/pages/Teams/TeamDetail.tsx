@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppStore } from '@/store/AppStore'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Settings2, Camera } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { ArrowLeft, Plus, Settings2, Camera, ClipboardCheck } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { AllocateDialog } from './AllocateDialog'
 import { UpdateDialog } from './UpdateDialog'
 import { InventoryItem } from '@/types'
@@ -25,7 +26,7 @@ const statusMap = {
 
 export default function TeamDetail() {
   const { id } = useParams()
-  const { teams, inventory, getNodePath } = useAppStore()
+  const { teams, inventory, checklists, getNodePath } = useAppStore()
   const [allocateOpen, setAllocateOpen] = useState(false)
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
 
@@ -41,25 +42,61 @@ export default function TeamDetail() {
     )
 
   const teamInventory = inventory.filter((i) => i.teamId === id)
+  const teamChecklists = checklists
+    .filter((c) => c.teamId === id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const lastChecklist = teamChecklists[0]
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50">
-          <Link to="/equipes">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold tracking-tight">{team.name}</h2>
-          <p className="text-muted-foreground">
-            {team.description} • {team.location}
-          </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50">
+            <Link to="/equipes">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">{team.name}</h2>
+            <p className="text-muted-foreground">
+              {team.description} • {team.location}
+            </p>
+          </div>
         </div>
-        <Button onClick={() => setAllocateOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Alocar Instâncias
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setAllocateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Alocar
+          </Button>
+          <Button asChild>
+            <Link to={`/equipes/${team.id}/auditoria`}>
+              <ClipboardCheck className="h-4 w-4 mr-2" /> Realizar Auditoria
+            </Link>
+          </Button>
+        </div>
       </div>
+
+      {lastChecklist && (
+        <Card className="bg-muted/20 border-primary/20">
+          <CardContent className="p-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm font-medium">
+                Última Auditoria: {new Date(lastChecklist.date).toLocaleDateString()}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Realizada por {lastChecklist.leaderName}
+              </p>
+            </div>
+            <Badge
+              variant={lastChecklist.discrepancies > 0 ? 'destructive' : 'secondary'}
+              className="text-xs"
+            >
+              {lastChecklist.discrepancies === 0
+                ? 'Tudo Certo'
+                : `${lastChecklist.discrepancies} Discrepâncias`}
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-0">
@@ -67,9 +104,10 @@ export default function TeamDetail() {
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="w-16 text-center">Fotos</TableHead>
-                <TableHead>Identificador</TableHead>
+                <TableHead>Patrimônio</TableHead>
                 <TableHead>Item (Marca)</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>Condição</TableHead>
+                <TableHead>Disponibilidade</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -78,51 +116,52 @@ export default function TeamDetail() {
                 const path = getNodePath(item.treeNodeId)
                 const marcaNode = path.find((n) => n.level === 'marca')
                 const itemNode = path.find((n) => n.level === 'item')
-                const fullPath = path.map((n) => n.name).join(' > ')
-                const status = statusMap[item.condition]
-                const mainPhoto = item.photos?.[0]
-
+                const statusInfo = statusMap[item.condition]
                 return (
                   <TableRow key={item.id} className="group">
                     <TableCell className="text-center">
-                      <Avatar className="h-10 w-10 mx-auto rounded-md border border-border/50">
-                        {mainPhoto ? (
-                          <AvatarImage src={mainPhoto} className="object-cover" />
-                        ) : (
-                          <AvatarFallback className="rounded-md bg-muted">
-                            <Camera className="h-4 w-4 text-muted-foreground/50" />
-                          </AvatarFallback>
-                        )}
+                      <Avatar className="h-10 w-10 mx-auto rounded-md border">
+                        <AvatarImage src={item.photos?.[0]} className="object-cover" />
+                        <AvatarFallback className="bg-muted">
+                          <Camera className="h-4 w-4 text-muted-foreground/50" />
+                        </AvatarFallback>
                       </Avatar>
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {item.id}
+                    <TableCell className="font-mono text-xs font-semibold">
+                      {item.assetNumber}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
                         {itemNode?.name || 'Item'} ({marcaNode?.name || 'Marca'})
                       </div>
-                      <div
-                        className="text-xs text-muted-foreground mt-0.5 line-clamp-1"
-                        title={fullPath}
-                      >
-                        {fullPath}
-                      </div>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : item.condition === 'damaged' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'}`}
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-red-100 text-red-800 border-red-200'}`}
                       >
-                        {status.label}
-                      </span>
+                        {statusInfo.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {item.status === 'present' ? (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                          Presente
+                        </Badge>
+                      ) : item.status === 'missing' ? (
+                        <Badge variant="destructive">Faltando</Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-100 text-amber-800 border-amber-200"
+                          title={item.borrowedTo}
+                        >
+                          Emprestado
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setUpdateItem(item)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setUpdateItem(item)}>
                         <Settings2 className="h-4 w-4 mr-2" /> Perfil
                       </Button>
                     </TableCell>
@@ -131,8 +170,8 @@ export default function TeamDetail() {
               })}
               {teamInventory.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
-                    Nenhuma ferramenta alocada para esta equipe.
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                    Nenhuma ferramenta alocada.
                   </TableCell>
                 </TableRow>
               )}
