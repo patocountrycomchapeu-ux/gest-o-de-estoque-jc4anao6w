@@ -1,11 +1,13 @@
 import { useAppStore } from '@/store/AppStore'
+import { canViewTeam, isAdmin } from '@/lib/permissions'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { MapPin, Package, AlertTriangle } from 'lucide-react'
+import { MapPin, Package, AlertTriangle, ArrowRightLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 
 export default function TeamsPage() {
-  const { teams, inventory } = useAppStore()
+  const { teams, inventory, transfers, currentUser } = useAppStore()
+  const filteredTeams = teams.filter((t) => canViewTeam(currentUser, t.id))
 
   return (
     <div className="space-y-6">
@@ -16,14 +18,16 @@ export default function TeamsPage() {
             Visualize e gerencie as instâncias de ferramentas de cada equipe.
           </p>
         </div>
-        <Button>Nova Equipe</Button>
+        {isAdmin(currentUser) && <Button>Nova Equipe</Button>}
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {teams.map((team) => {
+        {filteredTeams.map((team) => {
           const teamItems = inventory.filter((i) => i.teamId === team.id)
-          const totalItems = teamItems.length
           const damagedItems = teamItems.filter((i) => i.condition !== 'good').length
+          const pendingIncoming = transfers.filter(
+            (t) => t.toTeamId === team.id && t.status === 'pending',
+          ).length
 
           return (
             <Link key={team.id} to={`/equipes/${team.id}`} className="block group">
@@ -42,21 +46,32 @@ export default function TeamsPage() {
                     <div className="flex items-center justify-between text-sm pt-3 border-t">
                       <div className="flex items-center">
                         <Package className="h-4 w-4 mr-1.5 text-blue-500" />
-                        <span className="font-medium">{totalItems} Instâncias</span>
+                        <span className="font-medium">{teamItems.length} Instâncias</span>
                       </div>
                       {damagedItems > 0 && (
                         <div className="flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs">
-                          <AlertTriangle className="h-3 w-3 mr-1" />
-                          {damagedItems} com avaria
+                          <AlertTriangle className="h-3 w-3 mr-1" /> {damagedItems} avaria
                         </div>
                       )}
                     </div>
+                    {pendingIncoming > 0 && (
+                      <div className="flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200">
+                        <ArrowRightLeft className="h-3.5 w-3.5 mr-1.5" />
+                        {pendingIncoming} Transferência{pendingIncoming > 1 ? 's' : ''} Pendente
+                        {pendingIncoming > 1 ? 's' : ''}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </Link>
           )
         })}
+        {filteredTeams.length === 0 && (
+          <p className="text-muted-foreground col-span-full">
+            Nenhuma equipe disponível para o seu perfil.
+          </p>
+        )}
       </div>
     </div>
   )

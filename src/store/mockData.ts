@@ -1,4 +1,11 @@
-import { AppState } from '@/types'
+import { AppState, User } from '@/types'
+
+const initialUsers: User[] = [
+  { id: 'u1', name: 'Administrador Master', role: 'admin' },
+  { id: 'u2', name: 'Carlos (Líder Tacha 1)', role: 'leader', teamId: 't1' },
+  { id: 'u3', name: 'João (Operador Tacha 1)', role: 'operator', teamId: 't1' },
+  { id: 'u4', name: 'Ana (Líder Alpha)', role: 'leader', teamId: 't2' },
+]
 
 const initialNodes = [
   { id: 'd1', name: 'Ferramentas Elétricas', level: 'departamento', parentId: null },
@@ -21,6 +28,7 @@ const initialTeams = [
 const initialInventory = [
   {
     id: 'inv1',
+    hasAssetNumber: true,
     assetNumber: 'PAT-10001',
     teamId: 't1',
     treeNodeId: 'm1',
@@ -31,21 +39,45 @@ const initialInventory = [
   },
   {
     id: 'inv2',
+    hasAssetNumber: true,
     assetNumber: 'PAT-10002',
     teamId: 't1',
     treeNodeId: 'm3',
     condition: 'damaged',
     status: 'borrowed',
-    borrowedTo: 'João (Equipe Beta)',
+    borrowedTo: 'Equipe Beta',
     photos: ['https://img.usecurling.com/p/200/200?q=screwdriver'],
+    lastUpdated: new Date().toISOString(),
+  },
+  {
+    id: 'inv3',
+    hasAssetNumber: false,
+    teamId: 't2',
+    treeNodeId: 'm1',
+    condition: 'good',
+    status: 'present',
+    photos: [],
     lastUpdated: new Date().toISOString(),
   },
 ] as const
 
 export const initialData: AppState = {
+  users: initialUsers,
+  currentUser: initialUsers[0],
   nodes: [...initialNodes] as any,
   teams: [...initialTeams],
   inventory: [...initialInventory] as any,
+  transfers: [
+    {
+      id: 'tr1',
+      inventoryId: 'inv3',
+      fromTeamId: 't2',
+      toTeamId: 't1',
+      initiatedBy: 'Ana (Líder Alpha)',
+      initiatedAt: new Date().toISOString(),
+      status: 'pending',
+    },
+  ],
   activities: [],
   history: [
     {
@@ -56,22 +88,6 @@ export const initialData: AppState = {
       description: 'Alocado inicialmente para a Equipe Tacha 1.',
       user: 'Sistema',
     },
-    {
-      id: 'h2',
-      inventoryId: 'inv2',
-      date: new Date(Date.now() - 3600000).toISOString(),
-      type: 'audit',
-      description: 'Auditado como Emprestado - João (Equipe Beta)',
-      user: 'Carlos Líder',
-    },
   ],
-  checklists: [
-    {
-      id: 'chk1',
-      teamId: 't1',
-      date: new Date(Date.now() - 3600000).toISOString(),
-      leaderName: 'Carlos Líder',
-      discrepancies: 1,
-    },
-  ],
+  checklists: [],
 }

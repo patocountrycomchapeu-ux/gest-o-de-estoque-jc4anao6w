@@ -1,4 +1,5 @@
 import { useAppStore } from '@/store/AppStore'
+import { isAdmin } from '@/lib/permissions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, Package, Users, AlertTriangle, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,7 +9,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Index() {
-  const { inventory, teams, activities } = useAppStore()
+  const { inventory, teams, activities, currentUser } = useAppStore()
 
   const totalItems = inventory.length
   const damagedItems = inventory.filter((i) => i.condition === 'damaged').length
@@ -50,14 +51,16 @@ export default function Index() {
               <CardTitle>Atividade Recente</CardTitle>
               <CardDescription>Últimas movimentações e alterações de status.</CardDescription>
             </div>
-            <div className="space-x-2">
-              <Button size="sm" asChild variant="outline">
-                <Link to="/arvore">Nova Ferramenta</Link>
-              </Button>
-              <Button size="sm" asChild>
-                <Link to="/equipes">Gerenciar Equipes</Link>
-              </Button>
-            </div>
+            {isAdmin(currentUser) && (
+              <div className="space-x-2">
+                <Button size="sm" asChild variant="outline">
+                  <Link to="/arvore">Nova Ferramenta</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link to="/equipes">Gerenciar Equipes</Link>
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="flex-1">
             <div className="space-y-4 pt-4">
@@ -67,7 +70,7 @@ export default function Index() {
                   className="flex items-start gap-4 text-sm group animate-slide-up"
                 >
                   <div
-                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'}`}
+                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}
                   >
                     {activity.type === 'status_change' ? (
                       <AlertTriangle className="h-3 w-3" />

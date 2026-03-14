@@ -1,9 +1,19 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppStore } from '@/store/AppStore'
+import { canManageTeam } from '@/lib/permissions'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Settings2, Camera, ClipboardCheck } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+  ArrowLeft,
+  Plus,
+  Settings2,
+  Camera,
+  ClipboardCheck,
+  ArrowRightLeft,
+  MoreVertical,
+  PackageOpen,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -12,11 +22,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { AllocateDialog } from './AllocateDialog'
 import { UpdateDialog } from './UpdateDialog'
-import { InventoryItem } from '@/types'
+import { TransferDialog } from './TransferDialog'
+import { ReceiveDialog } from './ReceiveDialog'
+import { InventoryItem, Transfer } from '@/types'
 
 const statusMap = {
   good: { label: 'Bom estado', variant: 'success' },
@@ -26,29 +45,22 @@ const statusMap = {
 
 export default function TeamDetail() {
   const { id } = useParams()
-  const { teams, inventory, checklists, getNodePath } = useAppStore()
+  const { teams, inventory, checklists, getNodePath, transfers, currentUser } = useAppStore()
   const [allocateOpen, setAllocateOpen] = useState(false)
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
+  const [transferItem, setTransferItem] = useState<InventoryItem | null>(null)
+  const [receiveTransfer, setReceiveTransfer] = useState<Transfer | null>(null)
 
   const team = teams.find((t) => t.id === id)
-  if (!team)
-    return (
-      <div className="p-8 text-center">
-        Equipe não encontrada.{' '}
-        <Link to="/equipes" className="text-blue-500 underline">
-          Voltar
-        </Link>
-      </div>
-    )
+  if (!team) return <div className="p-8 text-center">Equipe não encontrada.</div>
 
   const teamInventory = inventory.filter((i) => i.teamId === id)
-  const teamChecklists = checklists
-    .filter((c) => c.teamId === id)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  const lastChecklist = teamChecklists[0]
+  const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'pending')
+  const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === 'pending')
+  const canManage = canManageTeam(currentUser, team.id)
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-12">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50">
@@ -58,42 +70,63 @@ export default function TeamDetail() {
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{team.name}</h2>
-            <p className="text-muted-foreground">
-              {team.description} • {team.location}
-            </p>
+            <p className="text-muted-foreground">{team.description}</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setAllocateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Alocar
-          </Button>
-          <Button asChild>
-            <Link to={`/equipes/${team.id}/auditoria`}>
-              <ClipboardCheck className="h-4 w-4 mr-2" /> Realizar Auditoria
-            </Link>
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setAllocateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Alocar
+            </Button>
+            <Button asChild>
+              <Link to={`/equipes/${team.id}/auditoria`}>
+                <ClipboardCheck className="h-4 w-4 mr-2" /> Auditoria
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
-      {lastChecklist && (
-        <Card className="bg-muted/20 border-primary/20">
-          <CardContent className="p-4 flex justify-between items-center">
-            <div>
-              <p className="text-sm font-medium">
-                Última Auditoria: {new Date(lastChecklist.date).toLocaleDateString()}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Realizada por {lastChecklist.leaderName}
-              </p>
-            </div>
-            <Badge
-              variant={lastChecklist.discrepancies > 0 ? 'destructive' : 'secondary'}
-              className="text-xs"
-            >
-              {lastChecklist.discrepancies === 0
-                ? 'Tudo Certo'
-                : `${lastChecklist.discrepancies} Discrepâncias`}
-            </Badge>
+      {canManage && pendingIncoming.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down">
+          <CardHeader className="py-3">
+            <CardTitle className="text-amber-700 text-sm flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4" /> Ferramentas em Trânsito para Validação (
+              {pendingIncoming.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 pb-4">
+            {pendingIncoming.map((t) => {
+              const item = inventory.find((i) => i.id === t.inventoryId)
+              const name = item
+                ? getNodePath(item.treeNodeId).find((n) => n.level === 'item')?.name
+                : 'Item'
+              return (
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between bg-background border rounded-md p-3"
+                >
+                  <div>
+                    <p className="font-medium text-sm">
+                      {name}{' '}
+                      <span className="text-xs font-mono text-muted-foreground ml-2">
+                        {item?.hasAssetNumber ? item.assetNumber : 'S/N'}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Enviado por: {t.initiatedBy}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setReceiveTransfer(t)}
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                  >
+                    <PackageOpen className="h-4 w-4 mr-2" /> Verificar e Receber
+                  </Button>
+                </div>
+              )
+            })}
           </CardContent>
         </Card>
       )}
@@ -107,8 +140,7 @@ export default function TeamDetail() {
                 <TableHead>Patrimônio</TableHead>
                 <TableHead>Item (Marca)</TableHead>
                 <TableHead>Condição</TableHead>
-                <TableHead>Disponibilidade</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                {canManage && <TableHead className="text-right">Ações</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -116,61 +148,79 @@ export default function TeamDetail() {
                 const path = getNodePath(item.treeNodeId)
                 const marcaNode = path.find((n) => n.level === 'marca')
                 const itemNode = path.find((n) => n.level === 'item')
-                const statusInfo = statusMap[item.condition]
+                const isOutgoing = pendingOutgoing.some((t) => t.inventoryId === item.id)
+
                 return (
-                  <TableRow key={item.id} className="group">
+                  <TableRow key={item.id}>
                     <TableCell className="text-center">
-                      <Avatar className="h-10 w-10 mx-auto rounded-md border">
+                      <Avatar className="h-9 w-9 mx-auto rounded-md border">
                         <AvatarImage src={item.photos?.[0]} className="object-cover" />
                         <AvatarFallback className="bg-muted">
-                          <Camera className="h-4 w-4 text-muted-foreground/50" />
+                          <Camera className="h-3 w-3 text-muted-foreground/50" />
                         </AvatarFallback>
                       </Avatar>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-semibold">
-                      {item.assetNumber}
+                      {item.hasAssetNumber ? (
+                        item.assetNumber
+                      ) : (
+                        <span className="text-muted-foreground italic font-normal">
+                          Sem Patrimônio
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {itemNode?.name || 'Item'} ({marcaNode?.name || 'Marca'})
+                      <div className="font-medium">{itemNode?.name || 'Item'}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {marcaNode?.name || 'Marca'}
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className={`text-xs ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-red-100 text-red-800 border-red-200'}`}
+                        className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
                       >
-                        {statusInfo.label}
+                        {statusMap[item.condition].label}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      {item.status === 'present' ? (
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          Presente
-                        </Badge>
-                      ) : item.status === 'missing' ? (
-                        <Badge variant="destructive">Faltando</Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="bg-amber-100 text-amber-800 border-amber-200"
-                          title={item.borrowedTo}
-                        >
-                          Emprestado
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => setUpdateItem(item)}>
-                        <Settings2 className="h-4 w-4 mr-2" /> Perfil
-                      </Button>
-                    </TableCell>
+                    {canManage && (
+                      <TableCell className="text-right">
+                        {isOutgoing ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-100 text-amber-800 border-amber-200 text-[10px]"
+                          >
+                            Em Transferência
+                          </Badge>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setUpdateItem(item)}>
+                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Fotos
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setTransferItem(item)}>
+                                <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir Instância
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
               {teamInventory.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={canManage ? 5 : 4}
+                    className="h-32 text-center text-muted-foreground"
+                  >
                     Nenhuma ferramenta alocada.
                   </TableCell>
                 </TableRow>
@@ -185,6 +235,17 @@ export default function TeamDetail() {
         item={updateItem}
         open={!!updateItem}
         onOpenChange={(o) => !o && setUpdateItem(null)}
+      />
+      <TransferDialog
+        item={transferItem}
+        open={!!transferItem}
+        onOpenChange={(o) => !o && setTransferItem(null)}
+        teamId={team.id}
+      />
+      <ReceiveDialog
+        transfer={receiveTransfer}
+        open={!!receiveTransfer}
+        onOpenChange={(o) => !o && setReceiveTransfer(null)}
       />
     </div>
   )

@@ -1,6 +1,14 @@
 export type Condition = 'good' | 'damaged' | 'repair'
 export type ToolStatus = 'present' | 'missing' | 'borrowed'
 export type TreeLevel = 'departamento' | 'secao' | 'categoria' | 'item' | 'marca'
+export type Role = 'admin' | 'leader' | 'operator'
+
+export interface User {
+  id: string
+  name: string
+  role: Role
+  teamId?: string
+}
 
 export interface TreeNode {
   id: string
@@ -11,9 +19,10 @@ export interface TreeNode {
 
 export interface InventoryItem {
   id: string
-  assetNumber: string
+  hasAssetNumber: boolean
+  assetNumber?: string
   teamId: string
-  treeNodeId: string // References a TreeNode of level 'marca'
+  treeNodeId: string
   condition: Condition
   status: ToolStatus
   borrowedTo?: string
@@ -39,7 +48,7 @@ export interface ToolHistoryEvent {
   id: string
   inventoryId: string
   date: string
-  type: 'allocation' | 'status_change' | 'audit' | 'system'
+  type: 'allocation' | 'status_change' | 'audit' | 'system' | 'transfer'
   description: string
   user: string
 }
@@ -52,11 +61,26 @@ export interface Checklist {
   discrepancies: number
 }
 
+export interface Transfer {
+  id: string
+  inventoryId: string
+  fromTeamId: string
+  toTeamId: string
+  initiatedBy: string
+  initiatedAt: string
+  status: 'pending' | 'completed' | 'rejected'
+  completedAt?: string
+  completedBy?: string
+}
+
 export interface AppState {
+  users: User[]
+  currentUser: User
   nodes: TreeNode[]
   teams: Team[]
   inventory: InventoryItem[]
   activities: Activity[]
   history: ToolHistoryEvent[]
   checklists: Checklist[]
+  transfers: Transfer[]
 }

@@ -1,43 +1,45 @@
-import { Search, User } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useLocation } from 'react-router-dom'
-
-const routeNames: Record<string, string> = {
-  '/': 'Dashboard',
-  '/arvore': 'Árvore Mercadológica',
-  '/equipes': 'Gestão de Equipes',
-}
+import { useAppStore } from '@/store/AppStore'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ShieldAlert, Menu } from 'lucide-react'
+import { useSidebar } from '@/components/ui/sidebar'
+import { Button } from '@/components/ui/button'
 
 export function Header() {
-  const location = useLocation()
-  const title =
-    routeNames[location.pathname] ||
-    (location.pathname.startsWith('/equipes/') ? 'Detalhes da Equipe' : 'Sistema')
+  const { users, currentUser, setCurrentUser } = useAppStore()
+  const { toggleSidebar, isMobile } = useSidebar()
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      <div className="flex items-center gap-4">
-        <SidebarTrigger />
-        <h1 className="text-lg font-semibold text-foreground hidden sm:block">{title}</h1>
+    <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b bg-background px-4 shadow-sm animate-fade-in">
+      <div className="flex items-center gap-2">
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+        <h1 className="font-semibold hidden sm:block text-lg tracking-tight">Painel de Gestão</h1>
       </div>
-
-      <div className="flex flex-1 items-center justify-end gap-4 sm:flex-none">
-        <div className="relative hidden max-w-sm flex-1 sm:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar ferramentas..."
-            className="pl-8 bg-muted/50 focus-visible:bg-background transition-colors"
-          />
+      <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1.5 rounded-md border border-border/50">
+          <ShieldAlert className="h-3.5 w-3.5 mr-1.5 text-primary" /> Visualizando como:
         </div>
-        <Avatar className="h-9 w-9 border border-border">
-          <AvatarImage src="https://img.usecurling.com/ppl/thumbnail?gender=female" alt="User" />
-          <AvatarFallback>
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
+        <Select value={currentUser?.id} onValueChange={setCurrentUser}>
+          <SelectTrigger className="w-[200px] h-9 text-xs font-medium border-primary/20 bg-primary/5 focus:ring-primary/30">
+            <SelectValue placeholder="Selecione um usuário" />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((u) => (
+              <SelectItem key={u.id} value={u.id} className="text-xs">
+                {u.name} <span className="text-muted-foreground ml-1">({u.role})</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </header>
   )
