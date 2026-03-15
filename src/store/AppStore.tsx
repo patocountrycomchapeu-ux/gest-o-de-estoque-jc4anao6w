@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
 import { AppState, TreeNode, Condition, ToolStatus, Checklist } from '@/types'
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
@@ -22,7 +22,8 @@ interface UpdateInventoryPayload {
 }
 
 interface AppContextType extends AppState {
-  setCurrentUser: (userId: string) => void
+  login: (email: string, pass: string) => boolean
+  logout: () => void
   addNode: (node: Omit<TreeNode, 'id'>) => void
   addInventoryItem: (item: AddInventoryPayload) => void
   updateInventoryItem: (id: string, updates: UpdateInventoryPayload) => void
@@ -40,10 +41,29 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(initialData)
+  const [state, setState] = useState<AppState>(() => {
+    const savedUserId = localStorage.getItem('auth_user')
+    const initUser = initialData.users.find((u) => u.id === savedUserId) || null
+    return { ...initialData, currentUser: initUser }
+  })
 
-  const setCurrentUser = useCallback((userId: string) => {
-    setState((p) => ({ ...p, currentUser: p.users.find((u) => u.id === userId) || p.currentUser }))
+  const login = useCallback(
+    (email: string, pass: string) => {
+      const user = state.users.find((u) => u.email === email && u.password === pass)
+      if (user) {
+        localStorage.setItem('auth_user', user.id)
+        setState((p) => ({ ...p, currentUser: user }))
+        toast({ title: 'Login realizado com sucesso' })
+        return true
+      }
+      return false
+    },
+    [state.users],
+  )
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('auth_user')
+    setState((p) => ({ ...p, currentUser: null }))
   }, [])
 
   const addNode = useCallback((n: Omit<TreeNode, 'id'>) => {
@@ -72,7 +92,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         date: now,
         type: 'allocation' as const,
         description: `Alocado ${item.hasAssetNumber ? `com patrimônio ${item.assetNumber}` : 'sem patrimônio'}`,
-        user: prev.currentUser.name,
+        user: prev.currentUser?.name || 'Sistema',
       }))
       return {
         ...prev,
@@ -96,7 +116,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           date: now,
           type: 'status_change' as const,
           description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ''}`,
-          user: prev.currentUser.name,
+          user: prev.currentUser?.name || 'Sistema',
         })
       }
 
@@ -120,7 +140,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         inventoryId,
         fromTeamId: item.teamId,
         toTeamId,
-        initiatedBy: prev.currentUser.name,
+        initiatedBy: prev.currentUser?.name || 'Sistema',
         initiatedAt: new Date().toISOString(),
         status: 'pending' as const,
       }
@@ -151,7 +171,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   ...t,
                   status: isAccept ? 'completed' : 'rejected',
                   completedAt: now,
-                  completedBy: prev.currentUser.name,
+                  completedBy: prev.currentUser?.name || 'Sistema',
                 }
               : t,
           ),
@@ -172,7 +192,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               date: now,
               type: 'transfer' as const,
               description: desc,
-              user: prev.currentUser.name,
+              user: prev.currentUser?.name || 'Sistema',
             },
             ...prev.history,
           ],
@@ -189,7 +209,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         id: `chk_${Date.now()}`,
         teamId,
         date: new Date().toISOString(),
-        leaderName: prev.currentUser.name,
+        leaderName: prev.currentUser?.name || 'Sistema',
         discrepancies: 0,
       }
       return { ...prev, checklists: [chk, ...prev.checklists] }
@@ -215,7 +235,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       ...state,
-      setCurrentUser,
+      login,
+      logout,
       addNode,
       addInventoryItem,
       updateInventoryItem,

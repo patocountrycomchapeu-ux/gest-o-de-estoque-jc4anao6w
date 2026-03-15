@@ -35,6 +35,7 @@ import { AllocateDialog } from './AllocateDialog'
 import { UpdateDialog } from './UpdateDialog'
 import { TransferDialog } from './TransferDialog'
 import { ReceiveDialog } from './ReceiveDialog'
+import { PhotoGalleryDialog } from '@/components/PhotoGalleryDialog'
 import { InventoryItem, Transfer } from '@/types'
 
 const statusMap = {
@@ -45,11 +46,14 @@ const statusMap = {
 
 export default function TeamDetail() {
   const { id } = useParams()
-  const { teams, inventory, checklists, getNodePath, transfers, currentUser } = useAppStore()
+  const { teams, inventory, getNodePath, transfers, currentUser } = useAppStore()
   const [allocateOpen, setAllocateOpen] = useState(false)
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
   const [transferItem, setTransferItem] = useState<InventoryItem | null>(null)
   const [receiveTransfer, setReceiveTransfer] = useState<Transfer | null>(null)
+
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
+  const [galleryOpen, setGalleryOpen] = useState(false)
 
   const team = teams.find((t) => t.id === id)
   if (!team) return <div className="p-8 text-center">Equipe não encontrada.</div>
@@ -58,6 +62,13 @@ export default function TeamDetail() {
   const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'pending')
   const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === 'pending')
   const canManage = canManageTeam(currentUser, team.id)
+
+  const openGallery = (photos: string[]) => {
+    if (photos && photos.length > 0) {
+      setGalleryPhotos(photos)
+      setGalleryOpen(true)
+    }
+  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -153,7 +164,10 @@ export default function TeamDetail() {
                 return (
                   <TableRow key={item.id}>
                     <TableCell className="text-center">
-                      <Avatar className="h-9 w-9 mx-auto rounded-md border">
+                      <Avatar
+                        className={`h-9 w-9 mx-auto rounded-md border ${item.photos?.length ? 'cursor-pointer hover:opacity-80 ring-2 ring-transparent hover:ring-primary/40 transition-all' : ''}`}
+                        onClick={() => openGallery(item.photos)}
+                      >
                         <AvatarImage src={item.photos?.[0]} className="object-cover" />
                         <AvatarFallback className="bg-muted">
                           <Camera className="h-3 w-3 text-muted-foreground/50" />
@@ -247,6 +261,7 @@ export default function TeamDetail() {
         open={!!receiveTransfer}
         onOpenChange={(o) => !o && setReceiveTransfer(null)}
       />
+      <PhotoGalleryDialog photos={galleryPhotos} open={galleryOpen} onOpenChange={setGalleryOpen} />
     </div>
   )
 }

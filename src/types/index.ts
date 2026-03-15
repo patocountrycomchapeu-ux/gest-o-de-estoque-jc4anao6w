@@ -6,6 +6,8 @@ export type Role = 'admin' | 'leader' | 'operator'
 export interface User {
   id: string
   name: string
+  email: string
+  password?: string
   role: Role
   teamId?: string
 }
@@ -76,7 +78,7 @@ export interface Transfer {
 
 export interface AppState {
   users: User[]
-  currentUser: User
+  currentUser: User | null
   nodes: TreeNode[]
   teams: Team[]
   inventory: InventoryItem[]

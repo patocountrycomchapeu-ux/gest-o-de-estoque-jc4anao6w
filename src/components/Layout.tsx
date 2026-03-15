@@ -6,11 +6,13 @@ import { Header } from './Header'
 export default function Layout() {
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <div className="flex min-h-screen w-full flex-col bg-background overflow-hidden">
+      <div className="print:hidden h-full">
+        <AppSidebar />
+      </div>
+      <div className="flex min-h-screen w-full flex-col bg-background overflow-hidden print:overflow-visible print:bg-white">
         <Header />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto max-w-7xl animate-fade-in">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print:p-0 print:overflow-visible">
+          <div className="mx-auto max-w-7xl animate-fade-in print:max-w-none print:w-full print:m-0">
             <Outlet />
           </div>
         </main>

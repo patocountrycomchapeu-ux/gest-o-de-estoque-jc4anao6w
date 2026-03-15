@@ -1,10 +1,37 @@
 import { AppState, User } from '@/types'
 
 const initialUsers: User[] = [
-  { id: 'u1', name: 'Administrador Master', role: 'admin' },
-  { id: 'u2', name: 'Carlos (Líder Tacha 1)', role: 'leader', teamId: 't1' },
-  { id: 'u3', name: 'João (Operador Tacha 1)', role: 'operator', teamId: 't1' },
-  { id: 'u4', name: 'Ana (Líder Alpha)', role: 'leader', teamId: 't2' },
+  {
+    id: 'u1',
+    name: 'Administrador Master',
+    email: 'admin@estoque.pro',
+    password: 'admin',
+    role: 'admin',
+  },
+  {
+    id: 'u2',
+    name: 'Carlos (Líder Tacha 1)',
+    email: 'carlos@estoque.pro',
+    password: '123',
+    role: 'leader',
+    teamId: 't1',
+  },
+  {
+    id: 'u3',
+    name: 'João (Operador Tacha 1)',
+    email: 'joao@estoque.pro',
+    password: '123',
+    role: 'operator',
+    teamId: 't1',
+  },
+  {
+    id: 'u4',
+    name: 'Ana (Líder Alpha)',
+    email: 'ana@estoque.pro',
+    password: '123',
+    role: 'leader',
+    teamId: 't2',
+  },
 ]
 
 const initialNodes = [
@@ -34,7 +61,10 @@ const initialInventory = [
     treeNodeId: 'm1',
     condition: 'good',
     status: 'present',
-    photos: ['https://img.usecurling.com/p/200/200?q=drill'],
+    photos: [
+      'https://img.usecurling.com/p/400/400?q=drill&seed=1',
+      'https://img.usecurling.com/p/400/400?q=drill&seed=2',
+    ],
     lastUpdated: new Date().toISOString(),
     price: 450.0,
   },
@@ -47,7 +77,7 @@ const initialInventory = [
     condition: 'damaged',
     status: 'borrowed',
     borrowedTo: 'Equipe Beta',
-    photos: ['https://img.usecurling.com/p/200/200?q=screwdriver'],
+    photos: ['https://img.usecurling.com/p/400/400?q=screwdriver'],
     lastUpdated: new Date().toISOString(),
     price: 85.5,
   },
@@ -58,7 +88,7 @@ const initialInventory = [
     treeNodeId: 'm1',
     condition: 'good',
     status: 'present',
-    photos: [],
+    photos: ['https://img.usecurling.com/p/400/400?q=power%20tool'],
     lastUpdated: new Date().toISOString(),
     price: 320.0,
   },
@@ -66,7 +96,7 @@ const initialInventory = [
 
 export const initialData: AppState = {
   users: initialUsers,
-  currentUser: initialUsers[0],
+  currentUser: null,
   nodes: [...initialNodes] as any,
   teams: [...initialTeams],
   inventory: [...initialInventory] as any,
