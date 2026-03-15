@@ -3,6 +3,8 @@ import { HistoryTab } from './HistoryTab'
 import { TeamInventoryTab } from './TeamInventoryTab'
 import { ChecklistTab } from './ChecklistTab'
 import { TreeReportTab } from './TreeReportTab'
+import { DamagedTab } from './DamagedTab'
+import { RepairReportTab } from './RepairReportTab'
 
 export default function ReportsPage() {
   return (
@@ -21,6 +23,8 @@ export default function ReportsPage() {
           <TabsTrigger value="team-inventory">Inventário por Equipe</TabsTrigger>
           <TabsTrigger value="checklist">Checklist Surpresa</TabsTrigger>
           <TabsTrigger value="tree">Árvore Mercadológica</TabsTrigger>
+          <TabsTrigger value="damaged">Danificados</TabsTrigger>
+          <TabsTrigger value="repair">Em Reparo</TabsTrigger>
         </TabsList>
 
         <TabsContent
@@ -46,6 +50,18 @@ export default function ReportsPage() {
           className="print:m-0 print:block data-[state=inactive]:print:hidden"
         >
           <TreeReportTab />
+        </TabsContent>
+        <TabsContent
+          value="damaged"
+          className="print:m-0 print:block data-[state=inactive]:print:hidden"
+        >
+          <DamagedTab />
+        </TabsContent>
+        <TabsContent
+          value="repair"
+          className="print:m-0 print:block data-[state=inactive]:print:hidden"
+        >
+          <RepairReportTab />
         </TabsContent>
       </Tabs>
     </div>

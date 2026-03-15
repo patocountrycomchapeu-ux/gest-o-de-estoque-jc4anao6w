@@ -26709,7 +26709,9 @@ var initialInventory = [
 		borrowedTo: "Equipe Beta",
 		photos: ["https://img.usecurling.com/p/400/400?q=screwdriver"],
 		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
-		price: 85.5
+		price: 85.5,
+		damagedDate: (/* @__PURE__ */ new Date(Date.now() - 432e5)).toISOString(),
+		damagedUser: "Carlos (Líder Tacha 1)"
 	},
 	{
 		id: "inv3",
@@ -26721,6 +26723,23 @@ var initialInventory = [
 		photos: ["https://img.usecurling.com/p/400/400?q=power%20tool"],
 		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
 		price: 320
+	},
+	{
+		id: "inv4",
+		hasAssetNumber: true,
+		assetNumber: "PAT-10004",
+		teamId: "t2",
+		treeNodeId: "m1",
+		condition: "repair",
+		status: "in_maintenance",
+		photos: ["https://img.usecurling.com/p/400/400?q=tool%20repair&seed=5"],
+		lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+		price: 520,
+		repairCost: 150,
+		repairLocation: "Assistência Técnica Oficial",
+		repairDescription: "Troca de escovas e lubrificação do motor",
+		repairUser: "Ana (Líder Alpha)",
+		repairDate: (/* @__PURE__ */ new Date(Date.now() - 864e5)).toISOString()
 	}
 ];
 var initialData = {
@@ -26739,21 +26758,32 @@ var initialData = {
 		status: "pending"
 	}],
 	activities: [],
-	history: [{
-		id: "h1",
-		inventoryId: "inv1",
-		date: (/* @__PURE__ */ new Date(Date.now() - 864e5)).toISOString(),
-		type: "allocation",
-		description: "Alocado inicialmente para a Equipe Tacha 1.",
-		user: "Sistema"
-	}, {
-		id: "h2",
-		inventoryId: "inv2",
-		date: (/* @__PURE__ */ new Date(Date.now() - 432e5)).toISOString(),
-		type: "status_change",
-		description: "Condição alterada para damaged. Motivo: Ponta gasta pelo uso em superfícies duras.",
-		user: "Carlos (Líder Tacha 1)"
-	}],
+	history: [
+		{
+			id: "h1",
+			inventoryId: "inv1",
+			date: (/* @__PURE__ */ new Date(Date.now() - 864e5)).toISOString(),
+			type: "allocation",
+			description: "Alocado inicialmente para a Equipe Tacha 1.",
+			user: "Sistema"
+		},
+		{
+			id: "h2",
+			inventoryId: "inv2",
+			date: (/* @__PURE__ */ new Date(Date.now() - 432e5)).toISOString(),
+			type: "status_change",
+			description: "Condição alterada para damaged. Motivo: Ponta gasta pelo uso em superfícies duras.",
+			user: "Carlos (Líder Tacha 1)"
+		},
+		{
+			id: "h3",
+			inventoryId: "inv4",
+			date: (/* @__PURE__ */ new Date(Date.now() - 864e5)).toISOString(),
+			type: "status_change",
+			description: "Condição alterada para repair. Local: Assistência Técnica Oficial. Custo: R$150.",
+			user: "Ana (Líder Alpha)"
+		}
+	],
 	checklists: []
 };
 //#endregion
@@ -26836,37 +26866,81 @@ function AppProvider({ children }) {
 		setState((prev) => {
 			const now = (/* @__PURE__ */ new Date()).toISOString();
 			const item = prev.inventory.find((i) => i.id === id);
+			if (!item) return prev;
 			const newHistory = [];
-			if (item) {
-				if (updates.condition && updates.condition !== item.condition) newHistory.push({
+			let extraItemUpdates = {};
+			if (updates.repairCost !== void 0) extraItemUpdates.repairCost = updates.repairCost;
+			if (updates.repairLocation !== void 0) extraItemUpdates.repairLocation = updates.repairLocation;
+			if (updates.condition && updates.condition !== item.condition) {
+				const isToRepair = updates.condition === "repair";
+				const isToDamaged = updates.condition === "damaged";
+				let desc = `Condição alterada de ${item.condition} para ${updates.condition}.`;
+				if (updates.reason) desc += ` Motivo: ${updates.reason}.`;
+				if (isToRepair) {
+					extraItemUpdates.repairDescription = updates.reason;
+					extraItemUpdates.repairUser = prev.currentUser?.name || "Sistema";
+					extraItemUpdates.repairDate = now;
+					if (updates.repairLocation) desc += ` Local: ${updates.repairLocation}.`;
+					if (updates.repairCost !== void 0) desc += ` Custo: R$${updates.repairCost}.`;
+				} else if (item.condition === "repair") {
+					extraItemUpdates.repairCost = void 0;
+					extraItemUpdates.repairLocation = void 0;
+					extraItemUpdates.repairDescription = void 0;
+					extraItemUpdates.repairUser = void 0;
+					extraItemUpdates.repairDate = void 0;
+				}
+				if (isToDamaged) {
+					extraItemUpdates.damagedDate = now;
+					extraItemUpdates.damagedUser = prev.currentUser?.name || "Sistema";
+				} else if (item.condition === "damaged") {
+					extraItemUpdates.damagedDate = void 0;
+					extraItemUpdates.damagedUser = void 0;
+				}
+				newHistory.push({
 					id: `h_${Date.now()}_cond`,
 					inventoryId: id,
 					date: now,
 					type: "status_change",
-					description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ""}`,
-					user: prev.currentUser?.name || "Sistema"
-				});
-				if (updates.status && updates.status !== item.status) newHistory.push({
-					id: `h_${Date.now()}_status`,
-					inventoryId: id,
-					date: now,
-					type: "status_change",
-					description: `Destino/Status alterado para ${{
-						present: "Em Uso na Equipe",
-						missing: "Faltando / Extraviado",
-						borrowed: "Emprestado",
-						in_maintenance: "Em Manutenção",
-						defect_stock: "Estoque de Defeito",
-						returned_to_team: "Devolvido para a Equipe"
-					}[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ""}`,
+					description: desc,
 					user: prev.currentUser?.name || "Sistema"
 				});
 			}
+			if (!updates.condition || updates.condition === item.condition) {
+				if (item.condition === "repair" && (updates.repairCost !== void 0 || updates.repairLocation !== void 0)) {
+					let updatedFields = [];
+					if (updates.repairCost !== void 0 && updates.repairCost !== item.repairCost) updatedFields.push(`Custo para R$${updates.repairCost}`);
+					if (updates.repairLocation !== void 0 && updates.repairLocation !== item.repairLocation) updatedFields.push(`Local para ${updates.repairLocation}`);
+					if (updatedFields.length > 0) newHistory.push({
+						id: `h_${Date.now()}_repair_upd`,
+						inventoryId: id,
+						date: now,
+						type: "status_change",
+						description: `Atualização de Reparo: ${updatedFields.join(", ")}.${updates.reason ? ` Obs: ${updates.reason}` : ""}`,
+						user: prev.currentUser?.name || "Sistema"
+					});
+				}
+			}
+			if (updates.status && updates.status !== item.status) newHistory.push({
+				id: `h_${Date.now()}_status`,
+				inventoryId: id,
+				date: now,
+				type: "status_change",
+				description: `Destino/Status alterado para ${{
+					present: "Em Uso na Equipe",
+					missing: "Faltando / Extraviado",
+					borrowed: "Emprestado",
+					in_maintenance: "Em Manutenção",
+					defect_stock: "Estoque de Defeito",
+					returned_to_team: "Devolvido para a Equipe"
+				}[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ""}`,
+				user: prev.currentUser?.name || "Sistema"
+			});
 			return {
 				...prev,
 				inventory: prev.inventory.map((inv) => inv.id === id ? {
 					...inv,
 					...updates,
+					...extraItemUpdates,
 					lastUpdated: now
 				} : inv),
 				history: [...newHistory, ...prev.history]
@@ -27002,7 +27076,7 @@ function AppProvider({ children }) {
 		getNodePath
 	}), [state]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:322:10",
+		"data-uid": "src/store/AppStore.tsx:385:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
@@ -27052,6 +27126,11 @@ function AppSidebar() {
 			icon: Users,
 			url: "/equipes"
 		},
+		{
+			title: "Reparos",
+			icon: Wrench,
+			url: "/reparos"
+		},
 		...canViewReports(currentUser) ? [{
 			title: "Relatórios",
 			icon: ChartColumn,
@@ -27059,65 +27138,65 @@ function AppSidebar() {
 		}] : []
 	];
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/AppSidebar.tsx:32:5",
+		"data-uid": "src/components/AppSidebar.tsx:33:5",
 		"data-prohibitions": "[editContent]",
 		variant: "sidebar",
 		collapsible: "icon",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarHeader, {
-			"data-uid": "src/components/AppSidebar.tsx:33:7",
+			"data-uid": "src/components/AppSidebar.tsx:34:7",
 			"data-prohibitions": "[]",
 			className: "flex h-16 items-center justify-center border-b border-sidebar-border/50",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/components/AppSidebar.tsx:34:9",
+				"data-uid": "src/components/AppSidebar.tsx:35:9",
 				"data-prohibitions": "[]",
 				className: "flex items-center gap-2 font-bold tracking-tight text-sidebar-primary-foreground",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:35:11",
+					"data-uid": "src/components/AppSidebar.tsx:36:11",
 					"data-prohibitions": "[]",
 					className: "flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground shadow-sm",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, {
-						"data-uid": "src/components/AppSidebar.tsx:36:13",
+						"data-uid": "src/components/AppSidebar.tsx:37:13",
 						"data-prohibitions": "[editContent]",
 						className: "h-5 w-5"
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					"data-uid": "src/components/AppSidebar.tsx:38:11",
+					"data-uid": "src/components/AppSidebar.tsx:39:11",
 					"data-prohibitions": "[]",
 					className: "group-data-[collapsible=icon]:hidden text-lg",
 					children: "Estoque.Pro"
 				})]
 			})
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-			"data-uid": "src/components/AppSidebar.tsx:41:7",
+			"data-uid": "src/components/AppSidebar.tsx:42:7",
 			"data-prohibitions": "[editContent]",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarGroup, {
-				"data-uid": "src/components/AppSidebar.tsx:42:9",
+				"data-uid": "src/components/AppSidebar.tsx:43:9",
 				"data-prohibitions": "[editContent]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarGroupContent, {
-					"data-uid": "src/components/AppSidebar.tsx:43:11",
+					"data-uid": "src/components/AppSidebar.tsx:44:11",
 					"data-prohibitions": "[editContent]",
 					className: "pt-4",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-						"data-uid": "src/components/AppSidebar.tsx:44:13",
+						"data-uid": "src/components/AppSidebar.tsx:45:13",
 						"data-prohibitions": "[editContent]",
 						children: navItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-							"data-uid": "src/components/AppSidebar.tsx:46:17",
+							"data-uid": "src/components/AppSidebar.tsx:47:17",
 							"data-prohibitions": "[editContent]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-								"data-uid": "src/components/AppSidebar.tsx:47:19",
+								"data-uid": "src/components/AppSidebar.tsx:48:19",
 								"data-prohibitions": "[editContent]",
 								asChild: true,
 								isActive: location.pathname === item.url || item.url !== "/" && location.pathname.startsWith(item.url),
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-									"data-uid": "src/components/AppSidebar.tsx:54:21",
+									"data-uid": "src/components/AppSidebar.tsx:55:21",
 									"data-prohibitions": "[editContent]",
 									to: item.url,
 									className: "font-medium",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-										"data-uid": "src/components/AppSidebar.tsx:55:23",
+										"data-uid": "src/components/AppSidebar.tsx:56:23",
 										"data-prohibitions": "[editContent]"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										"data-uid": "src/components/AppSidebar.tsx:56:23",
+										"data-uid": "src/components/AppSidebar.tsx:57:23",
 										"data-prohibitions": "[editContent]",
 										children: item.title
 									})]
@@ -56064,7 +56143,7 @@ var ptBR = {
 //#region src/pages/Index.tsx
 function Index() {
 	const { inventory, teams, activities, currentUser } = useAppStore();
-	const totalItems = inventory.length;
+	const totalUsable = inventory.filter((i) => i.condition === "good").length;
 	const damagedItems = inventory.filter((i) => i.condition === "damaged").length;
 	const repairItems = inventory.filter((i) => i.condition === "repair").length;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -56079,10 +56158,10 @@ function Index() {
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatCard, {
 					"data-uid": "src/pages/Index.tsx:21:9",
 					"data-prohibitions": "[editContent]",
-					title: "Total de Instâncias",
-					value: totalItems,
+					title: "Total de Instâncias (Em Uso)",
+					value: totalUsable,
 					icon: Package,
-					trend: "+4 desde ontem"
+					trend: "Itens em bom estado"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(StatCard, {
 					"data-uid": "src/pages/Index.tsx:27:9",
@@ -56126,7 +56205,7 @@ function Index() {
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
 						"data-uid": "src/pages/Index.tsx:41:13",
 						"data-prohibitions": "[]",
-						children: "Visão geral das condições das ferramentas ativas."
+						children: "Visão geral das condições de todo o inventário."
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
 					"data-uid": "src/pages/Index.tsx:43:11",
@@ -56685,46 +56764,47 @@ function TeamsPage() {
 			className: "grid gap-6 sm:grid-cols-2 lg:grid-cols-3",
 			children: [filteredTeams.map((team) => {
 				const teamItems = inventory.filter((i) => i.teamId === team.id);
-				const damagedItems = teamItems.filter((i) => i.condition !== "good").length;
+				const usableItems = teamItems.filter((i) => i.condition === "good");
+				const damagedItems = teamItems.filter((i) => i.condition === "damaged").length;
 				const pendingIncoming = transfers.filter((t) => t.toTeamId === team.id && t.status === "pending").length;
 				return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-					"data-uid": "src/pages/Teams/Index.tsx:33:13",
+					"data-uid": "src/pages/Teams/Index.tsx:34:13",
 					"data-prohibitions": "[editContent]",
 					to: `/equipes/${team.id}`,
 					className: "block group",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-						"data-uid": "src/pages/Teams/Index.tsx:34:15",
+						"data-uid": "src/pages/Teams/Index.tsx:35:15",
 						"data-prohibitions": "[editContent]",
 						className: "h-full transition-all duration-200 hover:shadow-elevation hover:-translate-y-1 hover:border-primary/30",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-							"data-uid": "src/pages/Teams/Index.tsx:35:17",
+							"data-uid": "src/pages/Teams/Index.tsx:36:17",
 							"data-prohibitions": "[editContent]",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-								"data-uid": "src/pages/Teams/Index.tsx:36:19",
+								"data-uid": "src/pages/Teams/Index.tsx:37:19",
 								"data-prohibitions": "[editContent]",
 								className: "group-hover:text-primary transition-colors",
 								children: team.name
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-								"data-uid": "src/pages/Teams/Index.tsx:39:19",
+								"data-uid": "src/pages/Teams/Index.tsx:40:19",
 								"data-prohibitions": "[editContent]",
 								className: "line-clamp-2",
 								children: team.description
 							})]
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-							"data-uid": "src/pages/Teams/Index.tsx:41:17",
+							"data-uid": "src/pages/Teams/Index.tsx:42:17",
 							"data-prohibitions": "[editContent]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/Index.tsx:42:19",
+								"data-uid": "src/pages/Teams/Index.tsx:43:19",
 								"data-prohibitions": "[editContent]",
 								className: "space-y-3",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/Teams/Index.tsx:43:21",
+										"data-uid": "src/pages/Teams/Index.tsx:44:21",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center text-sm text-muted-foreground",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MapPin, {
-												"data-uid": "src/pages/Teams/Index.tsx:44:23",
+												"data-uid": "src/pages/Teams/Index.tsx:45:23",
 												"data-prohibitions": "[editContent]",
 												className: "h-4 w-4 mr-2"
 											}),
@@ -56733,30 +56813,30 @@ function TeamsPage() {
 										]
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/Teams/Index.tsx:46:21",
+										"data-uid": "src/pages/Teams/Index.tsx:47:21",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center justify-between text-sm pt-3 border-t",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											"data-uid": "src/pages/Teams/Index.tsx:47:23",
+											"data-uid": "src/pages/Teams/Index.tsx:48:23",
 											"data-prohibitions": "[editContent]",
 											className: "flex items-center",
 											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, {
-												"data-uid": "src/pages/Teams/Index.tsx:48:25",
-												"data-prohibitions": "[editContent]",
-												className: "h-4 w-4 mr-1.5 text-blue-500"
-											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 												"data-uid": "src/pages/Teams/Index.tsx:49:25",
 												"data-prohibitions": "[editContent]",
-												className: "font-medium",
-												children: [teamItems.length, " Instâncias"]
+												className: "h-4 w-4 mr-1.5 text-emerald-600"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												"data-uid": "src/pages/Teams/Index.tsx:50:25",
+												"data-prohibitions": "[editContent]",
+												className: "font-medium text-emerald-700",
+												children: [usableItems.length, " Utilizáveis"]
 											})]
 										}), damagedItems > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											"data-uid": "src/pages/Teams/Index.tsx:52:25",
+											"data-uid": "src/pages/Teams/Index.tsx:55:25",
 											"data-prohibitions": "[editContent]",
 											className: "flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs",
 											children: [
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, {
-													"data-uid": "src/pages/Teams/Index.tsx:53:27",
+													"data-uid": "src/pages/Teams/Index.tsx:56:27",
 													"data-prohibitions": "[editContent]",
 													className: "h-3 w-3 mr-1"
 												}),
@@ -56767,12 +56847,12 @@ function TeamsPage() {
 										})]
 									}),
 									pendingIncoming > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/Teams/Index.tsx:58:23",
+										"data-uid": "src/pages/Teams/Index.tsx:61:23",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
-												"data-uid": "src/pages/Teams/Index.tsx:59:25",
+												"data-uid": "src/pages/Teams/Index.tsx:62:25",
 												"data-prohibitions": "[editContent]",
 												className: "h-3.5 w-3.5 mr-1.5"
 											}),
@@ -56789,7 +56869,7 @@ function TeamsPage() {
 					})
 				}, team.id);
 			}), filteredTeams.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				"data-uid": "src/pages/Teams/Index.tsx:71:11",
+				"data-uid": "src/pages/Teams/Index.tsx:74:11",
 				"data-prohibitions": "[]",
 				className: "text-muted-foreground col-span-full",
 				children: "Nenhuma equipe disponível para o seu perfil."
@@ -59091,176 +59171,242 @@ function UpdateDialog({ item, open, onOpenChange }) {
 	const [condition, setCondition] = (0, import_react.useState)("good");
 	const [status, setStatus] = (0, import_react.useState)("present");
 	const [reason, setReason] = (0, import_react.useState)("");
+	const [repairCost, setRepairCost] = (0, import_react.useState)("");
+	const [repairLocation, setRepairLocation] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
 		if (item && open) {
 			setCondition(item.condition);
 			setStatus(item.status || "present");
 			setReason("");
+			setRepairCost(item.repairCost?.toString() || "");
+			setRepairLocation(item.repairLocation || "");
 		}
 	}, [item, open]);
 	const handleSubmit = () => {
 		if (!item) return;
-		if ((condition === "damaged" || condition === "repair" || status === "in_maintenance" || status === "defect_stock" || status === "missing") && !reason.trim()) {
-			alert("Motivo / Destino ou Comentário é obrigatório para esta alteração.");
-			return;
+		const requiresReason = condition === "damaged" || condition === "repair" || status === "in_maintenance" || status === "defect_stock" || status === "missing";
+		if (condition === "repair") {
+			if (!repairLocation.trim()) {
+				alert("Local / Assistência do reparo é obrigatório.");
+				return;
+			}
+			if (!reason.trim()) {
+				alert("Descrição do motivo/reparo é obrigatória para evitar extravios.");
+				return;
+			}
+			updateInventoryItem(item.id, {
+				condition,
+				status,
+				reason,
+				repairCost: repairCost ? parseFloat(repairCost) : 0,
+				repairLocation
+			});
+		} else {
+			if (requiresReason && !reason.trim()) {
+				alert("Motivo / Destino ou Comentário é obrigatório para esta alteração.");
+				return;
+			}
+			updateInventoryItem(item.id, {
+				condition,
+				status,
+				reason
+			});
 		}
-		updateInventoryItem(item.id, {
-			condition,
-			status,
-			reason
-		});
 		onOpenChange(false);
 	};
 	if (!item) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/UpdateDialog.tsx:71:5",
+		"data-uid": "src/pages/Teams/UpdateDialog.tsx:94:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/UpdateDialog.tsx:72:7",
+			"data-uid": "src/pages/Teams/UpdateDialog.tsx:95:7",
 			"data-prohibitions": "[editContent]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:73:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:9",
 					"data-prohibitions": "[editContent]",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:74:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:97:11",
 						"data-prohibitions": "[editContent]",
 						children: ["Atualizar Instância: ", item.hasAssetNumber ? item.assetNumber : "Sem Patrimônio"]
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:78:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:101:9",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-4 py-4",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:79:11",
-						"data-prohibitions": "[editContent]",
-						className: "grid grid-cols-2 gap-4",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:13",
-							"data-prohibitions": "[]",
-							className: "space-y-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:81:15",
-								"data-prohibitions": "[]",
-								children: "Condição da Ferramenta"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:82:15",
-								"data-prohibitions": "[]",
-								value: condition,
-								onValueChange: (v) => setCondition(v),
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:83:17",
-									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:84:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:86:17",
-									"data-prohibitions": "[]",
-									children: [
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:87:19",
-											"data-prohibitions": "[]",
-											value: "good",
-											children: "Bom Estado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:88:19",
-											"data-prohibitions": "[]",
-											value: "damaged",
-											children: "Danificado"
-										}),
-										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-											"data-uid": "src/pages/Teams/UpdateDialog.tsx:89:19",
-											"data-prohibitions": "[]",
-											value: "repair",
-											children: "Para Reparo"
-										})
-									]
-								})]
-							})]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:93:13",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:102:11",
 							"data-prohibitions": "[editContent]",
-							className: "space-y-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:94:15",
+							className: "grid grid-cols-2 gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:103:13",
 								"data-prohibitions": "[]",
-								children: "Destino / Status"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:95:15",
-								"data-prohibitions": "[editContent]",
-								value: status,
-								onValueChange: (v) => setStatus(v),
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:17",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:104:15",
 									"data-prohibitions": "[]",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:97:19",
-										"data-prohibitions": "[editContent]"
-									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:99:17",
+									children: "Condição da Ferramenta"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:105:15",
+									"data-prohibitions": "[]",
+									value: condition,
+									onValueChange: (v) => setCondition(v),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:106:17",
+										"data-prohibitions": "[]",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:107:19",
+											"data-prohibitions": "[editContent]"
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:109:17",
+										"data-prohibitions": "[]",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:110:19",
+												"data-prohibitions": "[]",
+												value: "good",
+												children: "Bom Estado"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:111:19",
+												"data-prohibitions": "[]",
+												value: "damaged",
+												children: "Danificado"
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+												"data-uid": "src/pages/Teams/UpdateDialog.tsx:112:19",
+												"data-prohibitions": "[]",
+												value: "repair",
+												children: "Para Reparo"
+											})
+										]
+									})]
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:116:13",
+								"data-prohibitions": "[editContent]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:117:15",
+									"data-prohibitions": "[]",
+									children: "Destino / Status"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:118:15",
 									"data-prohibitions": "[editContent]",
-									children: Object.entries(statusLabels).map(([k, v]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:101:21",
+									value: status,
+									onValueChange: (v) => setStatus(v),
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:119:17",
+										"data-prohibitions": "[]",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:120:19",
+											"data-prohibitions": "[editContent]"
+										})
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:122:17",
 										"data-prohibitions": "[editContent]",
-										value: k,
-										children: v
-									}, k))
+										children: Object.entries(statusLabels).map(([k, v]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:124:21",
+											"data-prohibitions": "[editContent]",
+											value: k,
+											children: v
+										}, k))
+									})]
 								})]
 							})]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:110:11",
-						"data-prohibitions": "[editContent]",
-						className: "space-y-2 animate-fade-in",
-						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:111:13",
-								"data-prohibitions": "[editContent]",
-								className: `${condition === "damaged" || condition === "repair" || status !== "present" ? "text-destructive font-bold" : ""}`,
-								children: [
-									"Motivo / Observação",
-									" ",
-									(condition === "damaged" || condition === "repair" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && "(Obrigatório)"
-								]
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:122:13",
-								"data-prohibitions": "[editContent]",
-								value: reason,
-								onChange: (e) => setReason(e.target.value),
-								placeholder: "Descreva o motivo da alteração de estoque/condição...",
-								className: condition === "damaged" || condition === "repair" || status !== "present" ? "border-destructive/50 focus-visible:ring-destructive/30" : ""
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:132:13",
+						}),
+						condition === "repair" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:134:13",
+							"data-prohibitions": "[editContent]",
+							className: "grid grid-cols-2 gap-4 animate-fade-in pb-1 border-b border-border/50 mb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:135:15",
 								"data-prohibitions": "[]",
-								className: "text-[10px] text-muted-foreground",
-								children: "Esta informação ficará registrada de forma imutável no histórico do item, permitindo total rastreabilidade."
-							})
-						]
-					})]
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:136:17",
+									"data-prohibitions": "[]",
+									children: "Custo Estimado/Gasto (R$)"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:137:17",
+									"data-prohibitions": "[editContent]",
+									type: "number",
+									step: "0.01",
+									value: repairCost,
+									onChange: (e) => setRepairCost(e.target.value),
+									placeholder: "0.00"
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:145:15",
+								"data-prohibitions": "[editContent]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:146:17",
+									"data-prohibitions": "[]",
+									children: ["Local / Assistência ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:147:39",
+										"data-prohibitions": "[]",
+										className: "text-destructive",
+										children: "*"
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:149:17",
+									"data-prohibitions": "[editContent]",
+									value: repairLocation,
+									onChange: (e) => setRepairLocation(e.target.value),
+									placeholder: "Ex: Oficina Y, Assistência X...",
+									className: !repairLocation ? "border-destructive/30" : ""
+								})]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:159:11",
+							"data-prohibitions": "[editContent]",
+							className: "space-y-2 animate-fade-in",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:160:13",
+									"data-prohibitions": "[editContent]",
+									className: `${condition === "damaged" || condition === "repair" || status !== "present" ? "text-destructive font-bold" : ""}`,
+									children: [condition === "repair" ? "Descrição do Reparo / Problema " : "Motivo / Observação ", (condition === "damaged" || condition === "repair" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && "(Obrigatório)"]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:171:13",
+									"data-prohibitions": "[editContent]",
+									value: reason,
+									onChange: (e) => setReason(e.target.value),
+									placeholder: condition === "repair" ? "Descreva o problema e detalhes do envio..." : "Descreva o motivo da alteração de estoque/condição...",
+									className: condition === "damaged" || condition === "repair" || status !== "present" ? "border-destructive/50 focus-visible:ring-destructive/30" : ""
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:185:13",
+									"data-prohibitions": "[]",
+									className: "text-[10px] text-muted-foreground",
+									children: "Esta informação ficará registrada de forma imutável no histórico do item, permitindo total rastreabilidade."
+								})
+							]
+						})
+					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:138:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:191:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:139:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:192:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => onOpenChange(false),
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:142:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:195:11",
 						"data-prohibitions": "[]",
 						onClick: handleSubmit,
-						disabled: (condition === "damaged" || condition === "repair" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && !reason.trim(),
+						disabled: (condition === "damaged" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && !reason.trim() || condition === "repair" && (!reason.trim() || !repairLocation.trim()),
 						children: "Salvar Alterações"
 					})]
 				})
@@ -61338,6 +61484,9 @@ function TeamDetail() {
 		children: "Equipe não encontrada."
 	});
 	const teamInventory = inventory.filter((i) => i.teamId === id);
+	const usableCount = teamInventory.filter((i) => i.condition === "good").length;
+	const inRepairCount = teamInventory.filter((i) => i.condition === "repair").length;
+	const damagedCount = teamInventory.filter((i) => i.condition === "damaged").length;
 	const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === "pending");
 	const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === "pending");
 	const canManage = canManageTeam(currentUser, team.id);
@@ -61348,74 +61497,96 @@ function TeamDetail() {
 		}
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Teams/TeamDetail.tsx:74:5",
+		"data-uid": "src/pages/Teams/TeamDetail.tsx:78:5",
 		"data-prohibitions": "[editContent]",
 		className: "space-y-6 animate-fade-in pb-12",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:75:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:79:7",
 				"data-prohibitions": "[editContent]",
 				className: "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:76:9",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:80:9",
 					"data-prohibitions": "[editContent]",
-					className: "flex items-center gap-4",
+					className: "flex items-start sm:items-center gap-4",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:77:11",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:81:11",
 						"data-prohibitions": "[]",
 						variant: "ghost",
 						size: "icon",
 						asChild: true,
-						className: "rounded-full bg-muted/50",
+						className: "rounded-full bg-muted/50 mt-1 sm:mt-0",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:78:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:87:13",
 							"data-prohibitions": "[]",
 							to: "/equipes",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:79:15",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:88:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4"
 							})
 						})
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:82:11",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:91:11",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:83:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:92:13",
 							"data-prohibitions": "[editContent]",
 							className: "text-2xl font-bold tracking-tight",
 							children: team.name
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:84:13",
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:93:13",
 							"data-prohibitions": "[editContent]",
-							className: "text-muted-foreground",
-							children: team.description
+							className: "flex flex-wrap gap-2 mt-1.5",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:94:15",
+									"data-prohibitions": "[editContent]",
+									variant: "outline",
+									className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+									children: [usableCount, " Utilizáveis"]
+								}),
+								inRepairCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:101:17",
+									"data-prohibitions": "[editContent]",
+									variant: "outline",
+									className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
+									children: [inRepairCount, " Em Reparo"]
+								}),
+								damagedCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:109:17",
+									"data-prohibitions": "[editContent]",
+									variant: "outline",
+									className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100",
+									children: [damagedCount, " Danificados"]
+								})
+							]
 						})]
 					})]
 				}), canManage && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:88:11",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:120:11",
 					"data-prohibitions": "[]",
 					className: "flex gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:89:13",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:121:13",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => setAllocateOpen(true),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:90:15",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:122:15",
 							"data-prohibitions": "[editContent]",
 							className: "h-4 w-4 mr-2"
 						}), " Alocar"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:92:13",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:124:13",
 						"data-prohibitions": "[]",
 						asChild: true,
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:93:15",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:125:15",
 							"data-prohibitions": "[]",
 							to: `/equipes/${team.id}/auditoria`,
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClipboardCheck, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:94:17",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:126:17",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4 mr-2"
 							}), " Auditoria"]
@@ -61424,20 +61595,20 @@ function TeamDetail() {
 				})]
 			}),
 			canManage && pendingIncoming.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:102:9",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:134:9",
 				"data-prohibitions": "[editContent]",
 				className: "border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:103:11",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:135:11",
 					"data-prohibitions": "[editContent]",
 					className: "py-3",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:104:13",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:136:13",
 						"data-prohibitions": "[editContent]",
 						className: "text-amber-700 text-sm flex items-center gap-2",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:105:15",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:137:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4"
 							}),
@@ -61447,47 +61618,47 @@ function TeamDetail() {
 						]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:109:11",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:141:11",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-2 pb-4",
 					children: pendingIncoming.map((t) => {
 						const item = inventory.find((i) => i.id === t.inventoryId);
 						const name = item ? getNodePath(item.treeNodeId).find((n) => n.level === "item")?.name : "Item";
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:116:17",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:148:17",
 							"data-prohibitions": "[editContent]",
 							className: "flex items-center justify-between bg-background border rounded-md p-3",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:120:19",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:152:19",
 								"data-prohibitions": "[editContent]",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:121:21",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:153:21",
 									"data-prohibitions": "[editContent]",
 									className: "font-medium text-sm",
 									children: [
 										name,
 										" ",
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:123:23",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:155:23",
 											"data-prohibitions": "[editContent]",
 											className: "text-xs font-mono text-muted-foreground ml-2",
 											children: item?.hasAssetNumber ? item.assetNumber : "S/N"
 										})
 									]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:127:21",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:159:21",
 									"data-prohibitions": "[editContent]",
 									className: "text-xs text-muted-foreground mt-0.5",
 									children: ["Enviado por: ", t.initiatedBy]
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:131:19",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:163:19",
 								"data-prohibitions": "[]",
 								size: "sm",
 								onClick: () => setReceiveTransfer(t),
 								className: "bg-amber-600 hover:bg-amber-700 text-white",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PackageOpen, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:136:21",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:168:21",
 									"data-prohibitions": "[editContent]",
 									className: "h-4 w-4 mr-2"
 								}), " Verificar e Receber"]
@@ -61497,46 +61668,46 @@ function TeamDetail() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:145:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:177:7",
 				"data-prohibitions": "[editContent]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-					"data-uid": "src/pages/Teams/TeamDetail.tsx:146:9",
+					"data-uid": "src/pages/Teams/TeamDetail.tsx:178:9",
 					"data-prohibitions": "[editContent]",
 					className: "p-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-						"data-uid": "src/pages/Teams/TeamDetail.tsx:147:11",
+						"data-uid": "src/pages/Teams/TeamDetail.tsx:179:11",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:148:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:180:13",
 							"data-prohibitions": "[editContent]",
 							className: "bg-muted/40",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:149:15",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:181:15",
 								"data-prohibitions": "[editContent]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:150:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:182:17",
 										"data-prohibitions": "[]",
 										className: "w-16 text-center",
 										children: "Fotos"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:151:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:183:17",
 										"data-prohibitions": "[]",
 										children: "Patrimônio"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:152:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:184:17",
 										"data-prohibitions": "[]",
 										children: "Item (Marca)"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:153:17",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:185:17",
 										"data-prohibitions": "[]",
 										children: "Condição / Status"
 									}),
 									canManage && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/TeamDetail.tsx:154:31",
+										"data-uid": "src/pages/Teams/TeamDetail.tsx:186:31",
 										"data-prohibitions": "[]",
 										className: "text-right",
 										children: "Ações"
@@ -61544,7 +61715,7 @@ function TeamDetail() {
 								]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
-							"data-uid": "src/pages/Teams/TeamDetail.tsx:157:13",
+							"data-uid": "src/pages/Teams/TeamDetail.tsx:189:13",
 							"data-prohibitions": "[editContent]",
 							children: [teamInventory.map((item) => {
 								const path = getNodePath(item.treeNodeId);
@@ -61552,29 +61723,29 @@ function TeamDetail() {
 								const itemNode = path.find((n) => n.level === "item");
 								const isOutgoing = pendingOutgoing.some((t) => t.inventoryId === item.id);
 								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:165:19",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:197:19",
 									"data-prohibitions": "[editContent]",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:166:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:198:21",
 											"data-prohibitions": "[editContent]",
 											className: "text-center",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Avatar, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:167:23",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:199:23",
 												"data-prohibitions": "[editContent]",
 												className: `h-9 w-9 mx-auto rounded-md border ${item.photos?.length ? "cursor-pointer hover:opacity-80 ring-2 ring-transparent hover:ring-primary/40 transition-all" : ""}`,
 												onClick: () => openGallery(item.photos),
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:171:25",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:203:25",
 													"data-prohibitions": "[editContent]",
 													src: item.photos?.[0],
 													className: "object-cover"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:172:25",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:204:25",
 													"data-prohibitions": "[]",
 													className: "bg-muted",
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
-														"data-uid": "src/pages/Teams/TeamDetail.tsx:173:27",
+														"data-uid": "src/pages/Teams/TeamDetail.tsx:205:27",
 														"data-prohibitions": "[editContent]",
 														className: "h-3 w-3 text-muted-foreground/50"
 													})
@@ -61582,107 +61753,107 @@ function TeamDetail() {
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:177:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:209:21",
 											"data-prohibitions": "[editContent]",
 											className: "font-mono text-xs font-semibold",
 											children: item.hasAssetNumber ? item.assetNumber : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:181:25",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:213:25",
 												"data-prohibitions": "[]",
 												className: "text-muted-foreground italic font-normal",
 												children: "Sem Patrimônio"
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:186:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:218:21",
 											"data-prohibitions": "[editContent]",
 											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:187:23",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:219:23",
 												"data-prohibitions": "[editContent]",
 												className: "font-medium",
 												children: itemNode?.name || "Item"
 											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:188:23",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:220:23",
 												"data-prohibitions": "[editContent]",
 												className: "text-xs text-muted-foreground",
 												children: marcaNode?.name || "Marca"
 											})]
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:192:21",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:224:21",
 											"data-prohibitions": "[editContent]",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:193:23",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:225:23",
 												"data-prohibitions": "[editContent]",
 												className: "flex flex-col gap-1 items-start",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:194:25",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:226:25",
 													"data-prohibitions": "[editContent]",
 													variant: "outline",
-													className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`,
+													className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : item.condition === "repair" ? "bg-amber-100 text-amber-800 border-amber-200" : "bg-red-100 text-red-800 border-red-200"}`,
 													children: statusMap[item.condition].label
 												}), item.status !== "present" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:201:27",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:233:27",
 													"data-prohibitions": "[editContent]",
 													variant: "outline",
-													className: "text-[10px] bg-amber-100 text-amber-800 border-amber-200",
+													className: "text-[10px] bg-slate-100 text-slate-700 border-slate-200",
 													children: item.status === "in_maintenance" ? "Em Manutenção" : item.status === "defect_stock" ? "Estoque de Defeito" : item.status === "missing" ? "Extraviado" : item.status === "borrowed" ? "Emprestado" : item.status === "returned_to_team" ? "Devolvido" : item.status
 												})]
 											})
 										}),
 										canManage && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:221:23",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:253:23",
 											"data-prohibitions": "[editContent]",
 											className: "text-right",
 											children: isOutgoing ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:223:27",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:255:27",
 												"data-prohibitions": "[]",
 												variant: "outline",
 												className: "bg-amber-100 text-amber-800 border-amber-200 text-[10px]",
 												children: "Em Transferência"
 											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenu, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:230:27",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:262:27",
 												"data-prohibitions": "[]",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DropdownMenuTrigger, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:231:29",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:263:29",
 													"data-prohibitions": "[]",
 													asChild: true,
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-														"data-uid": "src/pages/Teams/TeamDetail.tsx:232:31",
+														"data-uid": "src/pages/Teams/TeamDetail.tsx:264:31",
 														"data-prohibitions": "[]",
 														variant: "ghost",
 														size: "icon",
 														className: "h-8 w-8",
 														children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EllipsisVertical, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:233:33",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:265:33",
 															"data-prohibitions": "[editContent]",
 															className: "h-4 w-4"
 														})
 													})
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuContent, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:236:29",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:268:29",
 													"data-prohibitions": "[]",
 													align: "end",
 													children: [
 														/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuItem, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:237:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:269:31",
 															"data-prohibitions": "[]",
 															onClick: () => setUpdateItem(item),
 															children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings2, {
-																"data-uid": "src/pages/Teams/TeamDetail.tsx:238:33",
+																"data-uid": "src/pages/Teams/TeamDetail.tsx:270:33",
 																"data-prohibitions": "[editContent]",
 																className: "h-4 w-4 mr-2"
-															}), " Editar / Status / Fotos"]
+															}), " Editar / Reparo / Fotos"]
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DropdownMenuSeparator, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:240:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:272:31",
 															"data-prohibitions": "[editContent]"
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuItem, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:241:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:273:31",
 															"data-prohibitions": "[]",
 															onClick: () => setTransferItem(item),
 															children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
-																"data-uid": "src/pages/Teams/TeamDetail.tsx:242:33",
+																"data-uid": "src/pages/Teams/TeamDetail.tsx:274:33",
 																"data-prohibitions": "[editContent]",
 																className: "h-4 w-4 mr-2"
 															}), " Transferir Instância"]
@@ -61694,10 +61865,10 @@ function TeamDetail() {
 									]
 								}, item.id);
 							}), teamInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:253:17",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:285:17",
 								"data-prohibitions": "[]",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:254:19",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:286:19",
 									"data-prohibitions": "[]",
 									colSpan: canManage ? 5 : 4,
 									className: "h-32 text-center text-muted-foreground",
@@ -61709,21 +61880,21 @@ function TeamDetail() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AllocateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:267:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:299:7",
 				"data-prohibitions": "[editContent]",
 				teamId: team.id,
 				open: allocateOpen,
 				onOpenChange: setAllocateOpen
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UpdateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:268:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:300:7",
 				"data-prohibitions": "[editContent]",
 				item: updateItem,
 				open: !!updateItem,
 				onOpenChange: (o) => !o && setUpdateItem(null)
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TransferDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:273:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:305:7",
 				"data-prohibitions": "[editContent]",
 				item: transferItem,
 				open: !!transferItem,
@@ -61731,14 +61902,14 @@ function TeamDetail() {
 				teamId: team.id
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReceiveDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:279:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:311:7",
 				"data-prohibitions": "[editContent]",
 				transfer: receiveTransfer,
 				open: !!receiveTransfer,
 				onOpenChange: (o) => !o && setReceiveTransfer(null)
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PhotoGalleryDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:284:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:316:7",
 				"data-prohibitions": "[editContent]",
 				photos: galleryPhotos,
 				open: galleryOpen,
@@ -63460,101 +63631,565 @@ function TreeReportTab() {
 	});
 }
 //#endregion
+//#region src/pages/Reports/DamagedTab.tsx
+function DamagedTab() {
+	const { inventory, getNodePath } = useAppStore();
+	const damagedItems = inventory.filter((i) => i.condition === "damaged");
+	const handleExport = () => {
+		const headers = [
+			"Patrimonio",
+			"Item",
+			"Marca",
+			"Data do Registro",
+			"Responsavel"
+		];
+		const rows = damagedItems.map((item) => {
+			const path = getNodePath(item.treeNodeId);
+			const name = path.find((n) => n.level === "item")?.name || "Item";
+			const marca = path.find((n) => n.level === "marca")?.name || "-";
+			const date = item.damagedDate ? format(new Date(item.damagedDate), "dd/MM/yyyy") : "-";
+			return `"${item.hasAssetNumber ? item.assetNumber : "S/N"}","${name}","${marca}","${date}","${item.damagedUser || "-"}"`;
+		});
+		const csv = [headers.join(","), ...rows].join("\n");
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `relatorio_danificados_${format(/* @__PURE__ */ new Date(), "yyyyMMdd")}.csv`;
+		a.click();
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		"data-uid": "src/pages/Reports/DamagedTab.tsx:40:5",
+		"data-prohibitions": "[editContent]",
+		className: "animate-slide-up print:border-none print:shadow-none",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+				"data-uid": "src/pages/Reports/DamagedTab.tsx:41:7",
+				"data-prohibitions": "[]",
+				className: "bg-muted/30 pb-4 border-b flex justify-end print:hidden flex-row gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Reports/DamagedTab.tsx:42:9",
+					"data-prohibitions": "[]",
+					variant: "outline",
+					onClick: handleExport,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, {
+						"data-uid": "src/pages/Reports/DamagedTab.tsx:43:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4 mr-2"
+					}), " Exportar CSV"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Reports/DamagedTab.tsx:45:9",
+					"data-prohibitions": "[]",
+					variant: "outline",
+					onClick: () => window.print(),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, {
+						"data-uid": "src/pages/Reports/DamagedTab.tsx:46:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4 mr-2"
+					}), " Imprimir (PDF)"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Reports/DamagedTab.tsx:50:7",
+				"data-prohibitions": "[]",
+				className: "hidden print:block mb-4 p-4 pb-0",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					"data-uid": "src/pages/Reports/DamagedTab.tsx:51:9",
+					"data-prohibitions": "[]",
+					className: "text-xl font-bold uppercase tracking-tight",
+					children: "Relatório de Itens Danificados"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/Reports/DamagedTab.tsx:54:9",
+					"data-prohibitions": "[]",
+					className: "text-sm text-gray-600",
+					children: "Equipamentos e ferramentas marcados como avariados que demandam atenção."
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+				"data-uid": "src/pages/Reports/DamagedTab.tsx:59:7",
+				"data-prohibitions": "[editContent]",
+				className: "p-0 print:p-2",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					"data-uid": "src/pages/Reports/DamagedTab.tsx:60:9",
+					"data-prohibitions": "[editContent]",
+					className: "print:text-xs",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+						"data-uid": "src/pages/Reports/DamagedTab.tsx:61:11",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/Reports/DamagedTab.tsx:62:13",
+							"data-prohibitions": "[]",
+							className: "print:bg-gray-100",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/DamagedTab.tsx:63:15",
+									"data-prohibitions": "[]",
+									className: "w-16 text-center print:w-12",
+									children: "Foto"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/DamagedTab.tsx:64:15",
+									"data-prohibitions": "[]",
+									children: "Patrimônio"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/DamagedTab.tsx:65:15",
+									"data-prohibitions": "[]",
+									children: "Item (Marca)"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/DamagedTab.tsx:66:15",
+									"data-prohibitions": "[]",
+									children: "Data do Registro"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/DamagedTab.tsx:67:15",
+									"data-prohibitions": "[]",
+									children: "Responsável"
+								})
+							]
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+						"data-uid": "src/pages/Reports/DamagedTab.tsx:70:11",
+						"data-prohibitions": "[editContent]",
+						children: [damagedItems.map((item) => {
+							const path = getNodePath(item.treeNodeId);
+							const name = path.find((n) => n.level === "item")?.name || "Item";
+							const marca = path.find((n) => n.level === "marca")?.name || "-";
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/Reports/DamagedTab.tsx:76:17",
+								"data-prohibitions": "[editContent]",
+								className: "print:border-b-gray-300",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/DamagedTab.tsx:77:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-center p-2 align-middle",
+										children: item.photos?.[0] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+											"data-uid": "src/pages/Reports/DamagedTab.tsx:79:23",
+											"data-prohibitions": "[editContent]",
+											src: item.photos[0],
+											alt: "Item",
+											className: "w-8 h-8 rounded object-cover mx-auto print:border"
+										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/DamagedTab.tsx:85:23",
+											"data-prohibitions": "[]",
+											className: "w-8 h-8 mx-auto bg-muted rounded flex items-center justify-center print:border print:bg-transparent",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
+												"data-uid": "src/pages/Reports/DamagedTab.tsx:86:25",
+												"data-prohibitions": "[editContent]",
+												className: "w-3 h-3 text-muted-foreground/50"
+											})
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/DamagedTab.tsx:90:19",
+										"data-prohibitions": "[editContent]",
+										className: "font-mono text-xs font-semibold align-middle",
+										children: item.hasAssetNumber ? item.assetNumber : "S/N"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+										"data-uid": "src/pages/Reports/DamagedTab.tsx:93:19",
+										"data-prohibitions": "[editContent]",
+										className: "align-middle",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/DamagedTab.tsx:94:21",
+											"data-prohibitions": "[editContent]",
+											className: "font-medium",
+											children: name
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/DamagedTab.tsx:95:21",
+											"data-prohibitions": "[editContent]",
+											className: "text-[10px] text-muted-foreground",
+											children: marca
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/DamagedTab.tsx:97:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-sm align-middle",
+										children: item.damagedDate ? format(new Date(item.damagedDate), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/DamagedTab.tsx:102:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-xs align-middle",
+										children: item.damagedUser || "-"
+									})
+								]
+							}, item.id);
+						}), damagedItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+							"data-uid": "src/pages/Reports/DamagedTab.tsx:107:15",
+							"data-prohibitions": "[]",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								"data-uid": "src/pages/Reports/DamagedTab.tsx:108:17",
+								"data-prohibitions": "[]",
+								colSpan: 5,
+								className: "h-24 text-center text-muted-foreground",
+								children: "Nenhum item marcado como danificado."
+							})
+						})]
+					})]
+				})
+			})
+		]
+	});
+}
+//#endregion
+//#region src/pages/Reports/RepairReportTab.tsx
+function RepairReportTab() {
+	const { inventory, getNodePath } = useAppStore();
+	const repairItems = inventory.filter((i) => i.condition === "repair");
+	const handleExport = () => {
+		const headers = [
+			"Patrimonio",
+			"Item",
+			"Custo Reparo",
+			"Local/Assistencia",
+			"Data Envio",
+			"Responsavel"
+		];
+		const rows = repairItems.map((item) => {
+			const name = getNodePath(item.treeNodeId).find((n) => n.level === "item")?.name || "Item";
+			const date = item.repairDate ? format(new Date(item.repairDate), "dd/MM/yyyy") : "-";
+			return `"${item.hasAssetNumber ? item.assetNumber : "S/N"}","${name}","${item.repairCost || 0}","${item.repairLocation || "-"}","${date}","${item.repairUser || "-"}"`;
+		});
+		const csv = [headers.join(","), ...rows].join("\n");
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `relatorio_reparos_${format(/* @__PURE__ */ new Date(), "yyyyMMdd")}.csv`;
+		a.click();
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		"data-uid": "src/pages/Reports/RepairReportTab.tsx:46:5",
+		"data-prohibitions": "[editContent]",
+		className: "animate-slide-up print:border-none print:shadow-none",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+				"data-uid": "src/pages/Reports/RepairReportTab.tsx:47:7",
+				"data-prohibitions": "[]",
+				className: "bg-muted/30 pb-4 border-b flex justify-end print:hidden flex-row gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Reports/RepairReportTab.tsx:48:9",
+					"data-prohibitions": "[]",
+					variant: "outline",
+					onClick: handleExport,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, {
+						"data-uid": "src/pages/Reports/RepairReportTab.tsx:49:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4 mr-2"
+					}), " Exportar CSV"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Reports/RepairReportTab.tsx:51:9",
+					"data-prohibitions": "[]",
+					variant: "outline",
+					onClick: () => window.print(),
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Printer, {
+						"data-uid": "src/pages/Reports/RepairReportTab.tsx:52:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4 mr-2"
+					}), " Imprimir (PDF)"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Reports/RepairReportTab.tsx:56:7",
+				"data-prohibitions": "[]",
+				className: "hidden print:block mb-4 p-4 pb-0",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					"data-uid": "src/pages/Reports/RepairReportTab.tsx:57:9",
+					"data-prohibitions": "[]",
+					className: "text-xl font-bold uppercase tracking-tight",
+					children: "Itens em Processo de Reparo"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/Reports/RepairReportTab.tsx:58:9",
+					"data-prohibitions": "[]",
+					className: "text-sm text-gray-600",
+					children: "Listagem de ferramentas enviadas para manutenção ou assistência técnica."
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+				"data-uid": "src/pages/Reports/RepairReportTab.tsx:63:7",
+				"data-prohibitions": "[editContent]",
+				className: "p-0 print:p-2",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					"data-uid": "src/pages/Reports/RepairReportTab.tsx:64:9",
+					"data-prohibitions": "[editContent]",
+					className: "print:text-xs",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+						"data-uid": "src/pages/Reports/RepairReportTab.tsx:65:11",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/Reports/RepairReportTab.tsx:66:13",
+							"data-prohibitions": "[]",
+							className: "print:bg-gray-100",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:67:15",
+									"data-prohibitions": "[]",
+									className: "w-16 text-center print:w-12",
+									children: "Foto"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:68:15",
+									"data-prohibitions": "[]",
+									children: "Patrimônio"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:69:15",
+									"data-prohibitions": "[]",
+									children: "Item (Marca)"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:70:15",
+									"data-prohibitions": "[]",
+									className: "text-right",
+									children: "Custo (R$)"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:71:15",
+									"data-prohibitions": "[]",
+									children: "Local / Assistência"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:72:15",
+									"data-prohibitions": "[]",
+									children: "Data de Envio"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/Reports/RepairReportTab.tsx:73:15",
+									"data-prohibitions": "[]",
+									children: "Responsável"
+								})
+							]
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+						"data-uid": "src/pages/Reports/RepairReportTab.tsx:76:11",
+						"data-prohibitions": "[editContent]",
+						children: [repairItems.map((item) => {
+							const path = getNodePath(item.treeNodeId);
+							const name = path.find((n) => n.level === "item")?.name || "Item";
+							const marca = path.find((n) => n.level === "marca")?.name || "-";
+							return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/Reports/RepairReportTab.tsx:82:17",
+								"data-prohibitions": "[editContent]",
+								className: "print:border-b-gray-300",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:83:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-center p-2 align-middle",
+										children: item.photos?.[0] ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+											"data-uid": "src/pages/Reports/RepairReportTab.tsx:85:23",
+											"data-prohibitions": "[editContent]",
+											src: item.photos[0],
+											alt: "Item",
+											className: "w-8 h-8 rounded object-cover mx-auto print:border"
+										}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/RepairReportTab.tsx:91:23",
+											"data-prohibitions": "[]",
+											className: "w-8 h-8 mx-auto bg-muted rounded flex items-center justify-center print:border print:bg-transparent",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
+												"data-uid": "src/pages/Reports/RepairReportTab.tsx:92:25",
+												"data-prohibitions": "[editContent]",
+												className: "w-3 h-3 text-muted-foreground/50"
+											})
+										})
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:96:19",
+										"data-prohibitions": "[editContent]",
+										className: "font-mono text-xs font-semibold align-middle",
+										children: item.hasAssetNumber ? item.assetNumber : "S/N"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:99:19",
+										"data-prohibitions": "[editContent]",
+										className: "align-middle",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/RepairReportTab.tsx:100:21",
+											"data-prohibitions": "[editContent]",
+											className: "font-medium",
+											children: name
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											"data-uid": "src/pages/Reports/RepairReportTab.tsx:101:21",
+											"data-prohibitions": "[editContent]",
+											className: "text-[10px] text-muted-foreground",
+											children: marca
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:103:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-right tabular-nums align-middle",
+										children: item.repairCost?.toFixed(2) || "0.00"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:106:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-sm align-middle",
+										children: item.repairLocation || "-"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:109:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-xs align-middle",
+										children: item.repairDate ? format(new Date(item.repairDate), "dd/MM/yyyy", { locale: ptBR }) : "-"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/Reports/RepairReportTab.tsx:114:19",
+										"data-prohibitions": "[editContent]",
+										className: "text-xs align-middle",
+										children: item.repairUser || "-"
+									})
+								]
+							}, item.id);
+						}), repairItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+							"data-uid": "src/pages/Reports/RepairReportTab.tsx:119:15",
+							"data-prohibitions": "[]",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+								"data-uid": "src/pages/Reports/RepairReportTab.tsx:120:17",
+								"data-prohibitions": "[]",
+								colSpan: 7,
+								className: "h-24 text-center text-muted-foreground",
+								children: "Nenhum item em reparo no momento."
+							})
+						})]
+					})]
+				})
+			})
+		]
+	});
+}
+//#endregion
 //#region src/pages/Reports/Index.tsx
 function ReportsPage() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Reports/Index.tsx:9:5",
+		"data-uid": "src/pages/Reports/Index.tsx:11:5",
 		"data-prohibitions": "[]",
 		className: "space-y-6 animate-fade-in",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			"data-uid": "src/pages/Reports/Index.tsx:10:7",
+			"data-uid": "src/pages/Reports/Index.tsx:12:7",
 			"data-prohibitions": "[]",
 			className: "print:hidden",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-				"data-uid": "src/pages/Reports/Index.tsx:11:9",
+				"data-uid": "src/pages/Reports/Index.tsx:13:9",
 				"data-prohibitions": "[]",
 				className: "text-2xl font-bold tracking-tight",
 				children: "Relatórios Gerenciais"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				"data-uid": "src/pages/Reports/Index.tsx:12:9",
+				"data-uid": "src/pages/Reports/Index.tsx:14:9",
 				"data-prohibitions": "[]",
 				className: "text-muted-foreground",
 				children: "Acompanhe o histórico, inventários de equipes, gere auditorias e visualize a árvore mercadológica."
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
-			"data-uid": "src/pages/Reports/Index.tsx:18:7",
+			"data-uid": "src/pages/Reports/Index.tsx:20:7",
 			"data-prohibitions": "[]",
 			defaultValue: "history",
 			className: "space-y-4",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TabsList, {
-					"data-uid": "src/pages/Reports/Index.tsx:19:9",
+					"data-uid": "src/pages/Reports/Index.tsx:21:9",
 					"data-prohibitions": "[]",
 					className: "bg-muted/50 border overflow-x-auto max-w-full justify-start print:hidden",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Reports/Index.tsx:20:11",
+							"data-uid": "src/pages/Reports/Index.tsx:22:11",
 							"data-prohibitions": "[]",
 							value: "history",
 							children: "Histórico Detalhado"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Reports/Index.tsx:21:11",
+							"data-uid": "src/pages/Reports/Index.tsx:23:11",
 							"data-prohibitions": "[]",
 							value: "team-inventory",
 							children: "Inventário por Equipe"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Reports/Index.tsx:22:11",
+							"data-uid": "src/pages/Reports/Index.tsx:24:11",
 							"data-prohibitions": "[]",
 							value: "checklist",
 							children: "Checklist Surpresa"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
-							"data-uid": "src/pages/Reports/Index.tsx:23:11",
+							"data-uid": "src/pages/Reports/Index.tsx:25:11",
 							"data-prohibitions": "[]",
 							value: "tree",
 							children: "Árvore Mercadológica"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:26:11",
+							"data-prohibitions": "[]",
+							value: "damaged",
+							children: "Danificados"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
+							"data-uid": "src/pages/Reports/Index.tsx:27:11",
+							"data-prohibitions": "[]",
+							value: "repair",
+							children: "Em Reparo"
 						})
 					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					"data-uid": "src/pages/Reports/Index.tsx:26:9",
+					"data-uid": "src/pages/Reports/Index.tsx:30:9",
 					"data-prohibitions": "[]",
 					value: "history",
 					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(HistoryTab, {
-						"data-uid": "src/pages/Reports/Index.tsx:30:11",
+						"data-uid": "src/pages/Reports/Index.tsx:34:11",
 						"data-prohibitions": "[editContent]"
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					"data-uid": "src/pages/Reports/Index.tsx:32:9",
+					"data-uid": "src/pages/Reports/Index.tsx:36:9",
 					"data-prohibitions": "[]",
 					value: "team-inventory",
 					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamInventoryTab, {
-						"data-uid": "src/pages/Reports/Index.tsx:36:11",
+						"data-uid": "src/pages/Reports/Index.tsx:40:11",
 						"data-prohibitions": "[editContent]"
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					"data-uid": "src/pages/Reports/Index.tsx:38:9",
+					"data-uid": "src/pages/Reports/Index.tsx:42:9",
 					"data-prohibitions": "[]",
 					value: "checklist",
 					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChecklistTab, {
-						"data-uid": "src/pages/Reports/Index.tsx:42:11",
+						"data-uid": "src/pages/Reports/Index.tsx:46:11",
 						"data-prohibitions": "[editContent]"
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
-					"data-uid": "src/pages/Reports/Index.tsx:44:9",
+					"data-uid": "src/pages/Reports/Index.tsx:48:9",
 					"data-prohibitions": "[]",
 					value: "tree",
 					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreeReportTab, {
-						"data-uid": "src/pages/Reports/Index.tsx:48:11",
+						"data-uid": "src/pages/Reports/Index.tsx:52:11",
+						"data-prohibitions": "[editContent]"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:54:9",
+					"data-prohibitions": "[]",
+					value: "damaged",
+					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DamagedTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:58:11",
+						"data-prohibitions": "[editContent]"
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
+					"data-uid": "src/pages/Reports/Index.tsx:60:9",
+					"data-prohibitions": "[]",
+					value: "repair",
+					className: "print:m-0 print:block data-[state=inactive]:print:hidden",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RepairReportTab, {
+						"data-uid": "src/pages/Reports/Index.tsx:64:11",
 						"data-prohibitions": "[editContent]"
 					})
 				})
@@ -63563,98 +64198,398 @@ function ReportsPage() {
 	});
 }
 //#endregion
+//#region src/pages/Repairs/Index.tsx
+function RepairsPage() {
+	const { inventory, getNodePath } = useAppStore();
+	const [updateItem, setUpdateItem] = (0, import_react.useState)(null);
+	const repairItems = inventory.filter((i) => i.condition === "repair");
+	const totalCost = repairItems.reduce((acc, curr) => acc + (curr.repairCost || 0), 0);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Repairs/Index.tsx:28:5",
+		"data-prohibitions": "[editContent]",
+		className: "space-y-6 animate-fade-in pb-12",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Repairs/Index.tsx:29:7",
+				"data-prohibitions": "[]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					"data-uid": "src/pages/Repairs/Index.tsx:30:9",
+					"data-prohibitions": "[]",
+					className: "text-2xl font-bold tracking-tight",
+					children: "Gestão de Reparos"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/Repairs/Index.tsx:31:9",
+					"data-prohibitions": "[]",
+					className: "text-muted-foreground",
+					children: "Acompanhe e gerencie as ferramentas que estão em processo de manutenção ativa."
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Repairs/Index.tsx:36:7",
+				"data-prohibitions": "[editContent]",
+				className: "grid gap-4 sm:grid-cols-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+					"data-uid": "src/pages/Repairs/Index.tsx:37:9",
+					"data-prohibitions": "[editContent]",
+					className: "bg-amber-500/5 border-amber-200",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+						"data-uid": "src/pages/Repairs/Index.tsx:38:11",
+						"data-prohibitions": "[editContent]",
+						className: "p-6",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/Repairs/Index.tsx:39:13",
+							"data-prohibitions": "[]",
+							className: "text-sm font-medium text-amber-800",
+							children: "Total de Instâncias em Reparo"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/Repairs/Index.tsx:40:13",
+							"data-prohibitions": "[editContent]",
+							className: "text-3xl font-bold mt-2 text-amber-900",
+							children: repairItems.length
+						})]
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+					"data-uid": "src/pages/Repairs/Index.tsx:43:9",
+					"data-prohibitions": "[editContent]",
+					className: "bg-slate-50 border-slate-200",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+						"data-uid": "src/pages/Repairs/Index.tsx:44:11",
+						"data-prohibitions": "[editContent]",
+						className: "p-6",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/Repairs/Index.tsx:45:13",
+							"data-prohibitions": "[]",
+							className: "text-sm font-medium text-slate-600",
+							children: "Custo Total Estimado (R$)"
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Repairs/Index.tsx:46:13",
+							"data-prohibitions": "[editContent]",
+							className: "text-3xl font-bold mt-2 tabular-nums",
+							children: ["R$ ", totalCost.toFixed(2)]
+						})]
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+				"data-uid": "src/pages/Repairs/Index.tsx:51:7",
+				"data-prohibitions": "[editContent]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
+					"data-uid": "src/pages/Repairs/Index.tsx:52:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+						"data-uid": "src/pages/Repairs/Index.tsx:53:11",
+						"data-prohibitions": "[]",
+						className: "flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Wrench, {
+							"data-uid": "src/pages/Repairs/Index.tsx:54:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-5 h-5 text-amber-600"
+						}), " Ferramentas em Manutenção"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
+						"data-uid": "src/pages/Repairs/Index.tsx:56:11",
+						"data-prohibitions": "[]",
+						children: "Lista de itens atualmente registrados com status de reparo, localização física e custos envolvidos."
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+					"data-uid": "src/pages/Repairs/Index.tsx:61:9",
+					"data-prohibitions": "[editContent]",
+					className: "p-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+						"data-uid": "src/pages/Repairs/Index.tsx:62:11",
+						"data-prohibitions": "[editContent]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+							"data-uid": "src/pages/Repairs/Index.tsx:63:13",
+							"data-prohibitions": "[]",
+							className: "bg-muted/40",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/Repairs/Index.tsx:64:15",
+								"data-prohibitions": "[]",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:65:17",
+										"data-prohibitions": "[]",
+										className: "w-16 text-center",
+										children: "Foto"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:66:17",
+										"data-prohibitions": "[]",
+										children: "Patrimônio"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:67:17",
+										"data-prohibitions": "[]",
+										children: "Item (Marca)"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:68:17",
+										"data-prohibitions": "[]",
+										children: "Local / Assistência"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:69:17",
+										"data-prohibitions": "[]",
+										children: "Custo"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:70:17",
+										"data-prohibitions": "[]",
+										children: "Data de Envio"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/Repairs/Index.tsx:71:17",
+										"data-prohibitions": "[]",
+										className: "text-right",
+										children: "Ações"
+									})
+								]
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+							"data-uid": "src/pages/Repairs/Index.tsx:74:13",
+							"data-prohibitions": "[editContent]",
+							children: [repairItems.map((item) => {
+								const path = getNodePath(item.treeNodeId);
+								const name = path.find((n) => n.level === "item")?.name || "Item";
+								const marca = path.find((n) => n.level === "marca")?.name || "-";
+								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+									"data-uid": "src/pages/Repairs/Index.tsx:81:19",
+									"data-prohibitions": "[editContent]",
+									className: "group",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:82:21",
+											"data-prohibitions": "[]",
+											className: "text-center",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Avatar, {
+												"data-uid": "src/pages/Repairs/Index.tsx:83:23",
+												"data-prohibitions": "[]",
+												className: "h-9 w-9 mx-auto rounded-md border",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
+													"data-uid": "src/pages/Repairs/Index.tsx:84:25",
+													"data-prohibitions": "[editContent]",
+													src: item.photos?.[0],
+													className: "object-cover"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
+													"data-uid": "src/pages/Repairs/Index.tsx:85:25",
+													"data-prohibitions": "[]",
+													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
+														"data-uid": "src/pages/Repairs/Index.tsx:86:27",
+														"data-prohibitions": "[editContent]",
+														className: "h-3 w-3 text-muted-foreground/50"
+													})
+												})]
+											})
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:90:21",
+											"data-prohibitions": "[editContent]",
+											className: "font-mono text-xs font-medium",
+											children: item.hasAssetNumber ? item.assetNumber : "S/N"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:93:21",
+											"data-prohibitions": "[editContent]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												"data-uid": "src/pages/Repairs/Index.tsx:94:23",
+												"data-prohibitions": "[editContent]",
+												className: "font-medium text-sm",
+												children: name
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												"data-uid": "src/pages/Repairs/Index.tsx:95:23",
+												"data-prohibitions": "[editContent]",
+												className: "text-xs text-muted-foreground",
+												children: marca
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:97:21",
+											"data-prohibitions": "[editContent]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												"data-uid": "src/pages/Repairs/Index.tsx:98:23",
+												"data-prohibitions": "[editContent]",
+												className: "text-sm",
+												children: item.repairLocation || "-"
+											}), item.repairDescription && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												"data-uid": "src/pages/Repairs/Index.tsx:100:25",
+												"data-prohibitions": "[editContent]",
+												className: "text-[10px] text-muted-foreground line-clamp-1 mt-0.5",
+												title: item.repairDescription,
+												children: item.repairDescription
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:108:21",
+											"data-prohibitions": "[editContent]",
+											className: "tabular-nums text-sm font-medium text-slate-700",
+											children: ["R$ ", item.repairCost?.toFixed(2) || "0.00"]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:111:21",
+											"data-prohibitions": "[editContent]",
+											className: "text-xs",
+											children: [item.repairDate ? format(new Date(item.repairDate), "dd/MM/yyyy", { locale: ptBR }) : "-", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												"data-uid": "src/pages/Repairs/Index.tsx:115:23",
+												"data-prohibitions": "[editContent]",
+												className: "text-[9px] text-muted-foreground mt-0.5",
+												children: ["por ", item.repairUser || "-"]
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+											"data-uid": "src/pages/Repairs/Index.tsx:119:21",
+											"data-prohibitions": "[]",
+											className: "text-right",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+												"data-uid": "src/pages/Repairs/Index.tsx:120:23",
+												"data-prohibitions": "[]",
+												variant: "outline",
+												size: "sm",
+												onClick: () => setUpdateItem(item),
+												className: "h-8",
+												children: [
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings2, {
+														"data-uid": "src/pages/Repairs/Index.tsx:126:25",
+														"data-prohibitions": "[editContent]",
+														className: "w-4 h-4 sm:mr-2"
+													}),
+													" ",
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+														"data-uid": "src/pages/Repairs/Index.tsx:127:25",
+														"data-prohibitions": "[]",
+														className: "hidden sm:inline",
+														children: "Gerenciar"
+													})
+												]
+											})
+										})
+									]
+								}, item.id);
+							}), repairItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
+								"data-uid": "src/pages/Repairs/Index.tsx:134:17",
+								"data-prohibitions": "[]",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/Repairs/Index.tsx:135:19",
+									"data-prohibitions": "[]",
+									colSpan: 7,
+									className: "h-32 text-center text-muted-foreground",
+									children: "Nenhum item em reparo no momento."
+								})
+							})]
+						})]
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UpdateDialog, {
+				"data-uid": "src/pages/Repairs/Index.tsx:145:7",
+				"data-prohibitions": "[editContent]",
+				item: updateItem,
+				open: !!updateItem,
+				onOpenChange: (o) => !o && setUpdateItem(null)
+			})
+		]
+	});
+}
+//#endregion
 //#region src/App.tsx
 function ProtectedRoute() {
 	if (!useAppStore((s) => s.currentUser)) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		"data-uid": "src/App.tsx:18:28",
+		"data-uid": "src/App.tsx:19:28",
 		"data-prohibitions": "[editContent]",
 		to: "/login",
 		replace: true
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-		"data-uid": "src/App.tsx:19:10",
+		"data-uid": "src/App.tsx:20:10",
 		"data-prohibitions": "[editContent]"
 	});
 }
 var AppRoutes = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, {
-	"data-uid": "src/App.tsx:23:3",
+	"data-uid": "src/App.tsx:24:3",
 	"data-prohibitions": "[]",
 	children: [
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-			"data-uid": "src/App.tsx:24:5",
+			"data-uid": "src/App.tsx:25:5",
 			"data-prohibitions": "[editContent]",
 			path: "/login",
 			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Login, {
-				"data-uid": "src/App.tsx:24:35",
+				"data-uid": "src/App.tsx:25:35",
 				"data-prohibitions": "[editContent]"
 			})
 		}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-			"data-uid": "src/App.tsx:25:5",
+			"data-uid": "src/App.tsx:26:5",
 			"data-prohibitions": "[]",
 			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProtectedRoute, {
-				"data-uid": "src/App.tsx:25:21",
+				"data-uid": "src/App.tsx:26:21",
 				"data-prohibitions": "[editContent]"
 			}),
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-				"data-uid": "src/App.tsx:26:7",
+				"data-uid": "src/App.tsx:27:7",
 				"data-prohibitions": "[]",
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-					"data-uid": "src/App.tsx:26:23",
+					"data-uid": "src/App.tsx:27:23",
 					"data-prohibitions": "[editContent]"
 				}),
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:27:9",
+						"data-uid": "src/App.tsx:28:9",
 						"data-prohibitions": "[editContent]",
 						path: "/",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-							"data-uid": "src/App.tsx:27:34",
-							"data-prohibitions": "[editContent]"
-						})
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:28:9",
-						"data-prohibitions": "[editContent]",
-						path: "/arvore",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreePage, {
-							"data-uid": "src/App.tsx:28:40",
+							"data-uid": "src/App.tsx:28:34",
 							"data-prohibitions": "[editContent]"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						"data-uid": "src/App.tsx:29:9",
 						"data-prohibitions": "[editContent]",
-						path: "/equipes",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamsPage, {
-							"data-uid": "src/App.tsx:29:41",
+						path: "/arvore",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TreePage, {
+							"data-uid": "src/App.tsx:29:40",
 							"data-prohibitions": "[editContent]"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						"data-uid": "src/App.tsx:30:9",
 						"data-prohibitions": "[editContent]",
-						path: "/equipes/:id",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamDetail, {
-							"data-uid": "src/App.tsx:30:45",
+						path: "/equipes",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamsPage, {
+							"data-uid": "src/App.tsx:30:41",
 							"data-prohibitions": "[editContent]"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						"data-uid": "src/App.tsx:31:9",
 						"data-prohibitions": "[editContent]",
-						path: "/equipes/:id/auditoria",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuditoriaPage, {
-							"data-uid": "src/App.tsx:31:55",
+						path: "/equipes/:id",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TeamDetail, {
+							"data-uid": "src/App.tsx:31:45",
 							"data-prohibitions": "[editContent]"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						"data-uid": "src/App.tsx:32:9",
 						"data-prohibitions": "[editContent]",
+						path: "/equipes/:id/auditoria",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuditoriaPage, {
+							"data-uid": "src/App.tsx:32:55",
+							"data-prohibitions": "[editContent]"
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						"data-uid": "src/App.tsx:33:9",
+						"data-prohibitions": "[editContent]",
+						path: "/reparos",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RepairsPage, {
+							"data-uid": "src/App.tsx:33:41",
+							"data-prohibitions": "[editContent]"
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						"data-uid": "src/App.tsx:34:9",
+						"data-prohibitions": "[editContent]",
 						path: "/relatorios",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReportsPage, {
-							"data-uid": "src/App.tsx:32:44",
+							"data-uid": "src/App.tsx:34:44",
 							"data-prohibitions": "[editContent]"
 						})
 					})
@@ -63662,40 +64597,40 @@ var AppRoutes = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, {
 			})
 		}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-			"data-uid": "src/App.tsx:35:5",
+			"data-uid": "src/App.tsx:37:5",
 			"data-prohibitions": "[editContent]",
 			path: "*",
 			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotFound, {
-				"data-uid": "src/App.tsx:35:30",
+				"data-uid": "src/App.tsx:37:30",
 				"data-prohibitions": "[editContent]"
 			})
 		})
 	]
 });
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
-	"data-uid": "src/App.tsx:40:3",
+	"data-uid": "src/App.tsx:42:3",
 	"data-prohibitions": "[]",
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-		"data-uid": "src/App.tsx:41:5",
+		"data-uid": "src/App.tsx:43:5",
 		"data-prohibitions": "[]",
 		future: {
 			v7_startTransition: false,
 			v7_relativeSplatPath: false
 		},
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-			"data-uid": "src/App.tsx:42:7",
+			"data-uid": "src/App.tsx:44:7",
 			"data-prohibitions": "[]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-					"data-uid": "src/App.tsx:43:9",
+					"data-uid": "src/App.tsx:45:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
-					"data-uid": "src/App.tsx:44:9",
+					"data-uid": "src/App.tsx:46:9",
 					"data-prohibitions": "[editContent]"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppRoutes, {
-					"data-uid": "src/App.tsx:45:9",
+					"data-uid": "src/App.tsx:47:9",
 					"data-prohibitions": "[editContent]"
 				})
 			]
@@ -63710,4 +64645,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-Cw3GaiK4.js.map
+//# sourceMappingURL=index-B0QNuq3D.js.map

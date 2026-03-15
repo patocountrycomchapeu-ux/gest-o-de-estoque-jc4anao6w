@@ -37,6 +37,13 @@ export interface InventoryItem {
   photos: string[]
   lastUpdated: string
   price?: number
+  repairCost?: number
+  repairLocation?: string
+  repairDescription?: string
+  repairUser?: string
+  repairDate?: string
+  damagedDate?: string
+  damagedUser?: string
 }
 
 export interface Team {

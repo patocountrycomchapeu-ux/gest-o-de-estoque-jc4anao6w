@@ -11,7 +11,7 @@ import { ptBR } from 'date-fns/locale'
 export default function Index() {
   const { inventory, teams, activities, currentUser } = useAppStore()
 
-  const totalItems = inventory.length
+  const totalUsable = inventory.filter((i) => i.condition === 'good').length
   const damagedItems = inventory.filter((i) => i.condition === 'damaged').length
   const repairItems = inventory.filter((i) => i.condition === 'repair').length
 
@@ -19,10 +19,10 @@ export default function Index() {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total de Instâncias"
-          value={totalItems}
+          title="Total de Instâncias (Em Uso)"
+          value={totalUsable}
           icon={Package}
-          trend="+4 desde ontem"
+          trend="Itens em bom estado"
         />
         <StatCard title="Equipes Ativas" value={teams.length} icon={Users} />
         <StatCard
@@ -38,7 +38,7 @@ export default function Index() {
         <Card className="col-span-1 lg:col-span-3">
           <CardHeader>
             <CardTitle>Distribuição de Estado</CardTitle>
-            <CardDescription>Visão geral das condições das ferramentas ativas.</CardDescription>
+            <CardDescription>Visão geral das condições de todo o inventário.</CardDescription>
           </CardHeader>
           <CardContent>
             <ConditionChart inventory={inventory} />

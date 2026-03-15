@@ -11,6 +11,7 @@ import TeamsPage from './pages/Teams/Index'
 import TeamDetail from './pages/Teams/TeamDetail'
 import AuditoriaPage from './pages/Teams/Auditoria'
 import ReportsPage from './pages/Reports/Index'
+import RepairsPage from './pages/Repairs/Index'
 import { AppProvider, useAppStore } from './store/AppStore'
 
 function ProtectedRoute() {
@@ -29,6 +30,7 @@ const AppRoutes = () => (
         <Route path="/equipes" element={<TeamsPage />} />
         <Route path="/equipes/:id" element={<TeamDetail />} />
         <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
+        <Route path="/reparos" element={<RepairsPage />} />
         <Route path="/relatorios" element={<ReportsPage />} />
       </Route>
     </Route>

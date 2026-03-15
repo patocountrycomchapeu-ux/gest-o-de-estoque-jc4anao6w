@@ -59,6 +59,10 @@ export default function TeamDetail() {
   if (!team) return <div className="p-8 text-center">Equipe não encontrada.</div>
 
   const teamInventory = inventory.filter((i) => i.teamId === id)
+  const usableCount = teamInventory.filter((i) => i.condition === 'good').length
+  const inRepairCount = teamInventory.filter((i) => i.condition === 'repair').length
+  const damagedCount = teamInventory.filter((i) => i.condition === 'damaged').length
+
   const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'pending')
   const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === 'pending')
   const canManage = canManageTeam(currentUser, team.id)
@@ -73,15 +77,43 @@ export default function TeamDetail() {
   return (
     <div className="space-y-6 animate-fade-in pb-12">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50">
+        <div className="flex items-start sm:items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="rounded-full bg-muted/50 mt-1 sm:mt-0"
+          >
             <Link to="/equipes">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{team.name}</h2>
-            <p className="text-muted-foreground">{team.description}</p>
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              <Badge
+                variant="outline"
+                className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+              >
+                {usableCount} Utilizáveis
+              </Badge>
+              {inRepairCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                >
+                  {inRepairCount} Em Reparo
+                </Badge>
+              )}
+              {damagedCount > 0 && (
+                <Badge
+                  variant="outline"
+                  className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                >
+                  {damagedCount} Danificados
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
         {canManage && (
@@ -193,14 +225,14 @@ export default function TeamDetail() {
                       <div className="flex flex-col gap-1 items-start">
                         <Badge
                           variant="outline"
-                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : item.condition === 'repair' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-red-100 text-red-800 border-red-200'}`}
                         >
                           {statusMap[item.condition].label}
                         </Badge>
                         {item.status !== 'present' && (
                           <Badge
                             variant="outline"
-                            className="text-[10px] bg-amber-100 text-amber-800 border-amber-200"
+                            className="text-[10px] bg-slate-100 text-slate-700 border-slate-200"
                           >
                             {item.status === 'in_maintenance'
                               ? 'Em Manutenção'
@@ -235,7 +267,7 @@ export default function TeamDetail() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => setUpdateItem(item)}>
-                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Status / Fotos
+                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Reparo / Fotos
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => setTransferItem(item)}>

@@ -80,6 +80,8 @@ const initialInventory = [
     photos: ['https://img.usecurling.com/p/400/400?q=screwdriver'],
     lastUpdated: new Date().toISOString(),
     price: 85.5,
+    damagedDate: new Date(Date.now() - 43200000).toISOString(),
+    damagedUser: 'Carlos (Líder Tacha 1)',
   },
   {
     id: 'inv3',
@@ -91,6 +93,23 @@ const initialInventory = [
     photos: ['https://img.usecurling.com/p/400/400?q=power%20tool'],
     lastUpdated: new Date().toISOString(),
     price: 320.0,
+  },
+  {
+    id: 'inv4',
+    hasAssetNumber: true,
+    assetNumber: 'PAT-10004',
+    teamId: 't2',
+    treeNodeId: 'm1',
+    condition: 'repair',
+    status: 'in_maintenance',
+    photos: ['https://img.usecurling.com/p/400/400?q=tool%20repair&seed=5'],
+    lastUpdated: new Date().toISOString(),
+    price: 520.0,
+    repairCost: 150.0,
+    repairLocation: 'Assistência Técnica Oficial',
+    repairDescription: 'Troca de escovas e lubrificação do motor',
+    repairUser: 'Ana (Líder Alpha)',
+    repairDate: new Date(Date.now() - 86400000).toISOString(),
   },
 ] as const
 
@@ -129,6 +148,15 @@ export const initialData: AppState = {
       description:
         'Condição alterada para damaged. Motivo: Ponta gasta pelo uso em superfícies duras.',
       user: 'Carlos (Líder Tacha 1)',
+    },
+    {
+      id: 'h3',
+      inventoryId: 'inv4',
+      date: new Date(Date.now() - 86400000).toISOString(),
+      type: 'status_change',
+      description:
+        'Condição alterada para repair. Local: Assistência Técnica Oficial. Custo: R$150.',
+      user: 'Ana (Líder Alpha)',
     },
   ],
   checklists: [],

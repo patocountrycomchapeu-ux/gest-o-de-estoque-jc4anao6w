@@ -39,12 +39,16 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
   const [condition, setCondition] = useState<Condition>('good')
   const [status, setStatus] = useState<ToolStatus>('present')
   const [reason, setReason] = useState('')
+  const [repairCost, setRepairCost] = useState('')
+  const [repairLocation, setRepairLocation] = useState('')
 
   useEffect(() => {
     if (item && open) {
       setCondition(item.condition)
       setStatus(item.status || 'present')
       setReason('')
+      setRepairCost(item.repairCost?.toString() || '')
+      setRepairLocation(item.repairLocation || '')
     }
   }, [item, open])
 
@@ -57,11 +61,30 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
       status === 'defect_stock' ||
       status === 'missing'
 
-    if (requiresReason && !reason.trim()) {
-      alert('Motivo / Destino ou Comentário é obrigatório para esta alteração.')
-      return
+    if (condition === 'repair') {
+      if (!repairLocation.trim()) {
+        alert('Local / Assistência do reparo é obrigatório.')
+        return
+      }
+      if (!reason.trim()) {
+        alert('Descrição do motivo/reparo é obrigatória para evitar extravios.')
+        return
+      }
+      updateInventoryItem(item.id, {
+        condition,
+        status,
+        reason,
+        repairCost: repairCost ? parseFloat(repairCost) : 0,
+        repairLocation,
+      })
+    } else {
+      if (requiresReason && !reason.trim()) {
+        alert('Motivo / Destino ou Comentário é obrigatório para esta alteração.')
+        return
+      }
+      updateInventoryItem(item.id, { condition, status, reason })
     }
-    updateInventoryItem(item.id, { condition, status, reason })
+
     onOpenChange(false)
   }
 
@@ -107,11 +130,37 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
             </div>
           </div>
 
+          {condition === 'repair' && (
+            <div className="grid grid-cols-2 gap-4 animate-fade-in pb-1 border-b border-border/50 mb-2">
+              <div className="space-y-2">
+                <Label>Custo Estimado/Gasto (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={repairCost}
+                  onChange={(e) => setRepairCost(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  Local / Assistência <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  value={repairLocation}
+                  onChange={(e) => setRepairLocation(e.target.value)}
+                  placeholder="Ex: Oficina Y, Assistência X..."
+                  className={!repairLocation ? 'border-destructive/30' : ''}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2 animate-fade-in">
             <Label
               className={`${condition === 'damaged' || condition === 'repair' || status !== 'present' ? 'text-destructive font-bold' : ''}`}
             >
-              Motivo / Observação{' '}
+              {condition === 'repair' ? 'Descrição do Reparo / Problema ' : 'Motivo / Observação '}
               {(condition === 'damaged' ||
                 condition === 'repair' ||
                 status === 'defect_stock' ||
@@ -122,7 +171,11 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
             <Input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Descreva o motivo da alteração de estoque/condição..."
+              placeholder={
+                condition === 'repair'
+                  ? 'Descreva o problema e detalhes do envio...'
+                  : 'Descreva o motivo da alteração de estoque/condição...'
+              }
               className={
                 condition === 'damaged' || condition === 'repair' || status !== 'present'
                   ? 'border-destructive/50 focus-visible:ring-destructive/30'
@@ -142,12 +195,12 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
           <Button
             onClick={handleSubmit}
             disabled={
-              (condition === 'damaged' ||
-                condition === 'repair' ||
+              ((condition === 'damaged' ||
                 status === 'defect_stock' ||
                 status === 'in_maintenance' ||
                 status === 'missing') &&
-              !reason.trim()
+                !reason.trim()) ||
+              (condition === 'repair' && (!reason.trim() || !repairLocation.trim()))
             }
           >
             Salvar Alterações

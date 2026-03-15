@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Users, FolderTree, Package, BarChart3 } from 'lucide-react'
+import { Home, Users, FolderTree, Package, BarChart3, Wrench } from 'lucide-react'
 import { useAppStore } from '@/store/AppStore'
 import { canManageTree, canViewReports } from '@/lib/permissions'
 import {
@@ -23,6 +23,7 @@ export function AppSidebar() {
       ? [{ title: 'Árvore Mercadológica', icon: FolderTree, url: '/arvore' }]
       : []),
     { title: 'Gestão de Equipes', icon: Users, url: '/equipes' },
+    { title: 'Reparos', icon: Wrench, url: '/reparos' },
     ...(canViewReports(currentUser)
       ? [{ title: 'Relatórios', icon: BarChart3, url: '/relatorios' }]
       : []),

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
-import { AppState, TreeNode, Condition, ToolStatus, Checklist } from '@/types'
+import { AppState, TreeNode, Condition, ToolStatus, Checklist, InventoryItem } from '@/types'
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
 
@@ -20,6 +20,8 @@ interface UpdateInventoryPayload {
   assetNumber?: string
   photos?: string[]
   reason?: string
+  repairCost?: number
+  repairLocation?: string
 }
 
 interface AppContextType extends AppState {
@@ -113,43 +115,104 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setState((prev) => {
       const now = new Date().toISOString()
       const item = prev.inventory.find((i) => i.id === id)
-      const newHistory = []
+      if (!item) return prev
 
-      if (item) {
-        if (updates.condition && updates.condition !== item.condition) {
-          newHistory.push({
-            id: `h_${Date.now()}_cond`,
-            inventoryId: id,
-            date: now,
-            type: 'status_change' as const,
-            description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ''}`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
+      const newHistory = []
+      let extraItemUpdates: Partial<InventoryItem> = {}
+
+      if (updates.repairCost !== undefined) extraItemUpdates.repairCost = updates.repairCost
+      if (updates.repairLocation !== undefined)
+        extraItemUpdates.repairLocation = updates.repairLocation
+
+      if (updates.condition && updates.condition !== item.condition) {
+        const isToRepair = updates.condition === 'repair'
+        const isToDamaged = updates.condition === 'damaged'
+
+        let desc = `Condição alterada de ${item.condition} para ${updates.condition}.`
+        if (updates.reason) desc += ` Motivo: ${updates.reason}.`
+
+        if (isToRepair) {
+          extraItemUpdates.repairDescription = updates.reason
+          extraItemUpdates.repairUser = prev.currentUser?.name || 'Sistema'
+          extraItemUpdates.repairDate = now
+          if (updates.repairLocation) desc += ` Local: ${updates.repairLocation}.`
+          if (updates.repairCost !== undefined) desc += ` Custo: R$${updates.repairCost}.`
+        } else if (item.condition === 'repair') {
+          extraItemUpdates.repairCost = undefined
+          extraItemUpdates.repairLocation = undefined
+          extraItemUpdates.repairDescription = undefined
+          extraItemUpdates.repairUser = undefined
+          extraItemUpdates.repairDate = undefined
         }
-        if (updates.status && updates.status !== item.status) {
-          const statusLabels: Record<string, string> = {
-            present: 'Em Uso na Equipe',
-            missing: 'Faltando / Extraviado',
-            borrowed: 'Emprestado',
-            in_maintenance: 'Em Manutenção',
-            defect_stock: 'Estoque de Defeito',
-            returned_to_team: 'Devolvido para a Equipe',
+
+        if (isToDamaged) {
+          extraItemUpdates.damagedDate = now
+          extraItemUpdates.damagedUser = prev.currentUser?.name || 'Sistema'
+        } else if (item.condition === 'damaged') {
+          extraItemUpdates.damagedDate = undefined
+          extraItemUpdates.damagedUser = undefined
+        }
+
+        newHistory.push({
+          id: `h_${Date.now()}_cond`,
+          inventoryId: id,
+          date: now,
+          type: 'status_change' as const,
+          description: desc,
+          user: prev.currentUser?.name || 'Sistema',
+        })
+      }
+
+      if (!updates.condition || updates.condition === item.condition) {
+        if (
+          item.condition === 'repair' &&
+          (updates.repairCost !== undefined || updates.repairLocation !== undefined)
+        ) {
+          let updatedFields = []
+          if (updates.repairCost !== undefined && updates.repairCost !== item.repairCost)
+            updatedFields.push(`Custo para R$${updates.repairCost}`)
+          if (
+            updates.repairLocation !== undefined &&
+            updates.repairLocation !== item.repairLocation
+          )
+            updatedFields.push(`Local para ${updates.repairLocation}`)
+
+          if (updatedFields.length > 0) {
+            newHistory.push({
+              id: `h_${Date.now()}_repair_upd`,
+              inventoryId: id,
+              date: now,
+              type: 'status_change' as const,
+              description: `Atualização de Reparo: ${updatedFields.join(', ')}.${updates.reason ? ` Obs: ${updates.reason}` : ''}`,
+              user: prev.currentUser?.name || 'Sistema',
+            })
           }
-          newHistory.push({
-            id: `h_${Date.now()}_status`,
-            inventoryId: id,
-            date: now,
-            type: 'status_change' as const,
-            description: `Destino/Status alterado para ${statusLabels[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ''}`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
         }
+      }
+
+      if (updates.status && updates.status !== item.status) {
+        const statusLabels: Record<string, string> = {
+          present: 'Em Uso na Equipe',
+          missing: 'Faltando / Extraviado',
+          borrowed: 'Emprestado',
+          in_maintenance: 'Em Manutenção',
+          defect_stock: 'Estoque de Defeito',
+          returned_to_team: 'Devolvido para a Equipe',
+        }
+        newHistory.push({
+          id: `h_${Date.now()}_status`,
+          inventoryId: id,
+          date: now,
+          type: 'status_change' as const,
+          description: `Destino/Status alterado para ${statusLabels[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ''}`,
+          user: prev.currentUser?.name || 'Sistema',
+        })
       }
 
       return {
         ...prev,
         inventory: prev.inventory.map((inv) =>
-          inv.id === id ? { ...inv, ...updates, lastUpdated: now } : inv,
+          inv.id === id ? { ...inv, ...updates, ...extraItemUpdates, lastUpdated: now } : inv,
         ),
         history: [...newHistory, ...prev.history],
       }

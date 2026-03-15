@@ -24,7 +24,8 @@ export default function TeamsPage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredTeams.map((team) => {
           const teamItems = inventory.filter((i) => i.teamId === team.id)
-          const damagedItems = teamItems.filter((i) => i.condition !== 'good').length
+          const usableItems = teamItems.filter((i) => i.condition === 'good')
+          const damagedItems = teamItems.filter((i) => i.condition === 'damaged').length
           const pendingIncoming = transfers.filter(
             (t) => t.toTeamId === team.id && t.status === 'pending',
           ).length
@@ -45,8 +46,10 @@ export default function TeamsPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm pt-3 border-t">
                       <div className="flex items-center">
-                        <Package className="h-4 w-4 mr-1.5 text-blue-500" />
-                        <span className="font-medium">{teamItems.length} Instâncias</span>
+                        <Package className="h-4 w-4 mr-1.5 text-emerald-600" />
+                        <span className="font-medium text-emerald-700">
+                          {usableItems.length} Utilizáveis
+                        </span>
                       </div>
                       {damagedItems > 0 && (
                         <div className="flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs">
