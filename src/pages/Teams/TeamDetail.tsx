@@ -150,7 +150,7 @@ export default function TeamDetail() {
                 <TableHead className="w-16 text-center">Fotos</TableHead>
                 <TableHead>Patrimônio</TableHead>
                 <TableHead>Item (Marca)</TableHead>
-                <TableHead>Condição</TableHead>
+                <TableHead>Condição / Status</TableHead>
                 {canManage && <TableHead className="text-right">Ações</TableHead>}
               </TableRow>
             </TableHeader>
@@ -190,12 +190,32 @@ export default function TeamDetail() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                      >
-                        {statusMap[item.condition].label}
-                      </Badge>
+                      <div className="flex flex-col gap-1 items-start">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                        >
+                          {statusMap[item.condition].label}
+                        </Badge>
+                        {item.status !== 'present' && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] bg-amber-100 text-amber-800 border-amber-200"
+                          >
+                            {item.status === 'in_maintenance'
+                              ? 'Em Manutenção'
+                              : item.status === 'defect_stock'
+                                ? 'Estoque de Defeito'
+                                : item.status === 'missing'
+                                  ? 'Extraviado'
+                                  : item.status === 'borrowed'
+                                    ? 'Emprestado'
+                                    : item.status === 'returned_to_team'
+                                      ? 'Devolvido'
+                                      : item.status}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     {canManage && (
                       <TableCell className="text-right">
@@ -215,7 +235,7 @@ export default function TeamDetail() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => setUpdateItem(item)}>
-                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Fotos
+                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Status / Fotos
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => setTransferItem(item)}>

@@ -1,5 +1,11 @@
 export type Condition = 'good' | 'damaged' | 'repair'
-export type ToolStatus = 'present' | 'missing' | 'borrowed'
+export type ToolStatus =
+  | 'present'
+  | 'missing'
+  | 'borrowed'
+  | 'in_maintenance'
+  | 'defect_stock'
+  | 'returned_to_team'
 export type TreeLevel = 'departamento' | 'secao' | 'categoria' | 'item' | 'marca'
 export type Role = 'admin' | 'leader' | 'operator'
 

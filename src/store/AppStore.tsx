@@ -15,6 +15,7 @@ interface AddInventoryPayload {
 
 interface UpdateInventoryPayload {
   condition?: Condition
+  status?: ToolStatus
   hasAssetNumber?: boolean
   assetNumber?: string
   photos?: string[]
@@ -109,15 +110,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const item = prev.inventory.find((i) => i.id === id)
       const newHistory = []
 
-      if (item && updates.condition && updates.condition !== item.condition) {
-        newHistory.push({
-          id: `h_${Date.now()}_cond`,
-          inventoryId: id,
-          date: now,
-          type: 'status_change' as const,
-          description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ''}`,
-          user: prev.currentUser?.name || 'Sistema',
-        })
+      if (item) {
+        if (updates.condition && updates.condition !== item.condition) {
+          newHistory.push({
+            id: `h_${Date.now()}_cond`,
+            inventoryId: id,
+            date: now,
+            type: 'status_change' as const,
+            description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ''}`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
+        }
+        if (updates.status && updates.status !== item.status) {
+          const statusLabels: Record<string, string> = {
+            present: 'Em Uso na Equipe',
+            missing: 'Faltando / Extraviado',
+            borrowed: 'Emprestado',
+            in_maintenance: 'Em Manutenção',
+            defect_stock: 'Estoque de Defeito',
+            returned_to_team: 'Devolvido para a Equipe',
+          }
+          newHistory.push({
+            id: `h_${Date.now()}_status`,
+            inventoryId: id,
+            date: now,
+            type: 'status_change' as const,
+            description: `Destino/Status alterado para ${statusLabels[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ''}`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
+        }
       }
 
       return {
@@ -128,7 +149,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         history: [...newHistory, ...prev.history],
       }
     })
-    toast({ title: 'Item Atualizado' })
+    toast({ title: 'Item Atualizado e Registrado no Histórico' })
   }, [])
 
   const initiateTransfer = useCallback((inventoryId: string, toTeamId: string) => {

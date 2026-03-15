@@ -26583,8 +26583,8 @@ var initialUsers = [
 	{
 		id: "u1",
 		name: "Administrador Master",
-		email: "admin@estoque.pro",
-		password: "admin",
+		email: "admin",
+		password: "123",
 		role: "admin"
 	},
 	{
@@ -26837,14 +26837,31 @@ function AppProvider({ children }) {
 			const now = (/* @__PURE__ */ new Date()).toISOString();
 			const item = prev.inventory.find((i) => i.id === id);
 			const newHistory = [];
-			if (item && updates.condition && updates.condition !== item.condition) newHistory.push({
-				id: `h_${Date.now()}_cond`,
-				inventoryId: id,
-				date: now,
-				type: "status_change",
-				description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ""}`,
-				user: prev.currentUser?.name || "Sistema"
-			});
+			if (item) {
+				if (updates.condition && updates.condition !== item.condition) newHistory.push({
+					id: `h_${Date.now()}_cond`,
+					inventoryId: id,
+					date: now,
+					type: "status_change",
+					description: `Condição alterada para ${updates.condition}${updates.reason ? `. Motivo: ${updates.reason}` : ""}`,
+					user: prev.currentUser?.name || "Sistema"
+				});
+				if (updates.status && updates.status !== item.status) newHistory.push({
+					id: `h_${Date.now()}_status`,
+					inventoryId: id,
+					date: now,
+					type: "status_change",
+					description: `Destino/Status alterado para ${{
+						present: "Em Uso na Equipe",
+						missing: "Faltando / Extraviado",
+						borrowed: "Emprestado",
+						in_maintenance: "Em Manutenção",
+						defect_stock: "Estoque de Defeito",
+						returned_to_team: "Devolvido para a Equipe"
+					}[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ""}`,
+					user: prev.currentUser?.name || "Sistema"
+				});
+			}
 			return {
 				...prev,
 				inventory: prev.inventory.map((inv) => inv.id === id ? {
@@ -26855,7 +26872,7 @@ function AppProvider({ children }) {
 				history: [...newHistory, ...prev.history]
 			};
 		});
-		toast$1({ title: "Item Atualizado" });
+		toast$1({ title: "Item Atualizado e Registrado no Histórico" });
 	}, []);
 	const initiateTransfer = (0, import_react.useCallback)((inventoryId, toTeamId) => {
 		setState((prev) => {
@@ -26953,7 +26970,7 @@ function AppProvider({ children }) {
 		getNodePath
 	}), [state]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:250:10",
+		"data-uid": "src/store/AppStore.tsx:271:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
@@ -29043,17 +29060,17 @@ function Login() {
 								"data-uid": "src/pages/Login.tsx:53:15",
 								"data-prohibitions": "[]",
 								htmlFor: "email",
-								children: "E-mail"
+								children: "Usuário"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 								"data-uid": "src/pages/Login.tsx:54:15",
 								"data-prohibitions": "[editContent]",
 								id: "email",
-								type: "email",
-								placeholder: "nome@estoque.pro",
+								type: "text",
+								placeholder: "admin",
 								value: email,
 								onChange: (e) => setEmail(e.target.value),
 								required: true,
-								autoComplete: "email",
+								autoComplete: "username",
 								autoFocus: true
 							})]
 						}),
@@ -58755,6 +58772,7 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 	const { nodes, addInventoryItem, getNodePath } = useAppStore();
 	const [selectedMarcaId, setSelectedMarcaId] = (0, import_react.useState)("");
 	const [qty, setQty] = (0, import_react.useState)(1);
+	const [price, setPrice] = (0, import_react.useState)(0);
 	const [hasAsset, setHasAsset] = (0, import_react.useState)(true);
 	const [assets, setAssets] = (0, import_react.useState)([""]);
 	const [condition, setCondition] = (0, import_react.useState)("good");
@@ -58773,70 +58791,72 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 			condition,
 			hasAssetNumber: hasAsset,
 			assets: hasAsset ? assets : [],
-			qty
+			qty,
+			price
 		});
 		onOpenChange(false);
 		setSelectedMarcaId("");
 		setQty(1);
+		setPrice(0);
 		setAssets([""]);
 		setHasAsset(true);
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/AllocateDialog.tsx:68:5",
+		"data-uid": "src/pages/Teams/AllocateDialog.tsx:71:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/AllocateDialog.tsx:69:7",
+			"data-uid": "src/pages/Teams/AllocateDialog.tsx:72:7",
 			"data-prohibitions": "[editContent]",
 			className: "sm:max-w-[450px]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:70:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:73:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:71:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:74:11",
 						"data-prohibitions": "[]",
 						children: "Alocar Ferramentas"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:72:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:75:11",
 						"data-prohibitions": "[]",
-						children: "Adicione ferramentas à equipe e configure seus dados patrimoniais."
+						children: "Adicione ferramentas à equipe e configure seus dados patrimoniais e valor."
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:76:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:79:9",
 					"data-prohibitions": "[editContent]",
 					className: "grid gap-4 py-4",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:77:11",
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:80:11",
 							"data-prohibitions": "[editContent]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:78:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:81:13",
 								"data-prohibitions": "[]",
 								children: "Item Base"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:79:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:82:13",
 								"data-prohibitions": "[editContent]",
 								value: selectedMarcaId,
 								onValueChange: setSelectedMarcaId,
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:80:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:83:15",
 									"data-prohibitions": "[]",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:81:17",
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:84:17",
 										"data-prohibitions": "[editContent]",
 										placeholder: "Selecione o produto..."
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:83:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:86:15",
 									"data-prohibitions": "[editContent]",
 									children: leafItems.map((item) => {
 										const name = getNodePath(item.id).find((n) => n.level === "item")?.name || "?";
 										return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectItem, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:87:21",
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:90:21",
 											"data-prohibitions": "[editContent]",
 											value: item.id,
 											children: [
@@ -58851,19 +58871,19 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:95:11",
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:98:11",
 							"data-prohibitions": "[]",
 							className: "grid grid-cols-2 gap-4",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:96:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:99:13",
 								"data-prohibitions": "[]",
 								className: "space-y-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:97:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:100:15",
 									"data-prohibitions": "[]",
 									children: "Quantidade"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:98:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:101:15",
 									"data-prohibitions": "[editContent]",
 									type: "number",
 									min: 1,
@@ -58871,104 +58891,122 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 									onChange: (e) => handleQtyChange(Number(e.target.value))
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:105:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:108:13",
 								"data-prohibitions": "[]",
 								className: "space-y-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:106:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:109:15",
 									"data-prohibitions": "[]",
-									children: "Condição Inicial"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:107:15",
-									"data-prohibitions": "[]",
-									value: condition,
-									onValueChange: (v) => setCondition(v),
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:108:17",
-										"data-prohibitions": "[]",
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:109:19",
-											"data-prohibitions": "[editContent]"
-										})
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:111:17",
-										"data-prohibitions": "[]",
-										children: [
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/AllocateDialog.tsx:112:19",
-												"data-prohibitions": "[]",
-												value: "good",
-												children: "Bom Estado"
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/AllocateDialog.tsx:113:19",
-												"data-prohibitions": "[]",
-												value: "damaged",
-												children: "Danificado"
-											}),
-											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/AllocateDialog.tsx:114:19",
-												"data-prohibitions": "[]",
-												value: "repair",
-												children: "Para Reparo"
-											})
-										]
-									})]
+									children: "Valor Unit. (R$)"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:110:15",
+									"data-prohibitions": "[editContent]",
+									type: "number",
+									min: 0,
+									step: "0.01",
+									value: price,
+									onChange: (e) => setPrice(Number(e.target.value))
 								})]
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							"data-uid": "src/pages/Teams/AllocateDialog.tsx:119:11",
 							"data-prohibitions": "[]",
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:120:13",
+								"data-prohibitions": "[]",
+								children: "Condição Inicial"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:121:13",
+								"data-prohibitions": "[]",
+								value: condition,
+								onValueChange: (v) => setCondition(v),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:122:15",
+									"data-prohibitions": "[]",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:123:17",
+										"data-prohibitions": "[editContent]"
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:125:15",
+									"data-prohibitions": "[]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:126:17",
+											"data-prohibitions": "[]",
+											value: "good",
+											children: "Bom Estado"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:127:17",
+											"data-prohibitions": "[]",
+											value: "damaged",
+											children: "Danificado"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:128:17",
+											"data-prohibitions": "[]",
+											value: "repair",
+											children: "Para Reparo"
+										})
+									]
+								})]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:132:11",
+							"data-prohibitions": "[]",
 							className: "flex items-center justify-between border rounded-md p-3 bg-muted/20",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:120:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:133:13",
 								"data-prohibitions": "[]",
 								className: "space-y-0.5 pr-4",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:121:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:134:15",
 									"data-prohibitions": "[]",
 									children: "Possui número de patrimônio?"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:122:15",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:135:15",
 									"data-prohibitions": "[]",
 									className: "text-[10px] text-muted-foreground leading-tight",
 									children: "Desative se a ferramenta não tiver um controle de ativo físico."
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Switch, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:126:13",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:139:13",
 								"data-prohibitions": "[editContent]",
 								checked: hasAsset,
 								onCheckedChange: setHasAsset
 							})]
 						}),
 						hasAsset && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/AllocateDialog.tsx:129:13",
+							"data-uid": "src/pages/Teams/AllocateDialog.tsx:142:13",
 							"data-prohibitions": "[editContent]",
 							className: "space-y-2 animate-in fade-in slide-in-from-top-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:130:15",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:143:15",
 								"data-prohibitions": "[]",
 								children: "Números de Patrimônio (Obrigatório)"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ScrollArea, {
-								"data-uid": "src/pages/Teams/AllocateDialog.tsx:131:15",
+								"data-uid": "src/pages/Teams/AllocateDialog.tsx:144:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-[120px] rounded-md border p-2 bg-muted/30",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									"data-uid": "src/pages/Teams/AllocateDialog.tsx:132:17",
+									"data-uid": "src/pages/Teams/AllocateDialog.tsx:145:17",
 									"data-prohibitions": "[editContent]",
 									className: "space-y-2 pr-4",
 									children: assets.map((asset, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/Teams/AllocateDialog.tsx:134:21",
+										"data-uid": "src/pages/Teams/AllocateDialog.tsx:147:21",
 										"data-prohibitions": "[editContent]",
 										className: "flex items-center gap-2",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:135:23",
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:148:23",
 											"data-prohibitions": "[editContent]",
 											className: "text-xs text-muted-foreground w-6 text-right",
 											children: [idx + 1, "."]
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-											"data-uid": "src/pages/Teams/AllocateDialog.tsx:138:23",
+											"data-uid": "src/pages/Teams/AllocateDialog.tsx:151:23",
 											"data-prohibitions": "[editContent]",
 											placeholder: "Ex: PAT-123",
 											value: asset,
@@ -58986,16 +59024,16 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/AllocateDialog.tsx:157:9",
+					"data-uid": "src/pages/Teams/AllocateDialog.tsx:170:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:158:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:171:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => onOpenChange(false),
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/AllocateDialog.tsx:161:11",
+						"data-uid": "src/pages/Teams/AllocateDialog.tsx:174:11",
 						"data-prohibitions": "[]",
 						onClick: handleSave,
 						disabled: !selectedMarcaId || hasAsset && assets.some((a) => !a.trim()),
@@ -59008,138 +59046,189 @@ function AllocateDialog({ teamId, open, onOpenChange }) {
 }
 //#endregion
 //#region src/pages/Teams/UpdateDialog.tsx
+var statusLabels = {
+	present: "Em Uso na Equipe",
+	missing: "Faltando / Extraviado",
+	borrowed: "Emprestado",
+	in_maintenance: "Em Manutenção",
+	defect_stock: "Estoque de Defeito",
+	returned_to_team: "Devolvido para a Equipe"
+};
 function UpdateDialog({ item, open, onOpenChange }) {
 	const { updateInventoryItem } = useAppStore();
 	const [condition, setCondition] = (0, import_react.useState)("good");
+	const [status, setStatus] = (0, import_react.useState)("present");
 	const [reason, setReason] = (0, import_react.useState)("");
 	(0, import_react.useEffect)(() => {
 		if (item && open) {
 			setCondition(item.condition);
+			setStatus(item.status || "present");
 			setReason("");
 		}
 	}, [item, open]);
 	const handleSubmit = () => {
 		if (!item) return;
-		if ((condition === "damaged" || condition === "repair") && !reason.trim()) {
-			alert("Motivo/Comentário é obrigatório para este status.");
+		if ((condition === "damaged" || condition === "repair" || status === "in_maintenance" || status === "defect_stock" || status === "missing") && !reason.trim()) {
+			alert("Motivo / Destino ou Comentário é obrigatório para esta alteração.");
 			return;
 		}
 		updateInventoryItem(item.id, {
 			condition,
+			status,
 			reason
 		});
 		onOpenChange(false);
 	};
 	if (!item) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/UpdateDialog.tsx:53:5",
+		"data-uid": "src/pages/Teams/UpdateDialog.tsx:71:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/UpdateDialog.tsx:54:7",
+			"data-uid": "src/pages/Teams/UpdateDialog.tsx:72:7",
 			"data-prohibitions": "[editContent]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:55:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:73:9",
 					"data-prohibitions": "[editContent]",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:56:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:74:11",
 						"data-prohibitions": "[editContent]",
 						children: ["Atualizar Instância: ", item.hasAssetNumber ? item.assetNumber : "Sem Patrimônio"]
 					})
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:60:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:78:9",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-4 py-4",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:61:11",
-						"data-prohibitions": "[]",
-						className: "space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:62:13",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:79:11",
+						"data-prohibitions": "[editContent]",
+						className: "grid grid-cols-2 gap-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:13",
 							"data-prohibitions": "[]",
-							children: "Condição da Ferramenta"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-							"data-uid": "src/pages/Teams/UpdateDialog.tsx:63:13",
-							"data-prohibitions": "[]",
-							value: condition,
-							onValueChange: (v) => setCondition(v),
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:64:15",
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:81:15",
 								"data-prohibitions": "[]",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-									"data-uid": "src/pages/Teams/UpdateDialog.tsx:65:17",
-									"data-prohibitions": "[editContent]"
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:67:15",
+								children: "Condição da Ferramenta"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:82:15",
 								"data-prohibitions": "[]",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:68:17",
-										"data-prohibitions": "[]",
-										value: "good",
-										children: "Bom Estado"
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:69:17",
-										"data-prohibitions": "[]",
-										value: "damaged",
-										children: "Danificado"
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										"data-uid": "src/pages/Teams/UpdateDialog.tsx:70:17",
-										"data-prohibitions": "[]",
-										value: "repair",
-										children: "Para Reparo"
+								value: condition,
+								onValueChange: (v) => setCondition(v),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:83:17",
+									"data-prohibitions": "[]",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:84:19",
+										"data-prohibitions": "[editContent]"
 									})
-								]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:86:17",
+									"data-prohibitions": "[]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:87:19",
+											"data-prohibitions": "[]",
+											value: "good",
+											children: "Bom Estado"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:88:19",
+											"data-prohibitions": "[]",
+											value: "damaged",
+											children: "Danificado"
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											"data-uid": "src/pages/Teams/UpdateDialog.tsx:89:19",
+											"data-prohibitions": "[]",
+											value: "repair",
+											children: "Para Reparo"
+										})
+									]
+								})]
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/UpdateDialog.tsx:93:13",
+							"data-prohibitions": "[editContent]",
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:94:15",
+								"data-prohibitions": "[]",
+								children: "Destino / Status"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:95:15",
+								"data-prohibitions": "[editContent]",
+								value: status,
+								onValueChange: (v) => setStatus(v),
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:17",
+									"data-prohibitions": "[]",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:97:19",
+										"data-prohibitions": "[editContent]"
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
+									"data-uid": "src/pages/Teams/UpdateDialog.tsx:99:17",
+									"data-prohibitions": "[editContent]",
+									children: Object.entries(statusLabels).map(([k, v]) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/UpdateDialog.tsx:101:21",
+										"data-prohibitions": "[editContent]",
+										value: k,
+										children: v
+									}, k))
+								})]
 							})]
 						})]
-					}), (condition === "damaged" || condition === "repair") && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:76:13",
-						"data-prohibitions": "[]",
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:110:11",
+						"data-prohibitions": "[editContent]",
 						className: "space-y-2 animate-fade-in",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:77:15",
-								"data-prohibitions": "[]",
-								className: "text-destructive font-bold",
-								children: "Motivo / Comentário (Obrigatório)"
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:111:13",
+								"data-prohibitions": "[editContent]",
+								className: `${condition === "damaged" || condition === "repair" || status !== "present" ? "text-destructive font-bold" : ""}`,
+								children: [
+									"Motivo / Observação",
+									" ",
+									(condition === "damaged" || condition === "repair" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && "(Obrigatório)"
+								]
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:80:15",
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:122:13",
 								"data-prohibitions": "[editContent]",
 								value: reason,
 								onChange: (e) => setReason(e.target.value),
-								placeholder: "Descreva o defeito ou motivo da manutenção...",
-								className: "border-destructive/50 focus-visible:ring-destructive/30"
+								placeholder: "Descreva o motivo da alteração de estoque/condição...",
+								className: condition === "damaged" || condition === "repair" || status !== "present" ? "border-destructive/50 focus-visible:ring-destructive/30" : ""
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-								"data-uid": "src/pages/Teams/UpdateDialog.tsx:86:15",
+								"data-uid": "src/pages/Teams/UpdateDialog.tsx:132:13",
 								"data-prohibitions": "[]",
 								className: "text-[10px] text-muted-foreground",
-								children: "Esta informação ficará registrada no histórico do item."
+								children: "Esta informação ficará registrada de forma imutável no histórico do item, permitindo total rastreabilidade."
 							})
 						]
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/UpdateDialog.tsx:92:9",
+					"data-uid": "src/pages/Teams/UpdateDialog.tsx:138:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:93:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:139:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => onOpenChange(false),
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/UpdateDialog.tsx:96:11",
+						"data-uid": "src/pages/Teams/UpdateDialog.tsx:142:11",
 						"data-prohibitions": "[]",
 						onClick: handleSubmit,
-						disabled: (condition === "damaged" || condition === "repair") && !reason.trim(),
+						disabled: (condition === "damaged" || condition === "repair" || status === "defect_stock" || status === "in_maintenance" || status === "missing") && !reason.trim(),
 						children: "Salvar Alterações"
 					})]
 				})
@@ -61412,7 +61501,7 @@ function TeamDetail() {
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 										"data-uid": "src/pages/Teams/TeamDetail.tsx:153:17",
 										"data-prohibitions": "[]",
-										children: "Condição"
+										children: "Condição / Status"
 									}),
 									canManage && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 										"data-uid": "src/pages/Teams/TeamDetail.tsx:154:31",
@@ -61489,68 +61578,79 @@ function TeamDetail() {
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 											"data-uid": "src/pages/Teams/TeamDetail.tsx:192:21",
 											"data-prohibitions": "[editContent]",
-											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 												"data-uid": "src/pages/Teams/TeamDetail.tsx:193:23",
 												"data-prohibitions": "[editContent]",
-												variant: "outline",
-												className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`,
-												children: statusMap[item.condition].label
+												className: "flex flex-col gap-1 items-start",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:194:25",
+													"data-prohibitions": "[editContent]",
+													variant: "outline",
+													className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`,
+													children: statusMap[item.condition].label
+												}), item.status !== "present" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:201:27",
+													"data-prohibitions": "[editContent]",
+													variant: "outline",
+													className: "text-[10px] bg-amber-100 text-amber-800 border-amber-200",
+													children: item.status === "in_maintenance" ? "Em Manutenção" : item.status === "defect_stock" ? "Estoque de Defeito" : item.status === "missing" ? "Extraviado" : item.status === "borrowed" ? "Emprestado" : item.status === "returned_to_team" ? "Devolvido" : item.status
+												})]
 											})
 										}),
 										canManage && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/TeamDetail.tsx:201:23",
+											"data-uid": "src/pages/Teams/TeamDetail.tsx:221:23",
 											"data-prohibitions": "[editContent]",
 											className: "text-right",
 											children: isOutgoing ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:203:27",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:223:27",
 												"data-prohibitions": "[]",
 												variant: "outline",
 												className: "bg-amber-100 text-amber-800 border-amber-200 text-[10px]",
 												children: "Em Transferência"
 											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenu, {
-												"data-uid": "src/pages/Teams/TeamDetail.tsx:210:27",
+												"data-uid": "src/pages/Teams/TeamDetail.tsx:230:27",
 												"data-prohibitions": "[]",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DropdownMenuTrigger, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:211:29",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:231:29",
 													"data-prohibitions": "[]",
 													asChild: true,
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-														"data-uid": "src/pages/Teams/TeamDetail.tsx:212:31",
+														"data-uid": "src/pages/Teams/TeamDetail.tsx:232:31",
 														"data-prohibitions": "[]",
 														variant: "ghost",
 														size: "icon",
 														className: "h-8 w-8",
 														children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EllipsisVertical, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:213:33",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:233:33",
 															"data-prohibitions": "[editContent]",
 															className: "h-4 w-4"
 														})
 													})
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuContent, {
-													"data-uid": "src/pages/Teams/TeamDetail.tsx:216:29",
+													"data-uid": "src/pages/Teams/TeamDetail.tsx:236:29",
 													"data-prohibitions": "[]",
 													align: "end",
 													children: [
 														/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuItem, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:217:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:237:31",
 															"data-prohibitions": "[]",
 															onClick: () => setUpdateItem(item),
 															children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings2, {
-																"data-uid": "src/pages/Teams/TeamDetail.tsx:218:33",
+																"data-uid": "src/pages/Teams/TeamDetail.tsx:238:33",
 																"data-prohibitions": "[editContent]",
 																className: "h-4 w-4 mr-2"
-															}), " Editar / Fotos"]
+															}), " Editar / Status / Fotos"]
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DropdownMenuSeparator, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:220:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:240:31",
 															"data-prohibitions": "[editContent]"
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenuItem, {
-															"data-uid": "src/pages/Teams/TeamDetail.tsx:221:31",
+															"data-uid": "src/pages/Teams/TeamDetail.tsx:241:31",
 															"data-prohibitions": "[]",
 															onClick: () => setTransferItem(item),
 															children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
-																"data-uid": "src/pages/Teams/TeamDetail.tsx:222:33",
+																"data-uid": "src/pages/Teams/TeamDetail.tsx:242:33",
 																"data-prohibitions": "[editContent]",
 																className: "h-4 w-4 mr-2"
 															}), " Transferir Instância"]
@@ -61562,10 +61662,10 @@ function TeamDetail() {
 									]
 								}, item.id);
 							}), teamInventory.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
-								"data-uid": "src/pages/Teams/TeamDetail.tsx:233:17",
+								"data-uid": "src/pages/Teams/TeamDetail.tsx:253:17",
 								"data-prohibitions": "[]",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/Teams/TeamDetail.tsx:234:19",
+									"data-uid": "src/pages/Teams/TeamDetail.tsx:254:19",
 									"data-prohibitions": "[]",
 									colSpan: canManage ? 5 : 4,
 									className: "h-32 text-center text-muted-foreground",
@@ -61577,21 +61677,21 @@ function TeamDetail() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AllocateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:247:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:267:7",
 				"data-prohibitions": "[editContent]",
 				teamId: team.id,
 				open: allocateOpen,
 				onOpenChange: setAllocateOpen
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UpdateDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:248:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:268:7",
 				"data-prohibitions": "[editContent]",
 				item: updateItem,
 				open: !!updateItem,
 				onOpenChange: (o) => !o && setUpdateItem(null)
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TransferDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:253:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:273:7",
 				"data-prohibitions": "[editContent]",
 				item: transferItem,
 				open: !!transferItem,
@@ -61599,14 +61699,14 @@ function TeamDetail() {
 				teamId: team.id
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReceiveDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:259:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:279:7",
 				"data-prohibitions": "[editContent]",
 				transfer: receiveTransfer,
 				open: !!receiveTransfer,
 				onOpenChange: (o) => !o && setReceiveTransfer(null)
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PhotoGalleryDialog, {
-				"data-uid": "src/pages/Teams/TeamDetail.tsx:264:7",
+				"data-uid": "src/pages/Teams/TeamDetail.tsx:284:7",
 				"data-prohibitions": "[editContent]",
 				photos: galleryPhotos,
 				open: galleryOpen,
@@ -63370,4 +63470,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-D7FAm_Lm.js.map
+//# sourceMappingURL=index-CKrgUKHX.js.map

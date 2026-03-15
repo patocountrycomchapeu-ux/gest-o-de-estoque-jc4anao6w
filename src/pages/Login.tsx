@@ -50,15 +50,15 @@ export default function Login() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email">Usuário</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="nome@estoque.pro"
+                type="text"
+                placeholder="admin"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 autoFocus
               />
             </div>

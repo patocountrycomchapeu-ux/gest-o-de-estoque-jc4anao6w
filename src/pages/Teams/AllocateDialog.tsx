@@ -34,6 +34,7 @@ export function AllocateDialog({
   const { nodes, addInventoryItem, getNodePath } = useAppStore()
   const [selectedMarcaId, setSelectedMarcaId] = useState<string>('')
   const [qty, setQty] = useState(1)
+  const [price, setPrice] = useState<number>(0)
   const [hasAsset, setHasAsset] = useState(true)
   const [assets, setAssets] = useState<string[]>([''])
   const [condition, setCondition] = useState<Condition>('good')
@@ -56,10 +57,12 @@ export function AllocateDialog({
       hasAssetNumber: hasAsset,
       assets: hasAsset ? assets : [],
       qty,
+      price,
     })
     onOpenChange(false)
     setSelectedMarcaId('')
     setQty(1)
+    setPrice(0)
     setAssets([''])
     setHasAsset(true)
   }
@@ -70,7 +73,7 @@ export function AllocateDialog({
         <DialogHeader>
           <DialogTitle>Alocar Ferramentas</DialogTitle>
           <DialogDescription>
-            Adicione ferramentas à equipe e configure seus dados patrimoniais.
+            Adicione ferramentas à equipe e configure seus dados patrimoniais e valor.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -103,18 +106,28 @@ export function AllocateDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label>Condição Inicial</Label>
-              <Select value={condition} onValueChange={(v: Condition) => setCondition(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="good">Bom Estado</SelectItem>
-                  <SelectItem value="damaged">Danificado</SelectItem>
-                  <SelectItem value="repair">Para Reparo</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label>Valor Unit. (R$)</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+              />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Condição Inicial</Label>
+            <Select value={condition} onValueChange={(v: Condition) => setCondition(v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="good">Bom Estado</SelectItem>
+                <SelectItem value="damaged">Danificado</SelectItem>
+                <SelectItem value="repair">Para Reparo</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
             <div className="space-y-0.5 pr-4">

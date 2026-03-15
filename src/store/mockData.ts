@@ -4,8 +4,8 @@ const initialUsers: User[] = [
   {
     id: 'u1',
     name: 'Administrador Master',
-    email: 'admin@estoque.pro',
-    password: 'admin',
+    email: 'admin',
+    password: '123',
     role: 'admin',
   },
   {
