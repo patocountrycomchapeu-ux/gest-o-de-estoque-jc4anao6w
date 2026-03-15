@@ -26930,19 +26930,51 @@ function AppProvider({ children }) {
 		});
 		toast$1({ title: action === "accept" ? "Recebimento Confirmado" : "Transferência Rejeitada" });
 	}, []);
-	const submitChecklist = (0, import_react.useCallback)((teamId, items, extra) => {
+	const submitChecklist = (0, import_react.useCallback)((teamId, leaderName, items, extra) => {
 		setState((prev) => {
+			const now = (/* @__PURE__ */ new Date()).toISOString();
 			const chk = {
 				id: `chk_${Date.now()}`,
 				teamId,
-				date: (/* @__PURE__ */ new Date()).toISOString(),
-				leaderName: prev.currentUser?.name || "Sistema",
+				date: now,
+				leaderName: leaderName || prev.currentUser?.name || "Sistema",
 				discrepancies: 0
 			};
+			const newInventory = [...prev.inventory];
+			const newHistory = [...prev.history];
+			extra.forEach((ex, i) => {
+				const id = `inv_ex_${Date.now()}_${i}`;
+				newInventory.push({
+					id,
+					hasAssetNumber: !!ex.assetNumber,
+					assetNumber: ex.assetNumber || void 0,
+					teamId,
+					treeNodeId: ex.treeNodeId,
+					condition: "good",
+					status: "present",
+					photos: [ex.photo],
+					lastUpdated: now,
+					price: 0
+				});
+				newHistory.push({
+					id: `h_ex_${Date.now()}_${i}`,
+					inventoryId: id,
+					date: now,
+					type: "audit",
+					description: `Sobra identificada em auditoria (Item Adicional). ${ex.notes ? `Origem/Obs: ${ex.notes}` : ""}`,
+					user: leaderName || prev.currentUser?.name || "Sistema"
+				});
+			});
 			return {
 				...prev,
-				checklists: [chk, ...prev.checklists]
+				checklists: [chk, ...prev.checklists],
+				inventory: newInventory,
+				history: newHistory.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 			};
+		});
+		toast$1({
+			title: "Auditoria Finalizada",
+			description: "Inventário e histórico atualizados."
 		});
 	}, []);
 	const getNodePath = (0, import_react.useCallback)((nodeId) => {
@@ -26970,7 +27002,7 @@ function AppProvider({ children }) {
 		getNodePath
 	}), [state]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:271:10",
+		"data-uid": "src/store/AppStore.tsx:322:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
@@ -61720,9 +61752,18 @@ function TeamDetail() {
 function AuditoriaPage() {
 	const { id } = useParams();
 	const navigate = useNavigate();
-	const { teams, inventory, getNodePath, submitChecklist } = useAppStore();
+	const { teams, inventory, nodes, getNodePath, submitChecklist } = useAppStore();
 	const team = teams.find((t) => t.id === id);
 	const teamInventory = (0, import_react.useMemo)(() => inventory.filter((i) => i.teamId === id), [inventory, id]);
+	const leafNodes = (0, import_react.useMemo)(() => {
+		return nodes.filter((n) => n.level === "marca" || n.level === "item").map((n) => {
+			const path = getNodePath(n.id);
+			return {
+				id: n.id,
+				name: path.map((p) => p.name).join(" > ")
+			};
+		}).sort((a, b) => a.name.localeCompare(b.name));
+	}, [nodes, getNodePath]);
 	const [leaderName, setLeaderName] = (0, import_react.useState)("");
 	const [items, setItems] = (0, import_react.useState)(() => {
 		const init = {};
@@ -61754,47 +61795,69 @@ function AuditoriaPage() {
 			}
 		}));
 	};
+	const handlePhotoCapture = (idx, e) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const n = [...extraItems];
+				n[idx].photo = reader.result;
+				setExtraItems(n);
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+	const handleMockPhoto = (idx) => {
+		const n = [...extraItems];
+		n[idx].photo = `https://img.usecurling.com/p/400/400?q=tools&seed=${Date.now()}`;
+		setExtraItems(n);
+	};
 	const handleSubmit = () => {
 		if (!leaderName.trim()) return alert("Informe o nome do líder responsável.");
-		submitChecklist(team.id, leaderName, items, extraItems.filter((e) => e.assetNumber.trim()));
+		for (let i = 0; i < extraItems.length; i++) {
+			const ex = extraItems[i];
+			if (!ex.treeNodeId) return alert(`Selecione a classificação para o Item Sobrando #${i + 1}`);
+			if (!ex.photo) return alert(`A foto é obrigatória para o Item Sobrando #${i + 1}`);
+		}
+		submitChecklist(team.id, leaderName, items, extraItems);
 		navigate(`/equipes/${team.id}`);
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		"data-uid": "src/pages/Teams/Auditoria.tsx:66:5",
+		"data-uid": "src/pages/Teams/Auditoria.tsx:102:5",
 		"data-prohibitions": "[editContent]",
 		className: "space-y-6 max-w-5xl mx-auto animate-fade-in",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Teams/Auditoria.tsx:67:7",
+				"data-uid": "src/pages/Teams/Auditoria.tsx:103:7",
 				"data-prohibitions": "[editContent]",
 				className: "flex items-center gap-4",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:68:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:104:9",
 					"data-prohibitions": "[]",
 					variant: "ghost",
 					size: "icon",
 					asChild: true,
 					className: "rounded-full bg-muted/50",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:69:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:105:11",
 						"data-prohibitions": "[]",
 						to: `/equipes/${team.id}`,
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowLeft, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:70:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:106:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-4 w-4"
 						})
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:73:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:109:9",
 					"data-prohibitions": "[editContent]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:74:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:110:11",
 						"data-prohibitions": "[]",
 						className: "text-2xl font-bold tracking-tight",
 						children: "Checklist de Inventário"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:75:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:111:11",
 						"data-prohibitions": "[editContent]",
 						className: "text-muted-foreground",
 						children: ["Auditoria de ferramentas - ", team.name]
@@ -61802,22 +61865,22 @@ function AuditoriaPage() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-				"data-uid": "src/pages/Teams/Auditoria.tsx:79:7",
+				"data-uid": "src/pages/Teams/Auditoria.tsx:115:7",
 				"data-prohibitions": "[editContent]",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:80:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:116:9",
 					"data-prohibitions": "[]",
 					className: "bg-muted/30 pb-4",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:81:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:117:11",
 						"data-prohibitions": "[]",
 						className: "max-w-xs space-y-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:82:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:118:13",
 							"data-prohibitions": "[]",
 							children: "Líder Responsável pela Auditoria"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:83:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:119:13",
 							"data-prohibitions": "[editContent]",
 							placeholder: "Seu nome...",
 							value: leaderName,
@@ -61825,99 +61888,99 @@ function AuditoriaPage() {
 						})]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:90:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:126:9",
 					"data-prohibitions": "[editContent]",
 					className: "p-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:91:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:127:11",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:92:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:128:13",
 							"data-prohibitions": "[]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/Teams/Auditoria.tsx:93:15",
+								"data-uid": "src/pages/Teams/Auditoria.tsx:129:15",
 								"data-prohibitions": "[]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/Auditoria.tsx:94:17",
+										"data-uid": "src/pages/Teams/Auditoria.tsx:130:17",
 										"data-prohibitions": "[]",
 										children: "Patrimônio"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/Auditoria.tsx:95:17",
+										"data-uid": "src/pages/Teams/Auditoria.tsx:131:17",
 										"data-prohibitions": "[]",
-										children: "Ferramenta (Marca)"
+										children: "Ferramenta"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/Auditoria.tsx:96:17",
+										"data-uid": "src/pages/Teams/Auditoria.tsx:132:17",
 										"data-prohibitions": "[]",
 										className: "w-[200px]",
 										children: "Status Encontrado"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Teams/Auditoria.tsx:97:17",
+										"data-uid": "src/pages/Teams/Auditoria.tsx:133:17",
 										"data-prohibitions": "[]",
-										children: "Observações (P/ Emprestados)"
+										children: "Observações"
 									})
 								]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:100:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:136:13",
 							"data-prohibitions": "[editContent]",
 							children: teamInventory.map((item) => {
 								const path = getNodePath(item.treeNodeId);
 								const name = `${path.find((n) => n.level === "item")?.name} (${path.find((n) => n.level === "marca")?.name})`;
 								const st = items[item.id];
 								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-									"data-uid": "src/pages/Teams/Auditoria.tsx:106:19",
+									"data-uid": "src/pages/Teams/Auditoria.tsx:142:19",
 									"data-prohibitions": "[editContent]",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/Auditoria.tsx:107:21",
+											"data-uid": "src/pages/Teams/Auditoria.tsx:143:21",
 											"data-prohibitions": "[editContent]",
 											className: "font-mono text-xs",
 											children: item.assetNumber
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/Auditoria.tsx:108:21",
+											"data-uid": "src/pages/Teams/Auditoria.tsx:144:21",
 											"data-prohibitions": "[editContent]",
 											className: "font-medium",
 											children: name
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/Auditoria.tsx:109:21",
+											"data-uid": "src/pages/Teams/Auditoria.tsx:145:21",
 											"data-prohibitions": "[editContent]",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-												"data-uid": "src/pages/Teams/Auditoria.tsx:110:23",
+												"data-uid": "src/pages/Teams/Auditoria.tsx:146:23",
 												"data-prohibitions": "[editContent]",
 												value: st?.status,
 												onValueChange: (v) => handleStatusChange(item.id, v),
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-													"data-uid": "src/pages/Teams/Auditoria.tsx:114:25",
+													"data-uid": "src/pages/Teams/Auditoria.tsx:150:25",
 													"data-prohibitions": "[editContent]",
-													className: `h-8 ${st?.status === "present" ? "bg-blue-50" : st?.status === "missing" ? "bg-red-50 text-red-700 border-red-200" : "bg-amber-50"}`,
+													className: `h-8 ${st?.status === "present" ? "bg-blue-50" : st?.status === "missing" ? "bg-red-50 text-red-700" : "bg-amber-50"}`,
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-														"data-uid": "src/pages/Teams/Auditoria.tsx:117:27",
+														"data-uid": "src/pages/Teams/Auditoria.tsx:153:27",
 														"data-prohibitions": "[editContent]"
 													})
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-													"data-uid": "src/pages/Teams/Auditoria.tsx:119:25",
+													"data-uid": "src/pages/Teams/Auditoria.tsx:155:25",
 													"data-prohibitions": "[]",
 													children: [
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-															"data-uid": "src/pages/Teams/Auditoria.tsx:120:27",
+															"data-uid": "src/pages/Teams/Auditoria.tsx:156:27",
 															"data-prohibitions": "[]",
 															value: "present",
 															children: "Presente"
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-															"data-uid": "src/pages/Teams/Auditoria.tsx:121:27",
+															"data-uid": "src/pages/Teams/Auditoria.tsx:157:27",
 															"data-prohibitions": "[]",
 															value: "missing",
-															children: "Faltando (Não Localizado)"
+															children: "Faltando"
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-															"data-uid": "src/pages/Teams/Auditoria.tsx:122:27",
+															"data-uid": "src/pages/Teams/Auditoria.tsx:158:27",
 															"data-prohibitions": "[]",
 															value: "borrowed",
 															children: "Emprestado"
@@ -61927,10 +61990,10 @@ function AuditoriaPage() {
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Teams/Auditoria.tsx:126:21",
+											"data-uid": "src/pages/Teams/Auditoria.tsx:162:21",
 											"data-prohibitions": "[editContent]",
 											children: st?.status === "borrowed" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-												"data-uid": "src/pages/Teams/Auditoria.tsx:128:25",
+												"data-uid": "src/pages/Teams/Auditoria.tsx:164:25",
 												"data-prohibitions": "[editContent]",
 												className: "h-8 text-xs",
 												placeholder: "Com quem está?",
@@ -61946,101 +62009,278 @@ function AuditoriaPage() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-				"data-uid": "src/pages/Teams/Auditoria.tsx:144:7",
+				"data-uid": "src/pages/Teams/Auditoria.tsx:180:7",
 				"data-prohibitions": "[editContent]",
 				className: "border-dashed border-2",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:145:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:181:9",
 					"data-prohibitions": "[]",
 					className: "pb-3",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:146:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:182:11",
 						"data-prohibitions": "[]",
 						className: "text-lg flex justify-between items-center",
 						children: ["Itens Sobrando (Não esperados)", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-							"data-uid": "src/pages/Teams/Auditoria.tsx:148:13",
+							"data-uid": "src/pages/Teams/Auditoria.tsx:184:13",
 							"data-prohibitions": "[]",
 							variant: "outline",
 							size: "sm",
 							onClick: () => setExtraItems([...extraItems, {
 								assetNumber: "",
-								notes: ""
+								notes: "",
+								treeNodeId: "",
+								photo: ""
 							}]),
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-								"data-uid": "src/pages/Teams/Auditoria.tsx:153:15",
+								"data-uid": "src/pages/Teams/Auditoria.tsx:194:15",
 								"data-prohibitions": "[editContent]",
 								className: "h-4 w-4 mr-2"
 							}), " Adicionar Item"]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:156:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:197:11",
 						"data-prohibitions": "[]",
-						children: "Registre ferramentas de outras equipes que estão com vocês atualmente."
+						children: "Registre ferramentas adicionais. Foto e Classificação são obrigatórias e os itens serão inseridos no estoque da equipe."
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:160:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:202:9",
 					"data-prohibitions": "[editContent]",
-					className: "space-y-3",
+					className: "space-y-4",
 					children: [extraItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:162:13",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:204:13",
 						"data-prohibitions": "[]",
 						className: "text-sm text-muted-foreground text-center py-4",
 						children: "Nenhum item extra adicionado."
 					}), extraItems.map((ex, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:167:13",
-						"data-prohibitions": "[]",
-						className: "flex items-center gap-3",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:209:13",
+						"data-prohibitions": "[editContent]",
+						className: "flex flex-col gap-4 p-4 border rounded-md relative bg-muted/10",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Teams/Auditoria.tsx:168:15",
-								"data-prohibitions": "[editContent]",
-								placeholder: "Nº Patrimônio (PAT-XXX)",
-								className: "w-[200px]",
-								value: ex.assetNumber,
-								onChange: (e) => {
-									const n = [...extraItems];
-									n[idx].assetNumber = e.target.value;
-									setExtraItems(n);
-								}
-							}),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-								"data-uid": "src/pages/Teams/Auditoria.tsx:178:15",
-								"data-prohibitions": "[editContent]",
-								placeholder: "Observações (De onde veio?)",
-								className: "flex-1",
-								value: ex.notes,
-								onChange: (e) => {
-									const n = [...extraItems];
-									n[idx].notes = e.target.value;
-									setExtraItems(n);
-								}
-							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-								"data-uid": "src/pages/Teams/Auditoria.tsx:188:15",
+								"data-uid": "src/pages/Teams/Auditoria.tsx:213:15",
 								"data-prohibitions": "[]",
 								variant: "ghost",
 								size: "icon",
 								onClick: () => setExtraItems(extraItems.filter((_, i) => i !== idx)),
-								className: "text-destructive",
+								className: "text-destructive absolute top-2 right-2 h-8 w-8",
 								children: "×"
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:222:15",
+								"data-prohibitions": "[editContent]",
+								className: "grid grid-cols-1 sm:grid-cols-2 gap-4 pr-10",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:223:17",
+										"data-prohibitions": "[editContent]",
+										className: "space-y-1.5",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:224:19",
+											"data-prohibitions": "[]",
+											children: ["Classificação (Árvore) ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:225:44",
+												"data-prohibitions": "[]",
+												className: "text-destructive",
+												children: "*"
+											})]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:227:19",
+											"data-prohibitions": "[editContent]",
+											value: ex.treeNodeId,
+											onValueChange: (v) => {
+												const n = [...extraItems];
+												n[idx].treeNodeId = v;
+												setExtraItems(n);
+											},
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:235:21",
+												"data-prohibitions": "[editContent]",
+												className: !ex.treeNodeId ? "border-destructive/50" : "",
+												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:236:23",
+													"data-prohibitions": "[editContent]",
+													placeholder: "Selecione a categoria..."
+												})
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:238:21",
+												"data-prohibitions": "[editContent]",
+												children: leafNodes.map((ln) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:240:25",
+													"data-prohibitions": "[editContent]",
+													value: ln.id,
+													children: ln.name
+												}, ln.id))
+											})]
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:248:17",
+										"data-prohibitions": "[]",
+										className: "space-y-1.5",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:249:19",
+											"data-prohibitions": "[]",
+											children: "Nº Patrimônio (Opcional)"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:250:19",
+											"data-prohibitions": "[editContent]",
+											value: ex.assetNumber,
+											onChange: (e) => {
+												const n = [...extraItems];
+												n[idx].assetNumber = e.target.value;
+												setExtraItems(n);
+											}
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:260:17",
+										"data-prohibitions": "[]",
+										className: "space-y-1.5 sm:col-span-2",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:261:19",
+											"data-prohibitions": "[]",
+											children: "Observações / Origem"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:262:19",
+											"data-prohibitions": "[editContent]",
+											placeholder: "De onde veio? Com quem estava?",
+											value: ex.notes,
+											onChange: (e) => {
+												const n = [...extraItems];
+												n[idx].notes = e.target.value;
+												setExtraItems(n);
+											}
+										})]
+									})
+								]
+							}),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/Teams/Auditoria.tsx:274:15",
+								"data-prohibitions": "[editContent]",
+								className: "space-y-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Label$2, {
+									"data-uid": "src/pages/Teams/Auditoria.tsx:275:17",
+									"data-prohibitions": "[]",
+									children: ["Foto do Item ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:276:32",
+										"data-prohibitions": "[]",
+										className: "text-destructive",
+										children: "*"
+									})]
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Teams/Auditoria.tsx:278:17",
+									"data-prohibitions": "[editContent]",
+									className: "flex items-center gap-4",
+									children: [ex.photo ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:280:21",
+										"data-prohibitions": "[]",
+										className: "relative w-24 h-24 border rounded-md overflow-hidden bg-background",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:281:23",
+											"data-prohibitions": "[editContent]",
+											src: ex.photo,
+											alt: "Surplus",
+											className: "w-full h-full object-cover"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:282:23",
+											"data-prohibitions": "[]",
+											size: "icon",
+											variant: "destructive",
+											className: "absolute top-1 right-1 h-6 w-6 rounded-full opacity-80",
+											onClick: () => {
+												const n = [...extraItems];
+												n[idx].photo = "";
+												setExtraItems(n);
+											},
+											children: "×"
+										})]
+									}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:296:21",
+										"data-prohibitions": "[]",
+										className: "flex gap-2",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:297:23",
+											"data-prohibitions": "[]",
+											className: "flex items-center justify-center cursor-pointer h-24 w-24 border-2 border-dashed rounded-md bg-muted/50 hover:bg-muted text-muted-foreground flex-col gap-1",
+											children: [
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:298:25",
+													"data-prohibitions": "[editContent]",
+													className: "w-6 h-6"
+												}),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:299:25",
+													"data-prohibitions": "[]",
+													className: "text-[10px] font-medium text-center leading-tight",
+													children: [
+														"Tirar",
+														/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {
+															"data-uid": "src/pages/Teams/Auditoria.tsx:301:27",
+															"data-prohibitions": "[editContent]"
+														}),
+														"Foto"
+													]
+												}),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("input", {
+													"data-uid": "src/pages/Teams/Auditoria.tsx:304:25",
+													"data-prohibitions": "[editContent]",
+													type: "file",
+													accept: "image/*",
+													capture: "environment",
+													className: "hidden",
+													onChange: (e) => handlePhotoCapture(idx, e)
+												})
+											]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+											"data-uid": "src/pages/Teams/Auditoria.tsx:312:23",
+											"data-prohibitions": "[]",
+											type: "button",
+											variant: "outline",
+											className: "h-24 w-24 flex flex-col gap-1 rounded-md",
+											onClick: () => handleMockPhoto(idx),
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image$1, {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:318:25",
+												"data-prohibitions": "[editContent]",
+												className: "w-6 h-6 text-muted-foreground"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												"data-uid": "src/pages/Teams/Auditoria.tsx:319:25",
+												"data-prohibitions": "[]",
+												className: "text-[10px] font-medium text-center leading-tight",
+												children: [
+													"Foto",
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {
+														"data-uid": "src/pages/Teams/Auditoria.tsx:321:27",
+														"data-prohibitions": "[editContent]"
+													}),
+													"Teste"
+												]
+											})]
+										})]
+									}), !ex.photo && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/pages/Teams/Auditoria.tsx:328:21",
+										"data-prohibitions": "[]",
+										className: "text-xs text-destructive font-medium",
+										children: "Foto é obrigatória"
+									})]
+								})]
 							})
 						]
 					}, idx))]
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/pages/Teams/Auditoria.tsx:201:7",
+				"data-uid": "src/pages/Teams/Auditoria.tsx:337:7",
 				"data-prohibitions": "[]",
 				className: "flex justify-end",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					"data-uid": "src/pages/Teams/Auditoria.tsx:202:9",
+					"data-uid": "src/pages/Teams/Auditoria.tsx:338:9",
 					"data-prohibitions": "[]",
 					size: "lg",
 					onClick: handleSubmit,
 					disabled: !leaderName.trim(),
 					className: "w-full sm:w-auto",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
-						"data-uid": "src/pages/Teams/Auditoria.tsx:208:11",
+						"data-uid": "src/pages/Teams/Auditoria.tsx:344:11",
 						"data-prohibitions": "[editContent]",
 						className: "h-5 w-5 mr-2"
 					}), " Finalizar Auditoria e Salvar"]
@@ -63470,4 +63710,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppProvider, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-CKrgUKHX.js.map
+//# sourceMappingURL=index-Cw3GaiK4.js.map

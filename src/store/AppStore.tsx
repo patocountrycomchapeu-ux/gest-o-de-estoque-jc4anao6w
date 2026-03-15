@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react'
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import { AppState, TreeNode, Condition, ToolStatus, Checklist } from '@/types'
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
@@ -28,7 +28,12 @@ interface AppContextType extends AppState {
   addNode: (node: Omit<TreeNode, 'id'>) => void
   addInventoryItem: (item: AddInventoryPayload) => void
   updateInventoryItem: (id: string, updates: UpdateInventoryPayload) => void
-  submitChecklist: (teamId: string, items: any, extra: any[]) => void
+  submitChecklist: (
+    teamId: string,
+    leaderName: string,
+    items: Record<string, { status: ToolStatus; notes: string }>,
+    extra: { assetNumber: string; notes: string; treeNodeId: string; photo: string }[],
+  ) => void
   getNodePath: (nodeId: string) => TreeNode[]
   initiateTransfer: (inventoryId: string, toTeamId: string) => void
   resolveTransfer: (
@@ -224,18 +229,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   )
 
-  const submitChecklist = useCallback((teamId: string, items: any, extra: any[]) => {
-    setState((prev) => {
-      const chk: Checklist = {
-        id: `chk_${Date.now()}`,
-        teamId,
-        date: new Date().toISOString(),
-        leaderName: prev.currentUser?.name || 'Sistema',
-        discrepancies: 0,
-      }
-      return { ...prev, checklists: [chk, ...prev.checklists] }
-    })
-  }, [])
+  const submitChecklist = useCallback(
+    (
+      teamId: string,
+      leaderName: string,
+      items: Record<string, { status: ToolStatus; notes: string }>,
+      extra: { assetNumber: string; notes: string; treeNodeId: string; photo: string }[],
+    ) => {
+      setState((prev) => {
+        const now = new Date().toISOString()
+        const chk: Checklist = {
+          id: `chk_${Date.now()}`,
+          teamId,
+          date: now,
+          leaderName: leaderName || prev.currentUser?.name || 'Sistema',
+          discrepancies: 0,
+        }
+
+        const newInventory = [...prev.inventory]
+        const newHistory = [...prev.history]
+
+        extra.forEach((ex, i) => {
+          const id = `inv_ex_${Date.now()}_${i}`
+          newInventory.push({
+            id,
+            hasAssetNumber: !!ex.assetNumber,
+            assetNumber: ex.assetNumber || undefined,
+            teamId,
+            treeNodeId: ex.treeNodeId,
+            condition: 'good',
+            status: 'present',
+            photos: [ex.photo],
+            lastUpdated: now,
+            price: 0,
+          })
+
+          newHistory.push({
+            id: `h_ex_${Date.now()}_${i}`,
+            inventoryId: id,
+            date: now,
+            type: 'audit',
+            description: `Sobra identificada em auditoria (Item Adicional). ${ex.notes ? `Origem/Obs: ${ex.notes}` : ''}`,
+            user: leaderName || prev.currentUser?.name || 'Sistema',
+          })
+        })
+
+        return {
+          ...prev,
+          checklists: [chk, ...prev.checklists],
+          inventory: newInventory,
+          history: newHistory.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          ),
+        }
+      })
+      toast({ title: 'Auditoria Finalizada', description: 'Inventário e histórico atualizados.' })
+    },
+    [],
+  )
 
   const getNodePath = useCallback(
     (nodeId: string) => {
