@@ -22,7 +22,7 @@ const conditionLabels: Record<string, string> = {
 }
 
 export function TeamInventoryTab() {
-  const { teams, inventory, getNodePath, currentUser } = useAppStore()
+  const { teams, inventory, getNodePath, currentUser, nodes } = useAppStore()
   const isMasterAdmin = isAdmin(currentUser)
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)
@@ -30,7 +30,10 @@ export function TeamInventoryTab() {
   const grouped = useMemo(() => {
     return teams.map((team) => {
       const items = inventory.filter((i) => i.teamId === team.id)
-      const totalValue = items.reduce((acc, curr) => acc + (curr.price || 0), 0)
+      const totalValue = items.reduce(
+        (acc, curr) => acc + (curr.price || 0) * (curr.quantity || 1),
+        0,
+      )
       return { team, items, totalValue }
     })
   }, [teams, inventory])
@@ -48,10 +51,16 @@ export function TeamInventoryTab() {
 
     grouped.forEach(({ team, items }) => {
       items.forEach((item) => {
+        const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
         const path = getNodePath(item.treeNodeId)
         const marca = path.find((n) => n.level === 'marca')?.name || '-'
         const itemName = path.find((n) => n.level === 'item')?.name || 'Item'
-        const baseRow = `"${team.name}","${item.hasAssetNumber ? item.assetNumber : 'S/N'}","${itemName}","${marca}","${conditionLabels[item.condition]}"`
+        const qtyStr = isGrouped
+          ? `Lote: ${item.quantity} un.`
+          : item.hasAssetNumber
+            ? item.assetNumber
+            : 'S/N'
+        const baseRow = `"${team.name}","${qtyStr}","${itemName}","${marca}","${conditionLabels[item.condition]}"`
         rows.push(isMasterAdmin ? `${baseRow},"${item.price || 0}"` : baseRow)
       })
     })
@@ -101,7 +110,7 @@ export function TeamInventoryTab() {
             <div>
               <CardTitle className="text-lg print:text-xl">{team.name}</CardTitle>
               <p className="text-xs text-muted-foreground mt-1">
-                {items.length} instâncias alocadas
+                {items.length} registros alocados
               </p>
             </div>
             {isMasterAdmin && (
@@ -115,7 +124,7 @@ export function TeamInventoryTab() {
               <TableHeader>
                 <TableRow className="print:bg-gray-100">
                   <TableHead className="w-16 text-center print:w-12">Foto</TableHead>
-                  <TableHead>Nº Patrimônio</TableHead>
+                  <TableHead>Nº Patrimônio / Lote</TableHead>
                   <TableHead>Item Base</TableHead>
                   <TableHead>Marca</TableHead>
                   <TableHead>Status / Condição</TableHead>
@@ -124,6 +133,7 @@ export function TeamInventoryTab() {
               </TableHeader>
               <TableBody>
                 {items.map((item) => {
+                  const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
                   const path = getNodePath(item.treeNodeId)
                   const marca = path.find((n) => n.level === 'marca')?.name || '-'
                   const itemName = path.find((n) => n.level === 'item')?.name || 'Item'
@@ -146,7 +156,11 @@ export function TeamInventoryTab() {
                         )}
                       </TableCell>
                       <TableCell className="font-mono text-xs font-medium align-middle">
-                        {item.hasAssetNumber ? (
+                        {isGrouped ? (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded font-semibold text-[10px] print:bg-transparent print:border print:border-black print:text-black">
+                            Lote: {item.quantity} un.
+                          </span>
+                        ) : item.hasAssetNumber ? (
                           item.assetNumber
                         ) : (
                           <span className="text-muted-foreground italic">S/N</span>

@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
   root: 'departamento',
@@ -27,6 +28,7 @@ export default function TreePage() {
   const [search, setSearch] = useState('')
   const [addingTo, setAddingTo] = useState<{ parentId: string | null; level: string } | null>(null)
   const [newNodeName, setNewNodeName] = useState('')
+  const [isGrouped, setIsGrouped] = useState(false)
 
   const rootNodes = useMemo(() => {
     let filtered = nodes.filter((n) => n.parentId === null)
@@ -37,11 +39,20 @@ export default function TreePage() {
     if (!newNodeName.trim() || !addingTo) return
     const levelToCreate = nextLevelMap[addingTo.level]
     if (levelToCreate) {
-      addNode({ name: newNodeName, level: levelToCreate, parentId: addingTo.parentId })
+      addNode({
+        name: newNodeName,
+        level: levelToCreate,
+        parentId: addingTo.parentId,
+        isGrouped: levelToCreate === 'item' || levelToCreate === 'marca' ? isGrouped : undefined,
+      })
     }
     setAddingTo(null)
     setNewNodeName('')
+    setIsGrouped(false)
   }
+
+  const levelToCreate = addingTo ? nextLevelMap[addingTo.level] : null
+  const showGroupedToggle = levelToCreate === 'item' || levelToCreate === 'marca'
 
   return (
     <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
@@ -75,7 +86,10 @@ export default function TreePage() {
                 key={node.id}
                 node={node}
                 allNodes={nodes}
-                onAddChild={(parentId, level) => setAddingTo({ parentId, level })}
+                onAddChild={(parentId, level) => {
+                  setAddingTo({ parentId, level })
+                  setIsGrouped(false)
+                }}
               />
             ))}
             {rootNodes.length === 0 && (
@@ -90,7 +104,7 @@ export default function TreePage() {
       <Dialog open={!!addingTo} onOpenChange={(open) => !open && setAddingTo(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar {addingTo ? nextLevelMap[addingTo.level] : 'Item'}</DialogTitle>
+            <DialogTitle>Adicionar {levelToCreate}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -103,6 +117,19 @@ export default function TreePage() {
                 autoFocus
               />
             </div>
+
+            {showGroupedToggle && (
+              <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
+                <div className="space-y-0.5 pr-4">
+                  <Label>Tratar como Lote / Agrupado</Label>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Marque se este item deve ser tratado em massa (ex: cones, parafusos),
+                    simplificando os ajustes e baixas sem controle de patrimônio individual.
+                  </p>
+                </div>
+                <Switch checked={isGrouped} onCheckedChange={setIsGrouped} />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddingTo(null)}>

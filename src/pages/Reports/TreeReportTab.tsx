@@ -11,7 +11,7 @@ export function TreeReportTab() {
     const counts: Record<string, number> = {}
 
     inventory.forEach((item) => {
-      counts[item.treeNodeId] = (counts[item.treeNodeId] || 0) + 1
+      counts[item.treeNodeId] = (counts[item.treeNodeId] || 0) + (item.quantity || 1)
     })
 
     const levels = ['marca', 'item', 'categoria', 'secao', 'departamento'] as const
@@ -37,7 +37,6 @@ export function TreeReportTab() {
           const count = treeData[node.id] || 0
           if (count === 0 && depth > 0) return null
 
-          // Find a sample image for deeper nodes to enrich visual reporting
           let imageSrc = undefined
           if (node.level === 'marca' || node.level === 'item') {
             const sample = inventory.find(
@@ -72,6 +71,11 @@ export function TreeReportTab() {
                   <span className="text-[9px] uppercase tracking-widest text-muted-foreground bg-muted print:bg-transparent print:border print:border-gray-300 px-1.5 py-0.5 rounded ml-1">
                     {node.level}
                   </span>
+                  {node.isGrouped && (
+                    <span className="text-[9px] uppercase tracking-widest text-blue-700 bg-blue-100/50 print:bg-transparent print:border print:border-blue-300 px-1.5 py-0.5 rounded ml-1">
+                      Lote
+                    </span>
+                  )}
                 </div>
                 <div className="font-mono text-sm bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-semibold print:bg-transparent print:text-black print:border print:border-black">
                   {count}

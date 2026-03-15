@@ -35,6 +35,7 @@ import { AllocateDialog } from './AllocateDialog'
 import { UpdateDialog } from './UpdateDialog'
 import { TransferDialog } from './TransferDialog'
 import { ReceiveDialog } from './ReceiveDialog'
+import { AdjustGroupedDialog } from './AdjustGroupedDialog'
 import { PhotoGalleryDialog } from '@/components/PhotoGalleryDialog'
 import { InventoryItem, Transfer } from '@/types'
 
@@ -46,11 +47,12 @@ const statusMap = {
 
 export default function TeamDetail() {
   const { id } = useParams()
-  const { teams, inventory, getNodePath, transfers, currentUser } = useAppStore()
+  const { teams, inventory, getNodePath, transfers, currentUser, nodes } = useAppStore()
   const [allocateOpen, setAllocateOpen] = useState(false)
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
   const [transferItem, setTransferItem] = useState<InventoryItem | null>(null)
   const [receiveTransfer, setReceiveTransfer] = useState<Transfer | null>(null)
+  const [adjustItem, setAdjustItem] = useState<InventoryItem | null>(null)
 
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)
@@ -59,9 +61,15 @@ export default function TeamDetail() {
   if (!team) return <div className="p-8 text-center">Equipe não encontrada.</div>
 
   const teamInventory = inventory.filter((i) => i.teamId === id)
-  const usableCount = teamInventory.filter((i) => i.condition === 'good').length
-  const inRepairCount = teamInventory.filter((i) => i.condition === 'repair').length
-  const damagedCount = teamInventory.filter((i) => i.condition === 'damaged').length
+  const usableCount = teamInventory
+    .filter((i) => i.condition === 'good')
+    .reduce((acc, i) => acc + (i.quantity || 1), 0)
+  const inRepairCount = teamInventory
+    .filter((i) => i.condition === 'repair')
+    .reduce((acc, i) => acc + (i.quantity || 1), 0)
+  const damagedCount = teamInventory
+    .filter((i) => i.condition === 'damaged')
+    .reduce((acc, i) => acc + (i.quantity || 1), 0)
 
   const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'pending')
   const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === 'pending')
@@ -180,7 +188,7 @@ export default function TeamDetail() {
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="w-16 text-center">Fotos</TableHead>
-                <TableHead>Patrimônio</TableHead>
+                <TableHead>Patrimônio / Lote</TableHead>
                 <TableHead>Item (Marca)</TableHead>
                 <TableHead>Condição / Status</TableHead>
                 {canManage && <TableHead className="text-right">Ações</TableHead>}
@@ -192,6 +200,7 @@ export default function TeamDetail() {
                 const marcaNode = path.find((n) => n.level === 'marca')
                 const itemNode = path.find((n) => n.level === 'item')
                 const isOutgoing = pendingOutgoing.some((t) => t.inventoryId === item.id)
+                const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
 
                 return (
                   <TableRow key={item.id}>
@@ -207,7 +216,14 @@ export default function TeamDetail() {
                       </Avatar>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-semibold">
-                      {item.hasAssetNumber ? (
+                      {isGrouped ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default"
+                        >
+                          Lote: {item.quantity} un.
+                        </Badge>
+                      ) : item.hasAssetNumber ? (
                         item.assetNumber
                       ) : (
                         <span className="text-muted-foreground italic font-normal">
@@ -266,12 +282,19 @@ export default function TeamDetail() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setUpdateItem(item)}>
-                                <Settings2 className="h-4 w-4 mr-2" /> Editar / Reparo / Fotos
-                              </DropdownMenuItem>
+                              {isGrouped ? (
+                                <DropdownMenuItem onClick={() => setAdjustItem(item)}>
+                                  <Settings2 className="h-4 w-4 mr-2" /> Ajuste Rápido (Lote)
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => setUpdateItem(item)}>
+                                  <Settings2 className="h-4 w-4 mr-2" /> Editar / Reparo / Fotos
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => setTransferItem(item)}>
-                                <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir Instância
+                                <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir{' '}
+                                {isGrouped ? 'Lote' : 'Instância'}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -301,6 +324,11 @@ export default function TeamDetail() {
         item={updateItem}
         open={!!updateItem}
         onOpenChange={(o) => !o && setUpdateItem(null)}
+      />
+      <AdjustGroupedDialog
+        item={adjustItem}
+        open={!!adjustItem}
+        onOpenChange={(o) => !o && setAdjustItem(null)}
       />
       <TransferDialog
         item={transferItem}

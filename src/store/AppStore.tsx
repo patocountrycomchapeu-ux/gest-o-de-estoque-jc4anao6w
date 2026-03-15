@@ -30,6 +30,13 @@ interface AppContextType extends AppState {
   addNode: (node: Omit<TreeNode, 'id'>) => void
   addInventoryItem: (item: AddInventoryPayload) => void
   updateInventoryItem: (id: string, updates: UpdateInventoryPayload) => void
+  adjustGroupedItem: (
+    id: string,
+    removeQty: number,
+    reason: string,
+    destStatus: ToolStatus | 'removed',
+    destCondition: Condition,
+  ) => void
   submitChecklist: (
     teamId: string,
     leaderName: string,
@@ -81,6 +88,63 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addInventoryItem = useCallback((info: AddInventoryPayload) => {
     setState((prev) => {
       const now = new Date().toISOString()
+      const node = prev.nodes.find((n) => n.id === info.treeNodeId)
+      const isGrouped = node?.isGrouped
+
+      if (isGrouped) {
+        const existingIdx = prev.inventory.findIndex(
+          (i) =>
+            i.teamId === info.teamId &&
+            i.treeNodeId === info.treeNodeId &&
+            i.condition === info.condition &&
+            i.status === 'present',
+        )
+
+        const newHistory = [...prev.history]
+        const newInventory = [...prev.inventory]
+
+        if (existingIdx >= 0) {
+          const ex = newInventory[existingIdx]
+          newInventory[existingIdx] = {
+            ...ex,
+            quantity: (ex.quantity || 1) + info.qty,
+            lastUpdated: now,
+          }
+          newHistory.unshift({
+            id: `h_${Date.now()}`,
+            inventoryId: ex.id,
+            date: now,
+            type: 'allocation',
+            description: `Adicionado ${info.qty} unidades ao lote.`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
+        } else {
+          const newId = `inv_${Date.now()}_0`
+          newInventory.push({
+            id: newId,
+            hasAssetNumber: false,
+            teamId: info.teamId,
+            treeNodeId: info.treeNodeId,
+            condition: info.condition,
+            status: 'present',
+            photos: [],
+            lastUpdated: now,
+            price: info.price || 0,
+            quantity: info.qty,
+          })
+          newHistory.unshift({
+            id: `h_${Date.now()}`,
+            inventoryId: newId,
+            date: now,
+            type: 'allocation',
+            description: `Alocado lote com ${info.qty} unidades.`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
+        }
+
+        return { ...prev, inventory: newInventory, history: newHistory }
+      }
+
       const total = info.hasAssetNumber ? info.assets.length : info.qty
       const newItems = Array.from({ length: total }).map((_, i) => ({
         id: `inv_${Date.now()}_${i}`,
@@ -93,6 +157,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         photos: [],
         lastUpdated: now,
         price: info.price || 0,
+        quantity: 1,
       }))
       const newHistory = newItems.map((item) => ({
         id: `h_${Date.now()}_${item.id}`,
@@ -220,6 +285,94 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toast({ title: 'Item Atualizado e Registrado no Histórico' })
   }, [])
 
+  const adjustGroupedItem = useCallback(
+    (
+      id: string,
+      removeQty: number,
+      reason: string,
+      destStatus: ToolStatus | 'removed',
+      destCondition: Condition,
+    ) => {
+      setState((prev) => {
+        const item = prev.inventory.find((i) => i.id === id)
+        if (!item || (item.quantity || 1) < removeQty) return prev
+
+        const now = new Date().toISOString()
+        const newHistory = [...prev.history]
+        const newInventory = [...prev.inventory]
+
+        const itemIndex = newInventory.findIndex((i) => i.id === id)
+        const newQty = (item.quantity || 1) - removeQty
+
+        if (newQty === 0 && destStatus === 'removed') {
+          newInventory.splice(itemIndex, 1)
+        } else {
+          newInventory[itemIndex] = { ...item, quantity: newQty, lastUpdated: now }
+        }
+
+        newHistory.unshift({
+          id: `h_${Date.now()}_adj1`,
+          inventoryId: id,
+          date: now,
+          type: 'status_change',
+          description: `Ajuste de Lote: Removidas ${removeQty} un. Destino: ${destStatus === 'removed' ? 'Baixa' : destStatus}. Motivo: ${reason}`,
+          user: prev.currentUser?.name || 'Sistema',
+        })
+
+        if (destStatus !== 'removed') {
+          const existingDestIdx = newInventory.findIndex(
+            (i) =>
+              i.teamId === item.teamId &&
+              i.treeNodeId === item.treeNodeId &&
+              i.condition === destCondition &&
+              i.status === destStatus &&
+              i.hasAssetNumber === false,
+          )
+
+          if (existingDestIdx >= 0) {
+            const ex = newInventory[existingDestIdx]
+            newInventory[existingDestIdx] = {
+              ...ex,
+              quantity: (ex.quantity || 1) + removeQty,
+              lastUpdated: now,
+            }
+            newHistory.unshift({
+              id: `h_${Date.now()}_adj2`,
+              inventoryId: ex.id,
+              date: now,
+              type: 'status_change',
+              description: `Recebido ${removeQty} un. do ajuste. Motivo: ${reason}`,
+              user: prev.currentUser?.name || 'Sistema',
+            })
+          } else {
+            const newId = `inv_dest_${Date.now()}`
+            newInventory.push({
+              ...item,
+              id: newId,
+              condition: destCondition,
+              status: destStatus as ToolStatus,
+              quantity: removeQty,
+              lastUpdated: now,
+              photos: [],
+            })
+            newHistory.unshift({
+              id: `h_${Date.now()}_adj3`,
+              inventoryId: newId,
+              date: now,
+              type: 'allocation',
+              description: `Lote criado por ajuste (${removeQty} un). Motivo: ${reason}`,
+              user: prev.currentUser?.name || 'Sistema',
+            })
+          }
+        }
+
+        return { ...prev, inventory: newInventory, history: newHistory }
+      })
+      toast({ title: 'Ajuste Realizado', description: 'Quantidades atualizadas com sucesso.' })
+    },
+    [],
+  )
+
   const initiateTransfer = useCallback((inventoryId: string, toTeamId: string) => {
     setState((prev) => {
       const item = prev.inventory.find((i) => i.id === inventoryId)
@@ -325,6 +478,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             photos: [ex.photo],
             lastUpdated: now,
             price: 0,
+            quantity: 1,
           })
 
           newHistory.push({
@@ -375,6 +529,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       addNode,
       addInventoryItem,
       updateInventoryItem,
+      adjustGroupedItem,
       initiateTransfer,
       resolveTransfer,
       submitChecklist,

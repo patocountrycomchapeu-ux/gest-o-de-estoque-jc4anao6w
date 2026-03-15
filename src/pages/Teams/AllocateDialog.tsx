@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useAppStore } from '@/store/AppStore'
 import {
   Dialog,
@@ -40,6 +40,20 @@ export function AllocateDialog({
   const [condition, setCondition] = useState<Condition>('good')
 
   const leafItems = useMemo(() => nodes.filter((n) => n.level === 'marca'), [nodes])
+
+  const selectedNode = useMemo(
+    () => leafItems.find((n) => n.id === selectedMarcaId),
+    [selectedMarcaId, leafItems],
+  )
+  const isGroupedNode = selectedNode?.isGrouped
+
+  useEffect(() => {
+    if (isGroupedNode) {
+      setHasAsset(false)
+    } else {
+      setHasAsset(true)
+    }
+  }, [isGroupedNode])
 
   const handleQtyChange = (newQty: number) => {
     const validQty = Math.max(1, newQty)
@@ -88,7 +102,7 @@ export function AllocateDialog({
                   const name = getNodePath(item.id).find((n) => n.level === 'item')?.name || '?'
                   return (
                     <SelectItem key={item.id} value={item.id}>
-                      {name} ({item.name})
+                      {name} ({item.name}) {item.isGrouped && ' - [LOTE]'}
                     </SelectItem>
                   )
                 })}
@@ -129,16 +143,27 @@ export function AllocateDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
-            <div className="space-y-0.5 pr-4">
-              <Label>Possui número de patrimônio?</Label>
-              <p className="text-[10px] text-muted-foreground leading-tight">
-                Desative se a ferramenta não tiver um controle de ativo físico.
-              </p>
+
+          {selectedMarcaId && !isGroupedNode && (
+            <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
+              <div className="space-y-0.5 pr-4">
+                <Label>Possui número de patrimônio?</Label>
+                <p className="text-[10px] text-muted-foreground leading-tight">
+                  Desative se a ferramenta não tiver um controle de ativo físico.
+                </p>
+              </div>
+              <Switch checked={hasAsset} onCheckedChange={setHasAsset} />
             </div>
-            <Switch checked={hasAsset} onCheckedChange={setHasAsset} />
-          </div>
-          {hasAsset && (
+          )}
+
+          {isGroupedNode && (
+            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded-md border border-blue-200">
+              Este item está configurado como <strong>Lote/Agrupado</strong>. O controle de
+              patrimônio individual não é aplicável.
+            </div>
+          )}
+
+          {hasAsset && !isGroupedNode && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
               <Label>Números de Patrimônio (Obrigatório)</Label>
               <ScrollArea className="h-[120px] rounded-md border p-2 bg-muted/30">

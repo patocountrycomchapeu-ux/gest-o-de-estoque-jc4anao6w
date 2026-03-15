@@ -37,7 +37,8 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
 
   const quantity = useMemo(() => {
     const getQty = (nId: string): number => {
-      const direct = inventory.filter((i: any) => i.treeNodeId === nId).length
+      const directItems = inventory.filter((i: any) => i.treeNodeId === nId)
+      const direct = directItems.reduce((sum, i) => sum + (i.quantity || 1), 0)
       const childNodes = allNodes.filter((n) => n.parentId === nId)
       return direct + childNodes.reduce((sum, child) => sum + getQty(child.id), 0)
     }
@@ -73,6 +74,11 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-border px-1.5 py-0.5 rounded-sm ml-2">
             {node.level}
           </span>
+          {node.isGrouped && (
+            <span className="ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200">
+              Lote
+            </span>
+          )}
           {quantity > 0 && (
             <span className="ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
               {quantity}

@@ -41,10 +41,13 @@ const initialNodes = [
   { id: 's2', name: 'Cabos', level: 'secao', parentId: 'd2' },
   { id: 'c1', name: 'Furadeiras e Parafusadeiras', level: 'categoria', parentId: 's1' },
   { id: 'c2', name: 'Chaves', level: 'categoria', parentId: 's2' },
+  { id: 'c3', name: 'Sinalização', level: 'categoria', parentId: 's2' },
   { id: 'i1', name: 'Parafusadeira Impacto 12V', level: 'item', parentId: 'c1' },
   { id: 'i2', name: 'Chave Phillips', level: 'item', parentId: 'c2' },
+  { id: 'i3', name: 'Cone de Trânsito', level: 'item', parentId: 'c3' },
   { id: 'm1', name: 'Makita', level: 'marca', parentId: 'i1' },
   { id: 'm3', name: 'Tramontina', level: 'marca', parentId: 'i2' },
+  { id: 'm4', name: 'Plastcor', level: 'marca', parentId: 'i3', isGrouped: true },
 ] as const
 
 const initialTeams = [
@@ -67,6 +70,7 @@ const initialInventory = [
     ],
     lastUpdated: new Date().toISOString(),
     price: 450.0,
+    quantity: 1,
   },
   {
     id: 'inv2',
@@ -82,6 +86,7 @@ const initialInventory = [
     price: 85.5,
     damagedDate: new Date(Date.now() - 43200000).toISOString(),
     damagedUser: 'Carlos (Líder Tacha 1)',
+    quantity: 1,
   },
   {
     id: 'inv3',
@@ -93,6 +98,7 @@ const initialInventory = [
     photos: ['https://img.usecurling.com/p/400/400?q=power%20tool'],
     lastUpdated: new Date().toISOString(),
     price: 320.0,
+    quantity: 1,
   },
   {
     id: 'inv4',
@@ -110,6 +116,19 @@ const initialInventory = [
     repairDescription: 'Troca de escovas e lubrificação do motor',
     repairUser: 'Ana (Líder Alpha)',
     repairDate: new Date(Date.now() - 86400000).toISOString(),
+    quantity: 1,
+  },
+  {
+    id: 'inv5',
+    hasAssetNumber: false,
+    teamId: 't1',
+    treeNodeId: 'm4',
+    condition: 'good',
+    status: 'present',
+    photos: [],
+    lastUpdated: new Date().toISOString(),
+    price: 45.0,
+    quantity: 230,
   },
 ] as const
 
@@ -157,6 +176,14 @@ export const initialData: AppState = {
       description:
         'Condição alterada para repair. Local: Assistência Técnica Oficial. Custo: R$150.',
       user: 'Ana (Líder Alpha)',
+    },
+    {
+      id: 'h4',
+      inventoryId: 'inv5',
+      date: new Date(Date.now() - 86400000).toISOString(),
+      type: 'allocation',
+      description: 'Alocado lote inicial de sinalização.',
+      user: 'Sistema',
     },
   ],
   checklists: [],

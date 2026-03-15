@@ -23,6 +23,7 @@ export interface TreeNode {
   name: string
   level: TreeLevel
   parentId: string | null
+  isGrouped?: boolean
 }
 
 export interface InventoryItem {
@@ -44,6 +45,7 @@ export interface InventoryItem {
   repairDate?: string
   damagedDate?: string
   damagedUser?: string
+  quantity?: number
 }
 
 export interface Team {
