@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Settings2, Camera, Wrench } from 'lucide-react'
+import { Settings2, Camera, Wrench, Send } from 'lucide-react'
 import { UpdateDialog } from '@/pages/Teams/UpdateDialog'
 import { InventoryItem } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -29,7 +29,7 @@ export default function RepairsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Gestão de Reparos</h2>
         <p className="text-muted-foreground">
-          Acompanhe e gerencie as ferramentas que estão em processo de manutenção ativa.
+          Acompanhe as ferramentas em manutenção, custos envolvidos e previsões de retorno.
         </p>
       </div>
 
@@ -54,8 +54,7 @@ export default function RepairsPage() {
             <Wrench className="w-5 h-5 text-amber-600" /> Ferramentas em Manutenção
           </CardTitle>
           <CardDescription>
-            Lista de itens atualmente registrados com status de reparo, localização física e custos
-            envolvidos.
+            Controle detalhado de envio, assistência técnica e prazos.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -63,11 +62,10 @@ export default function RepairsPage() {
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="w-16 text-center">Foto</TableHead>
-                <TableHead>Patrimônio</TableHead>
-                <TableHead>Item (Marca)</TableHead>
-                <TableHead>Local / Assistência</TableHead>
+                <TableHead>Patrimônio / Item</TableHead>
+                <TableHead>Local & Status de Envio</TableHead>
+                <TableHead>Categoria / Diagnóstico</TableHead>
                 <TableHead>Custo</TableHead>
-                <TableHead>Data de Envio</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -87,36 +85,52 @@ export default function RepairsPage() {
                         </AvatarFallback>
                       </Avatar>
                     </TableCell>
-                    <TableCell className="font-mono text-xs font-medium">
-                      {item.hasAssetNumber ? item.assetNumber : 'S/N'}
+                    <TableCell>
+                      <div className="font-mono text-xs font-semibold">
+                        {item.hasAssetNumber ? item.assetNumber : 'S/N'}
+                      </div>
+                      <div className="font-medium text-sm mt-0.5">{name}</div>
+                      <div className="text-[10px] text-muted-foreground">{marca}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium text-sm">{name}</div>
-                      <div className="text-xs text-muted-foreground">{marca}</div>
+                      <div className="text-sm font-medium">{item.repairLocation || '-'}</div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {item.repairSent ? (
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                            <Send className="w-3 h-3 mr-1" /> Enviado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                            Pendente Envio
+                          </span>
+                        )}
+                      </div>
+                      {item.expectedReturnDate && (
+                        <div className="text-[10px] text-muted-foreground mt-1 flex items-center">
+                          Retorno prev:{' '}
+                          {format(new Date(item.expectedReturnDate), 'dd/MM/yyyy', {
+                            locale: ptBR,
+                          })}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{item.repairLocation || '-'}</div>
+                      <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50">
+                        {item.conditionCategory || 'Não categorizado'}
+                      </div>
                       {item.repairDescription && (
                         <div
-                          className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5"
+                          className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5"
                           title={item.repairDescription}
                         >
                           {item.repairDescription}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="tabular-nums text-sm font-medium text-slate-700">
+                    <TableCell className="tabular-nums text-sm font-medium text-slate-700 align-top pt-5">
                       R$ {item.repairCost?.toFixed(2) || '0.00'}
                     </TableCell>
-                    <TableCell className="text-xs">
-                      {item.repairDate
-                        ? format(new Date(item.repairDate), 'dd/MM/yyyy', { locale: ptBR })
-                        : '-'}
-                      <div className="text-[9px] text-muted-foreground mt-0.5">
-                        por {item.repairUser || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right align-top pt-3">
                       <Button
                         variant="outline"
                         size="sm"
@@ -132,7 +146,7 @@ export default function RepairsPage() {
               })}
               {repairItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                     Nenhum item em reparo no momento.
                   </TableCell>
                 </TableRow>

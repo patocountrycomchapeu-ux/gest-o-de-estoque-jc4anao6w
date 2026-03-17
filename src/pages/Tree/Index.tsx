@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { canManageTree } from '@/lib/permissions'
+import { Navigate } from 'react-router-dom'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
   root: 'departamento',
@@ -24,16 +26,22 @@ const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
 }
 
 export default function TreePage() {
-  const { nodes, addNode } = useAppStore()
+  const { nodes, addNode, currentUser } = useAppStore()
   const [search, setSearch] = useState('')
   const [addingTo, setAddingTo] = useState<{ parentId: string | null; level: string } | null>(null)
   const [newNodeName, setNewNodeName] = useState('')
   const [isGrouped, setIsGrouped] = useState(false)
 
+  const canManage = canManageTree(currentUser)
+
   const rootNodes = useMemo(() => {
     let filtered = nodes.filter((n) => n.parentId === null)
     return filtered
   }, [nodes])
+
+  if (!canManage) {
+    return <Navigate to="/" replace />
+  }
 
   const handleAddSubmit = () => {
     if (!newNodeName.trim() || !addingTo) return

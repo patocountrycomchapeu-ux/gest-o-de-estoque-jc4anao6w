@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { HistoryTab } from './HistoryTab'
+import { AssetHistoryTab } from './AssetHistoryTab'
 import { TeamInventoryTab } from './TeamInventoryTab'
 import { ChecklistTab } from './ChecklistTab'
 import { TreeReportTab } from './TreeReportTab'
@@ -12,14 +13,14 @@ export default function ReportsPage() {
       <div className="print:hidden">
         <h2 className="text-2xl font-bold tracking-tight">Relatórios Gerenciais</h2>
         <p className="text-muted-foreground">
-          Acompanhe o histórico, inventários de equipes, gere auditorias e visualize a árvore
-          mercadológica.
+          Acompanhe o histórico geral, individual, inventários de equipes e gere auditorias.
         </p>
       </div>
 
       <Tabs defaultValue="history" className="space-y-4">
         <TabsList className="bg-muted/50 border overflow-x-auto max-w-full justify-start print:hidden">
-          <TabsTrigger value="history">Histórico Detalhado</TabsTrigger>
+          <TabsTrigger value="history">Histórico Geral</TabsTrigger>
+          <TabsTrigger value="asset-history">Histórico Individual</TabsTrigger>
           <TabsTrigger value="team-inventory">Inventário por Equipe</TabsTrigger>
           <TabsTrigger value="checklist">Checklist Surpresa</TabsTrigger>
           <TabsTrigger value="tree">Árvore Mercadológica</TabsTrigger>
@@ -32,6 +33,12 @@ export default function ReportsPage() {
           className="print:m-0 print:block data-[state=inactive]:print:hidden"
         >
           <HistoryTab />
+        </TabsContent>
+        <TabsContent
+          value="asset-history"
+          className="print:m-0 print:block data-[state=inactive]:print:hidden"
+        >
+          <AssetHistoryTab />
         </TabsContent>
         <TabsContent
           value="team-inventory"

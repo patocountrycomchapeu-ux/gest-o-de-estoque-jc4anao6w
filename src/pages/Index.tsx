@@ -1,5 +1,5 @@
 import { useAppStore } from '@/store/AppStore'
-import { isAdmin } from '@/lib/permissions'
+import { canManageUsers } from '@/lib/permissions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, Package, Users, AlertTriangle, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -51,7 +51,7 @@ export default function Index() {
               <CardTitle>Atividade Recente</CardTitle>
               <CardDescription>Últimas movimentações e alterações de status.</CardDescription>
             </div>
-            {isAdmin(currentUser) && (
+            {canManageUsers(currentUser) && (
               <div className="space-x-2">
                 <Button size="sm" asChild variant="outline">
                   <Link to="/arvore">Nova Ferramenta</Link>

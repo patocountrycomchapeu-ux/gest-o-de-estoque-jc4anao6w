@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -12,6 +13,7 @@ import TeamDetail from './pages/Teams/TeamDetail'
 import AuditoriaPage from './pages/Teams/Auditoria'
 import ReportsPage from './pages/Reports/Index'
 import RepairsPage from './pages/Repairs/Index'
+import ConfigPage from './pages/Config/Index'
 import { AppProvider, useAppStore } from './store/AppStore'
 
 function ProtectedRoute() {
@@ -32,6 +34,7 @@ const AppRoutes = () => (
         <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
         <Route path="/reparos" element={<RepairsPage />} />
         <Route path="/relatorios" element={<ReportsPage />} />
+        <Route path="/configuracoes" element={<ConfigPage />} />
       </Route>
     </Route>
     <Route path="*" element={<NotFound />} />
@@ -39,15 +42,17 @@ const AppRoutes = () => (
 )
 
 const App = () => (
-  <AppProvider>
-    <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppRoutes />
-      </TooltipProvider>
-    </BrowserRouter>
-  </AppProvider>
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <AppProvider>
+      <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </TooltipProvider>
+      </BrowserRouter>
+    </AppProvider>
+  </ThemeProvider>
 )
 
 export default App

@@ -1,5 +1,5 @@
 import { useAppStore } from '@/store/AppStore'
-import { canViewTeam, isAdmin } from '@/lib/permissions'
+import { canViewTeam, canManageUsers } from '@/lib/permissions'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { MapPin, Package, AlertTriangle, ArrowRightLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -18,7 +18,7 @@ export default function TeamsPage() {
             Visualize e gerencie as instâncias de ferramentas de cada equipe.
           </p>
         </div>
-        {isAdmin(currentUser) && <Button>Nova Equipe</Button>}
+        {canManageUsers(currentUser) && <Button>Nova Equipe</Button>}
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

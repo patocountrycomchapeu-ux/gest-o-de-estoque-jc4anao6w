@@ -1,24 +1,28 @@
 import { User } from '@/types'
 
-export const isAdmin = (user: User | null) => user?.role === 'admin'
+export const canManageUsers = (user: User | null) => user?.role === 'Gestor'
 
-export const isLeader = (user: User | null) => user?.role === 'leader'
-
-export const canManageTeam = (user: User | null, teamId: string) => {
+export const canManageTree = (user: User | null) => {
   if (!user) return false
-  if (user.role === 'admin') return true
-  if (user.role === 'leader' && user.teamId === teamId) return true
-  return false
+  return ['Gestor', 'Encarregado Gestor'].includes(user.role)
+}
+
+export const canViewReports = (user: User | null) => {
+  if (!user) return false
+  return ['Gestor', 'Encarregado Gestor', 'Encarregado', 'Analista', 'Visualizador'].includes(
+    user.role,
+  )
 }
 
 export const canViewTeam = (user: User | null, teamId: string) => {
   if (!user) return false
-  if (user.role === 'admin') return true
-  if (user.role === 'leader') return true // Leaders can view other teams to select for transfer
-  if (user.role === 'operator' && user.teamId === teamId) return true
-  return false
+  return true // All roles can view teams, management is restricted by canManageTeam
 }
 
-export const canViewReports = (user: User | null) => user?.role === 'admin'
-
-export const canManageTree = (user: User | null) => user?.role === 'admin'
+export const canManageTeam = (user: User | null, teamId: string) => {
+  if (!user) return false
+  if (['Gestor', 'Encarregado Gestor'].includes(user.role)) return true
+  if (user.role === 'Encarregado' && user.teamId === teamId) return true
+  if (user.role === 'Analista' && user.teamId === teamId) return true
+  return false
+}

@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Users, FolderTree, Package, BarChart3, Wrench } from 'lucide-react'
+import { Home, Users, FolderTree, Package, BarChart3, Wrench, Settings } from 'lucide-react'
 import { useAppStore } from '@/store/AppStore'
-import { canManageTree, canViewReports } from '@/lib/permissions'
+import { canManageTree, canViewReports, canManageUsers } from '@/lib/permissions'
 import {
   Sidebar,
   SidebarContent,
@@ -27,13 +27,16 @@ export function AppSidebar() {
     ...(canViewReports(currentUser)
       ? [{ title: 'Relatórios', icon: BarChart3, url: '/relatorios' }]
       : []),
+    ...(canManageUsers(currentUser)
+      ? [{ title: 'Configurações', icon: Settings, url: '/configuracoes' }]
+      : []),
   ]
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="flex h-16 items-center justify-center border-b border-sidebar-border/50">
         <div className="flex items-center gap-2 font-bold tracking-tight text-sidebar-primary-foreground">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground shadow-sm">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
             <Package className="h-5 w-5" />
           </div>
           <span className="group-data-[collapsible=icon]:hidden text-lg">Estoque.Pro</span>

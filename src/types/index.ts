@@ -7,7 +7,7 @@ export type ToolStatus =
   | 'defect_stock'
   | 'returned_to_team'
 export type TreeLevel = 'departamento' | 'secao' | 'categoria' | 'item' | 'marca'
-export type Role = 'admin' | 'leader' | 'operator'
+export type Role = 'Gestor' | 'Encarregado Gestor' | 'Encarregado' | 'Analista' | 'Visualizador'
 
 export interface User {
   id: string
@@ -16,6 +16,7 @@ export interface User {
   password?: string
   role: Role
   teamId?: string
+  active: boolean
 }
 
 export interface TreeNode {
@@ -46,6 +47,9 @@ export interface InventoryItem {
   damagedDate?: string
   damagedUser?: string
   quantity?: number
+  conditionCategory?: string
+  repairSent?: boolean
+  expectedReturnDate?: string
 }
 
 export interface Team {

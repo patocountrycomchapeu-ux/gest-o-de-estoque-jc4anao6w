@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
-import { AppState, TreeNode, Condition, ToolStatus, Checklist, InventoryItem } from '@/types'
+import { AppState, TreeNode, Condition, ToolStatus, Checklist, InventoryItem, Role } from '@/types'
 import { initialData } from './mockData'
 import { toast } from '@/hooks/use-toast'
 
@@ -22,10 +22,14 @@ interface UpdateInventoryPayload {
   reason?: string
   repairCost?: number
   repairLocation?: string
+  conditionCategory?: string
+  repairSent?: boolean
+  expectedReturnDate?: string
 }
 
 interface AppContextType extends AppState {
-  login: (email: string, pass: string) => boolean
+  login: (email: string) => void
+  verifyOtp: (email: string, otp: string) => 'success' | 'invalid' | 'inactive'
   logout: () => void
   addNode: (node: Omit<TreeNode, 'id'>) => void
   addInventoryItem: (item: AddInventoryPayload) => void
@@ -51,6 +55,8 @@ interface AppContextType extends AppState {
     cond?: Condition,
     notes?: string,
   ) => void
+  updateUserRole: (id: string, role: Role) => void
+  toggleUserStatus: (id: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -62,23 +68,66 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { ...initialData, currentUser: initUser }
   })
 
-  const login = useCallback(
-    (email: string, pass: string) => {
-      const user = state.users.find((u) => u.email === email && u.password === pass)
-      if (user) {
+  const login = useCallback((email: string) => {
+    // Simulated magic link / OTP sending
+  }, [])
+
+  const verifyOtp = useCallback(
+    (email: string, otp: string): 'success' | 'invalid' | 'inactive' => {
+      if (otp !== '123456') return 'invalid'
+
+      let result: 'success' | 'inactive' = 'success'
+
+      setState((prev) => {
+        let user = prev.users.find((u) => u.email === email)
+        if (!user) {
+          user = {
+            id: `u_${Date.now()}`,
+            name: email.split('@')[0],
+            email,
+            role: 'Visualizador',
+            active: true,
+          }
+          localStorage.setItem('auth_user', user.id)
+          return { ...prev, currentUser: user, users: [...prev.users, user] }
+        }
+
+        if (!user.active) {
+          result = 'inactive'
+          return prev
+        }
+
         localStorage.setItem('auth_user', user.id)
-        setState((p) => ({ ...p, currentUser: user }))
-        toast({ title: 'Login realizado com sucesso' })
-        return true
+        return { ...prev, currentUser: user }
+      })
+
+      if (result === 'success') {
+        toast({ title: 'Acesso validado com sucesso' })
       }
-      return false
+      return result
     },
-    [state.users],
+    [],
   )
 
   const logout = useCallback(() => {
     localStorage.removeItem('auth_user')
     setState((p) => ({ ...p, currentUser: null }))
+  }, [])
+
+  const updateUserRole = useCallback((id: string, role: Role) => {
+    setState((prev) => ({
+      ...prev,
+      users: prev.users.map((u) => (u.id === id ? { ...u, role } : u)),
+    }))
+    toast({ title: 'Papel atualizado com sucesso' })
+  }, [])
+
+  const toggleUserStatus = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      users: prev.users.map((u) => (u.id === id ? { ...u, active: !u.active } : u)),
+    }))
+    toast({ title: 'Status do usuário atualizado' })
   }, [])
 
   const addNode = useCallback((n: Omit<TreeNode, 'id'>) => {
@@ -188,6 +237,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (updates.repairCost !== undefined) extraItemUpdates.repairCost = updates.repairCost
       if (updates.repairLocation !== undefined)
         extraItemUpdates.repairLocation = updates.repairLocation
+      if (updates.conditionCategory !== undefined)
+        extraItemUpdates.conditionCategory = updates.conditionCategory
+      if (updates.repairSent !== undefined) extraItemUpdates.repairSent = updates.repairSent
+      if (updates.expectedReturnDate !== undefined)
+        extraItemUpdates.expectedReturnDate = updates.expectedReturnDate
 
       if (updates.condition && updates.condition !== item.condition) {
         const isToRepair = updates.condition === 'repair'
@@ -195,6 +249,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         let desc = `Condição alterada de ${item.condition} para ${updates.condition}.`
         if (updates.reason) desc += ` Motivo: ${updates.reason}.`
+        if (updates.conditionCategory) desc += ` Categoria: ${updates.conditionCategory}.`
 
         if (isToRepair) {
           extraItemUpdates.repairDescription = updates.reason
@@ -208,6 +263,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           extraItemUpdates.repairDescription = undefined
           extraItemUpdates.repairUser = undefined
           extraItemUpdates.repairDate = undefined
+          extraItemUpdates.repairSent = undefined
+          extraItemUpdates.expectedReturnDate = undefined
         }
 
         if (isToDamaged) {
@@ -231,7 +288,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (!updates.condition || updates.condition === item.condition) {
         if (
           item.condition === 'repair' &&
-          (updates.repairCost !== undefined || updates.repairLocation !== undefined)
+          (updates.repairCost !== undefined ||
+            updates.repairLocation !== undefined ||
+            updates.repairSent !== undefined ||
+            updates.expectedReturnDate !== undefined ||
+            updates.conditionCategory !== undefined)
         ) {
           let updatedFields = []
           if (updates.repairCost !== undefined && updates.repairCost !== item.repairCost)
@@ -241,6 +302,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             updates.repairLocation !== item.repairLocation
           )
             updatedFields.push(`Local para ${updates.repairLocation}`)
+          if (updates.repairSent !== undefined && updates.repairSent !== item.repairSent)
+            updatedFields.push(`Envio alterado: ${updates.repairSent ? 'Enviado' : 'Pendente'}`)
+          if (
+            updates.expectedReturnDate !== undefined &&
+            updates.expectedReturnDate !== item.expectedReturnDate
+          )
+            updatedFields.push(`Retorno para ${updates.expectedReturnDate}`)
+          if (
+            updates.conditionCategory !== undefined &&
+            updates.conditionCategory !== item.conditionCategory
+          )
+            updatedFields.push(`Categoria para ${updates.conditionCategory}`)
 
           if (updatedFields.length > 0) {
             newHistory.push({
@@ -252,6 +325,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               user: prev.currentUser?.name || 'Sistema',
             })
           }
+        } else if (
+          item.condition === 'damaged' &&
+          updates.conditionCategory !== undefined &&
+          updates.conditionCategory !== item.conditionCategory
+        ) {
+          newHistory.push({
+            id: `h_${Date.now()}_dmg_upd`,
+            inventoryId: id,
+            date: now,
+            type: 'status_change' as const,
+            description: `Categoria de Dano atualizada para ${updates.conditionCategory}.${updates.reason ? ` Obs: ${updates.reason}` : ''}`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
         }
       }
 
@@ -525,6 +611,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       login,
+      verifyOtp,
       logout,
       addNode,
       addInventoryItem,
@@ -534,6 +621,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       resolveTransfer,
       submitChecklist,
       getNodePath,
+      updateUserRole,
+      toggleUserStatus,
     }),
     [state],
   )

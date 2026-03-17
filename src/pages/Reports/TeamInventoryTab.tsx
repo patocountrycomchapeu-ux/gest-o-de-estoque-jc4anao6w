@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { isAdmin } from '@/lib/permissions'
+import { canManageUsers } from '@/lib/permissions'
 import { Printer, Download, Image as ImageIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { PhotoGalleryDialog } from '@/components/PhotoGalleryDialog'
@@ -23,7 +23,7 @@ const conditionLabels: Record<string, string> = {
 
 export function TeamInventoryTab() {
   const { teams, inventory, getNodePath, currentUser, nodes } = useAppStore()
-  const isMasterAdmin = isAdmin(currentUser)
+  const isMasterAdmin = canManageUsers(currentUser)
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)
 

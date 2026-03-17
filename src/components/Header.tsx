@@ -32,7 +32,7 @@ export function Header() {
       </div>
       <div className="flex items-center gap-3">
         <div className="hidden sm:flex items-center text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1.5 rounded-md border border-border/50">
-          <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-emerald-600" /> Nível: {currentUser.role}
+          <ShieldCheck className="h-3.5 w-3.5 mr-1.5 text-emerald-600" /> Papel: {currentUser.role}
         </div>
 
         <DropdownMenu>
@@ -43,7 +43,7 @@ export function Header() {
             >
               <span className="hidden md:inline-block text-sm font-medium">{currentUser.name}</span>
               <Avatar className="h-7 w-7 border border-primary/20">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs uppercase">
                   {currentUser.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>

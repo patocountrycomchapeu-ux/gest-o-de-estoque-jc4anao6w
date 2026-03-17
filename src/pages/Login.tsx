@@ -12,23 +12,36 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Package, ShieldAlert } from 'lucide-react'
+import { Package, ShieldAlert, Mail, KeyRound } from 'lucide-react'
+import { toast } from '@/hooks/use-toast'
 
 export default function Login() {
-  const { login } = useAppStore()
+  const { login, verifyOtp } = useAppStore()
   const navigate = useNavigate()
+  const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+    setError('')
+    login(email)
+    setStep(2)
+    toast({ title: 'Código enviado!', description: 'Use o código 123456 para acessar.' })
+  }
+
+  const handleOtpSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const success = login(email, password)
-    if (success) {
+    const result = verifyOtp(email, otp)
+    if (result === 'success') {
       navigate('/')
+    } else if (result === 'inactive') {
+      setError('Sua conta está inativa. Contate o administrador.')
     } else {
-      setError('Credenciais inválidas. Tente novamente.')
+      setError('Código inválido. Tente 123456.')
     }
   }
 
@@ -40,46 +53,79 @@ export default function Login() {
             <Package className="h-8 w-8 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Estoque.Pro</CardTitle>
-          <CardDescription>Insira suas credenciais para acessar o sistema.</CardDescription>
+          <CardDescription>
+            {step === 1
+              ? 'Acesse com seu email de trabalho.'
+              : 'Insira o código de verificação recebido.'}
+          </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2 font-medium">
-                <ShieldAlert className="w-4 h-4" /> {error}
+        {step === 1 ? (
+          <form onSubmit={handleEmailSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="usuario@estoque.pro"
+                    className="pl-9"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="username"
+                    autoFocus
+                  />
+                </div>
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Usuário</Label>
-              <Input
-                id="email"
-                type="text"
-                placeholder="admin"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="username"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="pt-2">
-            <Button type="submit" className="w-full font-medium h-11">
-              Acessar Sistema
-            </Button>
-          </CardFooter>
-        </form>
+            </CardContent>
+            <CardFooter className="pt-2">
+              <Button type="submit" className="w-full font-medium h-11">
+                Receber Código
+              </Button>
+            </CardFooter>
+          </form>
+        ) : (
+          <form onSubmit={handleOtpSubmit}>
+            <CardContent className="space-y-4">
+              {error && (
+                <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2 font-medium">
+                  <ShieldAlert className="w-4 h-4" /> {error}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="otp">Código de Acesso</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="123456"
+                    className="pl-9 font-mono text-center tracking-widest text-lg"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-2 flex flex-col gap-2">
+              <Button type="submit" className="w-full font-medium h-11">
+                Validar Acesso
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-sm"
+                onClick={() => setStep(1)}
+              >
+                Voltar
+              </Button>
+            </CardFooter>
+          </form>
+        )}
       </Card>
     </div>
   )
