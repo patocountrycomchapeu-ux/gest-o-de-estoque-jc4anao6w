@@ -42844,14 +42844,16 @@ Label$2.displayName = Root$2.displayName;
 function Login() {
 	const { signIn, signUp, user } = useAuth();
 	const navigate = useNavigate();
+	const { toast } = useToast();
 	const [isLogin, setIsLogin] = (0, import_react.useState)(true);
 	const [email, setEmail] = (0, import_react.useState)("");
 	const [password, setPassword] = (0, import_react.useState)("");
 	const [name, setName] = (0, import_react.useState)("");
 	const [error, setError] = (0, import_react.useState)("");
+	const [successMsg, setSuccessMsg] = (0, import_react.useState)("");
 	const [loading, setLoading] = (0, import_react.useState)(false);
 	if (user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		"data-uid": "src/pages/Login.tsx:27:20",
+		"data-uid": "src/pages/Login.tsx:30:20",
 		"data-prohibitions": "[editContent]",
 		to: "/",
 		replace: true
@@ -42859,6 +42861,7 @@ function Login() {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setError("");
+		setSuccessMsg("");
 		setLoading(true);
 		if (isLogin) {
 			const { error: err } = await signIn(email, password);
@@ -42873,63 +42876,69 @@ function Login() {
 			const { error: err } = await signUp(email, password, name);
 			if (err) setError(err.message);
 			else {
-				alert("Conta criada com sucesso! Faça o login.");
+				const msg = "Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro.";
+				setSuccessMsg(msg);
+				toast({
+					title: "Conta criada",
+					description: msg
+				});
 				setIsLogin(true);
+				setPassword("");
 			}
 		}
 		setLoading(false);
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		"data-uid": "src/pages/Login.tsx:55:5",
+		"data-uid": "src/pages/Login.tsx:65:5",
 		"data-prohibitions": "[editContent]",
 		className: "min-h-screen flex items-center justify-center bg-muted/40 p-4",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-			"data-uid": "src/pages/Login.tsx:56:7",
+			"data-uid": "src/pages/Login.tsx:66:7",
 			"data-prohibitions": "[editContent]",
 			className: "w-full max-w-sm shadow-elevation border-primary/10 animate-slide-up",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-				"data-uid": "src/pages/Login.tsx:57:9",
+				"data-uid": "src/pages/Login.tsx:67:9",
 				"data-prohibitions": "[editContent]",
 				className: "space-y-3 text-center pb-6",
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						"data-uid": "src/pages/Login.tsx:58:11",
+						"data-uid": "src/pages/Login.tsx:68:11",
 						"data-prohibitions": "[]",
 						className: "mx-auto bg-primary/10 w-16 h-16 flex items-center justify-center rounded-full mb-2",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, {
-							"data-uid": "src/pages/Login.tsx:59:13",
+							"data-uid": "src/pages/Login.tsx:69:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-8 w-8 text-primary"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-						"data-uid": "src/pages/Login.tsx:61:11",
+						"data-uid": "src/pages/Login.tsx:71:11",
 						"data-prohibitions": "[]",
 						className: "text-2xl font-bold tracking-tight",
 						children: "Estoque.Pro"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-						"data-uid": "src/pages/Login.tsx:62:11",
+						"data-uid": "src/pages/Login.tsx:72:11",
 						"data-prohibitions": "[editContent]",
 						children: isLogin ? "Acesse sua conta para continuar." : "Crie sua conta de acesso."
 					})
 				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-				"data-uid": "src/pages/Login.tsx:66:9",
+				"data-uid": "src/pages/Login.tsx:76:9",
 				"data-prohibitions": "[editContent]",
 				onSubmit: handleSubmit,
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-					"data-uid": "src/pages/Login.tsx:67:11",
+					"data-uid": "src/pages/Login.tsx:77:11",
 					"data-prohibitions": "[editContent]",
 					className: "space-y-4",
 					children: [
 						error && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Login.tsx:69:15",
+							"data-uid": "src/pages/Login.tsx:79:15",
 							"data-prohibitions": "[editContent]",
 							className: "bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2 font-medium",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldAlert, {
-									"data-uid": "src/pages/Login.tsx:70:17",
+									"data-uid": "src/pages/Login.tsx:80:17",
 									"data-prohibitions": "[editContent]",
 									className: "w-4 h-4"
 								}),
@@ -42937,29 +42946,43 @@ function Login() {
 								error
 							]
 						}),
+						successMsg && isLogin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Login.tsx:84:15",
+							"data-prohibitions": "[editContent]",
+							className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-sm p-3 rounded-md flex items-start gap-2 font-medium",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
+									"data-uid": "src/pages/Login.tsx:85:17",
+									"data-prohibitions": "[editContent]",
+									className: "w-4 h-4 mt-0.5 shrink-0"
+								}),
+								" ",
+								successMsg
+							]
+						}),
 						!isLogin && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Login.tsx:74:15",
+							"data-uid": "src/pages/Login.tsx:89:15",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Login.tsx:75:17",
+								"data-uid": "src/pages/Login.tsx:90:17",
 								"data-prohibitions": "[]",
 								htmlFor: "name",
 								children: "Nome Completo"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Login.tsx:76:17",
+								"data-uid": "src/pages/Login.tsx:91:17",
 								"data-prohibitions": "[]",
 								className: "relative",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, {
-									"data-uid": "src/pages/Login.tsx:77:19",
+									"data-uid": "src/pages/Login.tsx:92:19",
 									"data-prohibitions": "[editContent]",
 									className: "absolute left-3 top-3 h-4 w-4 text-muted-foreground"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Login.tsx:78:19",
+									"data-uid": "src/pages/Login.tsx:93:19",
 									"data-prohibitions": "[editContent]",
 									id: "name",
 									type: "text",
-									placeholder: "Seu nome",
+									placeholder: "Seu nome completo",
 									className: "pl-9",
 									value: name,
 									onChange: (e) => setName(e.target.value),
@@ -42968,24 +42991,24 @@ function Login() {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Login.tsx:90:13",
+							"data-uid": "src/pages/Login.tsx:105:13",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Login.tsx:91:15",
+								"data-uid": "src/pages/Login.tsx:106:15",
 								"data-prohibitions": "[]",
 								htmlFor: "email",
 								children: "Email"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Login.tsx:92:15",
+								"data-uid": "src/pages/Login.tsx:107:15",
 								"data-prohibitions": "[]",
 								className: "relative",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Mail, {
-									"data-uid": "src/pages/Login.tsx:93:17",
+									"data-uid": "src/pages/Login.tsx:108:17",
 									"data-prohibitions": "[editContent]",
 									className: "absolute left-3 top-3 h-4 w-4 text-muted-foreground"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Login.tsx:94:17",
+									"data-uid": "src/pages/Login.tsx:109:17",
 									"data-prohibitions": "[editContent]",
 									id: "email",
 									type: "email",
@@ -42998,24 +43021,24 @@ function Login() {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Login.tsx:105:13",
+							"data-uid": "src/pages/Login.tsx:120:13",
 							"data-prohibitions": "[]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Login.tsx:106:15",
+								"data-uid": "src/pages/Login.tsx:121:15",
 								"data-prohibitions": "[]",
 								htmlFor: "password",
 								children: "Senha"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Login.tsx:107:15",
+								"data-uid": "src/pages/Login.tsx:122:15",
 								"data-prohibitions": "[]",
 								className: "relative",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Lock, {
-									"data-uid": "src/pages/Login.tsx:108:17",
+									"data-uid": "src/pages/Login.tsx:123:17",
 									"data-prohibitions": "[editContent]",
 									className: "absolute left-3 top-3 h-4 w-4 text-muted-foreground"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Login.tsx:109:17",
+									"data-uid": "src/pages/Login.tsx:124:17",
 									"data-prohibitions": "[editContent]",
 									id: "password",
 									type: "password",
@@ -43029,23 +43052,27 @@ function Login() {
 						})
 					]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardFooter, {
-					"data-uid": "src/pages/Login.tsx:121:11",
+					"data-uid": "src/pages/Login.tsx:136:11",
 					"data-prohibitions": "[editContent]",
 					className: "pt-2 flex flex-col gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Login.tsx:122:13",
+						"data-uid": "src/pages/Login.tsx:137:13",
 						"data-prohibitions": "[editContent]",
 						type: "submit",
 						className: "w-full font-medium h-11",
 						disabled: loading,
 						children: loading ? "Aguarde..." : isLogin ? "Entrar" : "Criar Conta"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Login.tsx:125:13",
+						"data-uid": "src/pages/Login.tsx:140:13",
 						"data-prohibitions": "[editContent]",
 						type: "button",
 						variant: "ghost",
 						className: "w-full text-sm",
-						onClick: () => setIsLogin(!isLogin),
+						onClick: () => {
+							setIsLogin(!isLogin);
+							setError("");
+							setSuccessMsg("");
+						},
 						children: isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entrar"
 					})]
 				})]
@@ -79699,4 +79726,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(J, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-lvSda_HF.js.map
+//# sourceMappingURL=index-5CtJ1Eg6.js.map

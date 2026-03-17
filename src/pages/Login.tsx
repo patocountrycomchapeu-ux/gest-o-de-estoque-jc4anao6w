@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
+import { useToast } from '@/hooks/use-toast'
 import {
   Card,
   CardContent,
@@ -12,16 +13,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Package, ShieldAlert, Mail, Lock, User } from 'lucide-react'
+import { Package, ShieldAlert, Mail, Lock, User, CheckCircle2 } from 'lucide-react'
 
 export default function Login() {
   const { signIn, signUp, user } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
   if (user) return <Navigate to="/" replace />
@@ -29,6 +32,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setSuccessMsg('')
     setLoading(true)
 
     if (isLogin) {
@@ -44,8 +48,14 @@ export default function Login() {
       const { error: err } = await signUp(email, password, name)
       if (err) setError(err.message)
       else {
-        alert('Conta criada com sucesso! Faça o login.')
+        const msg = 'Conta criada com sucesso! Verifique seu e-mail para confirmar o cadastro.'
+        setSuccessMsg(msg)
+        toast({
+          title: 'Conta criada',
+          description: msg,
+        })
         setIsLogin(true)
+        setPassword('')
       }
     }
     setLoading(false)
@@ -70,6 +80,11 @@ export default function Login() {
                 <ShieldAlert className="w-4 h-4" /> {error}
               </div>
             )}
+            {successMsg && isLogin && (
+              <div className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-sm p-3 rounded-md flex items-start gap-2 font-medium">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> {successMsg}
+              </div>
+            )}
             {!isLogin && (
               <div className="space-y-2">
                 <Label htmlFor="name">Nome Completo</Label>
@@ -78,7 +93,7 @@ export default function Login() {
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Seu nome"
+                    placeholder="Seu nome completo"
                     className="pl-9"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -126,7 +141,11 @@ export default function Login() {
               type="button"
               variant="ghost"
               className="w-full text-sm"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin)
+                setError('')
+                setSuccessMsg('')
+              }}
             >
               {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
             </Button>
