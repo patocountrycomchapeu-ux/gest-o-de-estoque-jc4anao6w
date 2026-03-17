@@ -14,7 +14,7 @@ import { Camera, Download, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function RepairReportTab() {
-  const { inventory, getNodePath } = useAppStore()
+  const { inventory, getNodePath, suppliers } = useAppStore()
   const repairItems = inventory.filter((i) => i.condition === 'repair')
 
   const handleExport = () => {
@@ -22,15 +22,16 @@ export function RepairReportTab() {
       'Patrimonio',
       'Item',
       'Custo Reparo',
-      'Local/Assistencia',
+      'Fornecedor',
       'Data Envio',
       'Responsavel',
     ]
     const rows = repairItems.map((item) => {
       const path = getNodePath(item.treeNodeId)
       const name = path.find((n) => n.level === 'item')?.name || 'Item'
-      const date = item.repairDate ? format(new Date(item.repairDate), 'dd/MM/yyyy') : '-'
-      return `"${item.hasAssetNumber ? item.assetNumber : 'S/N'}","${name}","${item.repairCost || 0}","${item.repairLocation || '-'}","${date}","${item.repairUser || '-'}"`
+      const supplier = suppliers.find((s) => s.id === item.supplierId)
+      const date = item.repairDate ? format(new Date(item.repairDate), 'dd/MM/yyyy HH:mm') : '-'
+      return `"${item.hasAssetNumber ? item.assetNumber : 'S/N'}","${name}","${item.repairCost || 0}","${supplier?.name || '-'}","${date}","${item.repairUser || '-'}"`
     })
 
     const csv = [headers.join(','), ...rows].join('\n')
@@ -49,17 +50,15 @@ export function RepairReportTab() {
           <Download className="w-4 h-4 mr-2" /> Exportar CSV
         </Button>
         <Button variant="outline" onClick={() => window.print()}>
-          <Printer className="w-4 h-4 mr-2" /> Imprimir (PDF)
+          <Printer className="w-4 h-4 mr-2" /> Imprimir
         </Button>
       </CardHeader>
-
       <div className="hidden print:block mb-4 p-4 pb-0">
         <h2 className="text-xl font-bold uppercase tracking-tight">Itens em Processo de Reparo</h2>
         <p className="text-sm text-gray-600">
-          Listagem de ferramentas enviadas para manutenção ou assistência técnica.
+          Listagem de ferramentas enviadas para assistência técnica com controle de custos.
         </p>
       </div>
-
       <CardContent className="p-0 print:p-2">
         <Table className="print:text-xs">
           <TableHeader>
@@ -68,7 +67,7 @@ export function RepairReportTab() {
               <TableHead>Patrimônio</TableHead>
               <TableHead>Item (Marca)</TableHead>
               <TableHead className="text-right">Custo (R$)</TableHead>
-              <TableHead>Local / Assistência</TableHead>
+              <TableHead>Fornecedor</TableHead>
               <TableHead>Data de Envio</TableHead>
               <TableHead>Responsável</TableHead>
             </TableRow>
@@ -78,9 +77,10 @@ export function RepairReportTab() {
               const path = getNodePath(item.treeNodeId)
               const name = path.find((n) => n.level === 'item')?.name || 'Item'
               const marca = path.find((n) => n.level === 'marca')?.name || '-'
+              const supplier = suppliers.find((s) => s.id === item.supplierId)
               return (
                 <TableRow key={item.id} className="print:border-b-gray-300">
-                  <TableCell className="text-center p-2 align-middle">
+                  <TableCell className="text-center p-2">
                     {item.photos?.[0] ? (
                       <img
                         src={item.photos[0]}
@@ -88,37 +88,35 @@ export function RepairReportTab() {
                         className="w-8 h-8 rounded object-cover mx-auto print:border"
                       />
                     ) : (
-                      <div className="w-8 h-8 mx-auto bg-muted rounded flex items-center justify-center print:border print:bg-transparent">
+                      <div className="w-8 h-8 mx-auto bg-muted flex items-center justify-center">
                         <Camera className="w-3 h-3 text-muted-foreground/50" />
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-mono text-xs font-semibold align-middle">
+                  <TableCell className="font-mono text-xs font-semibold">
                     {item.hasAssetNumber ? item.assetNumber : 'S/N'}
                   </TableCell>
-                  <TableCell className="align-middle">
+                  <TableCell>
                     <div className="font-medium">{name}</div>
                     <div className="text-[10px] text-muted-foreground">{marca}</div>
                   </TableCell>
-                  <TableCell className="text-right tabular-nums align-middle">
+                  <TableCell className="text-right tabular-nums">
                     {item.repairCost?.toFixed(2) || '0.00'}
                   </TableCell>
-                  <TableCell className="text-sm align-middle">
-                    {item.repairLocation || '-'}
-                  </TableCell>
-                  <TableCell className="text-xs align-middle">
+                  <TableCell className="text-sm">{supplier?.name || '-'}</TableCell>
+                  <TableCell className="text-xs">
                     {item.repairDate
-                      ? format(new Date(item.repairDate), 'dd/MM/yyyy', { locale: ptBR })
+                      ? format(new Date(item.repairDate), 'dd/MM/yyyy HH:mm', { locale: ptBR })
                       : '-'}
                   </TableCell>
-                  <TableCell className="text-xs align-middle">{item.repairUser || '-'}</TableCell>
+                  <TableCell className="text-xs">{item.repairUser || '-'}</TableCell>
                 </TableRow>
               )
             })}
             {repairItems.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  Nenhum item em reparo no momento.
+                  Nenhum item em reparo.
                 </TableCell>
               </TableRow>
             )}

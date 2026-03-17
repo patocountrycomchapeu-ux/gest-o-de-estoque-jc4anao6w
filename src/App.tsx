@@ -13,6 +13,7 @@ import TeamDetail from './pages/Teams/TeamDetail'
 import AuditoriaPage from './pages/Teams/Auditoria'
 import ReportsPage from './pages/Reports/Index'
 import RepairsPage from './pages/Repairs/Index'
+import SuppliersPage from './pages/Suppliers/Index'
 import ConfigPage from './pages/Config/Index'
 import { AppProvider } from './store/AppStore'
 import { AuthProvider, useAuth } from './hooks/use-auth'
@@ -35,6 +36,7 @@ const AppRoutes = () => (
         <Route path="/equipes/:id" element={<TeamDetail />} />
         <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
         <Route path="/reparos" element={<RepairsPage />} />
+        <Route path="/fornecedores" element={<SuppliersPage />} />
         <Route path="/relatorios" element={<ReportsPage />} />
         <Route path="/configuracoes" element={<ConfigPage />} />
       </Route>

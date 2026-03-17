@@ -9,21 +9,18 @@ export function TreeReportTab() {
 
   const treeData = useMemo(() => {
     const counts: Record<string, number> = {}
-
     inventory.forEach((item) => {
       counts[item.treeNodeId] = (counts[item.treeNodeId] || 0) + (item.quantity || 1)
     })
 
-    const levels = ['marca', 'item', 'categoria', 'secao', 'departamento'] as const
+    const levels = ['marca', 'item', 'especificacao', 'funcao', 'tipo'] as const
     levels.forEach((level) => {
       const levelNodes = nodes.filter((n) => n.level === level)
       levelNodes.forEach((node) => {
-        if (node.parentId) {
+        if (node.parentId)
           counts[node.parentId] = (counts[node.parentId] || 0) + (counts[node.id] || 0)
-        }
       })
     })
-
     return counts
   }, [nodes, inventory])
 
@@ -36,7 +33,6 @@ export function TreeReportTab() {
         {children.map((node) => {
           const count = treeData[node.id] || 0
           if (count === 0 && depth > 0) return null
-
           let imageSrc = undefined
           if (node.level === 'marca' || node.level === 'item') {
             const sample = inventory.find(
@@ -95,14 +91,13 @@ export function TreeReportTab() {
         <div>
           <CardTitle className="text-lg">Estrutura de Quantidades</CardTitle>
           <CardDescription>
-            Visualize as instâncias agrupadas hierarquicamente (Categoria &gt; Item &gt; Marca).
+            Visualize as instâncias agrupadas hierarquicamente nos 5 níveis obrigatórios.
           </CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={() => window.print()}>
           <Printer className="w-4 h-4 mr-2" /> Imprimir (PDF)
         </Button>
       </CardHeader>
-
       <div className="hidden print:block mb-6 pt-4">
         <h2 className="text-2xl font-bold uppercase tracking-tight">
           Mapa da Árvore Mercadológica
@@ -112,7 +107,6 @@ export function TreeReportTab() {
         </p>
         <hr className="my-4 border-black" />
       </div>
-
       <CardContent className="p-2 sm:p-6 print:p-0">
         <div className="bg-card border rounded-lg p-2 shadow-sm print:border-none print:shadow-none print:p-0">
           {renderNode(null)}

@@ -18,10 +18,10 @@ import { canManageTree } from '@/lib/permissions'
 import { Navigate } from 'react-router-dom'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
-  root: 'departamento',
-  departamento: 'secao',
-  secao: 'categoria',
-  categoria: 'item',
+  root: 'tipo',
+  tipo: 'funcao',
+  funcao: 'especificacao',
+  especificacao: 'item',
   item: 'marca',
 }
 
@@ -33,15 +33,9 @@ export default function TreePage() {
   const [isGrouped, setIsGrouped] = useState(false)
 
   const canManage = canManageTree(currentUser)
+  const rootNodes = useMemo(() => nodes.filter((n) => n.parentId === null), [nodes])
 
-  const rootNodes = useMemo(() => {
-    let filtered = nodes.filter((n) => n.parentId === null)
-    return filtered
-  }, [nodes])
-
-  if (!canManage) {
-    return <Navigate to="/" replace />
-  }
+  if (!canManage) return <Navigate to="/" replace />
 
   const handleAddSubmit = () => {
     if (!newNodeName.trim() || !addingTo) return
@@ -67,10 +61,13 @@ export default function TreePage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Árvore Mercadológica</h2>
-          <p className="text-muted-foreground">Gerencie a hierarquia de 5 níveis do seu estoque.</p>
+          <p className="text-muted-foreground">
+            Gerencie a hierarquia de 5 níveis (Tipo &gt; Função &gt; Especificação &gt; Item &gt;
+            Marca).
+          </p>
         </div>
         <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
-          <Plus className="h-4 w-4 mr-2" /> Adicionar Departamento
+          <Plus className="h-4 w-4 mr-2" /> Adicionar Tipo
         </Button>
       </div>
 
@@ -80,7 +77,7 @@ export default function TreePage() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Buscar departamentos, categorias..."
+              placeholder="Buscar níveis..."
               className="pl-8 bg-background"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -101,9 +98,7 @@ export default function TreePage() {
               />
             ))}
             {rootNodes.length === 0 && (
-              <p className="text-muted-foreground text-center py-8">
-                Nenhum departamento cadastrado.
-              </p>
+              <p className="text-muted-foreground text-center py-8">Nenhum Tipo cadastrado.</p>
             )}
           </div>
         </CardContent>
@@ -121,18 +116,16 @@ export default function TreePage() {
                 id="name"
                 value={newNodeName}
                 onChange={(e) => setNewNodeName(e.target.value)}
-                placeholder="Nome da categoria/marca..."
+                placeholder="Nome do novo nível..."
                 autoFocus
               />
             </div>
-
             {showGroupedToggle && (
               <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
                 <div className="space-y-0.5 pr-4">
                   <Label>Tratar como Lote / Agrupado</Label>
                   <p className="text-[10px] text-muted-foreground leading-tight">
-                    Marque se este item deve ser tratado em massa (ex: cones, parafusos),
-                    simplificando os ajustes e baixas sem controle de patrimônio individual.
+                    Marque se este item deve ser tratado em massa.
                   </p>
                 </div>
                 <Switch checked={isGrouped} onCheckedChange={setIsGrouped} />

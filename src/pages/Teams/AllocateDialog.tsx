@@ -1,16 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useAppStore } from '@/store/AppStore'
+import { useState, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -18,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Condition } from '@/types'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useAppStore } from '@/store/AppStore'
+import { uploadPhoto } from '@/lib/storage'
+import { Camera, X } from 'lucide-react'
 
 export function AllocateDialog({
   teamId,
@@ -31,164 +29,272 @@ export function AllocateDialog({
   open: boolean
   onOpenChange: (o: boolean) => void
 }) {
-  const { nodes, addInventoryItem, getNodePath } = useAppStore()
-  const [selectedMarcaId, setSelectedMarcaId] = useState<string>('')
+  const { nodes, addInventoryItem } = useAppStore()
+
+  const [tipo, setTipo] = useState('')
+  const [funcao, setFuncao] = useState('')
+  const [especificacao, setEspec] = useState('')
+  const [item, setItem] = useState('')
+  const [marca, setMarca] = useState('')
+
   const [qty, setQty] = useState(1)
-  const [price, setPrice] = useState<number>(0)
-  const [hasAsset, setHasAsset] = useState(true)
   const [assets, setAssets] = useState<string[]>([''])
-  const [condition, setCondition] = useState<Condition>('good')
+  const [price, setPrice] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+  const [uploading, setUploading] = useState(false)
 
-  const leafItems = useMemo(() => nodes.filter((n) => n.level === 'marca'), [nodes])
-
-  const selectedNode = useMemo(
-    () => leafItems.find((n) => n.id === selectedMarcaId),
-    [selectedMarcaId, leafItems],
+  const tipos = useMemo(() => nodes.filter((n) => n.level === 'tipo'), [nodes])
+  const funcoes = useMemo(
+    () => nodes.filter((n) => n.level === 'funcao' && n.parentId === tipo),
+    [nodes, tipo],
   )
-  const isGroupedNode = selectedNode?.isGrouped
+  const especificacoes = useMemo(
+    () => nodes.filter((n) => n.level === 'especificacao' && n.parentId === funcao),
+    [nodes, funcao],
+  )
+  const items = useMemo(
+    () => nodes.filter((n) => n.level === 'item' && n.parentId === especificacao),
+    [nodes, especificacao],
+  )
+  const marcas = useMemo(
+    () => nodes.filter((n) => n.level === 'marca' && n.parentId === item),
+    [nodes, item],
+  )
 
-  useEffect(() => {
-    if (isGroupedNode) {
-      setHasAsset(false)
-    } else {
-      setHasAsset(true)
+  const selectedMarca = nodes.find((n) => n.id === marca)
+  const isGrouped = selectedMarca?.isGrouped || nodes.find((n) => n.id === item)?.isGrouped
+
+  const handleSave = async () => {
+    if (!marca) return alert('Selecione todos os 5 níveis da árvore.')
+    if (!isGrouped && assets.some((a) => !a.trim()))
+      return alert('Preencha todos os números de patrimônio.')
+
+    setUploading(true)
+    const photoUrls = []
+    for (const file of files) {
+      const url = await uploadPhoto(file)
+      if (url) photoUrls.push(url)
     }
-  }, [isGroupedNode])
 
-  const handleQtyChange = (newQty: number) => {
-    const validQty = Math.max(1, newQty)
-    setQty(validQty)
-    setAssets((prev) => Array.from({ length: validQty }, (_, i) => prev[i] || ''))
-  }
-
-  const handleSave = () => {
-    if (!selectedMarcaId) return
-    if (hasAsset && assets.some((a) => !a.trim())) return
     addInventoryItem({
       teamId,
-      treeNodeId: selectedMarcaId,
-      condition,
-      hasAssetNumber: hasAsset,
-      assets: hasAsset ? assets : [],
+      treeNodeId: marca,
+      condition: 'good',
       qty,
-      price,
+      price: parseFloat(price) || 0,
+      hasAssetNumber: !isGrouped,
+      assets,
+      photos: photoUrls,
     })
-    onOpenChange(false)
-    setSelectedMarcaId('')
+
+    setUploading(false)
+    setTipo('')
+    setFuncao('')
+    setEspec('')
+    setItem('')
+    setMarca('')
     setQty(1)
-    setPrice(0)
     setAssets([''])
-    setHasAsset(true)
+    setPrice('')
+    setFiles([])
+    onOpenChange(false)
+  }
+
+  const handleQtyChange = (n: number) => {
+    setQty(n)
+    if (!isGrouped) {
+      setAssets(Array.from({ length: n }).map((_, i) => assets[i] || ''))
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Alocar Ferramentas</DialogTitle>
-          <DialogDescription>
-            Adicione ferramentas à equipe e configure seus dados patrimoniais e valor.
-          </DialogDescription>
+          <DialogTitle>Alocar Nova Ferramenta</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label>Item Base</Label>
-            <Select value={selectedMarcaId} onValueChange={setSelectedMarcaId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o produto..." />
-              </SelectTrigger>
-              <SelectContent>
-                {leafItems.map((item) => {
-                  const name = getNodePath(item.id).find((n) => n.level === 'item')?.name || '?'
-                  return (
-                    <SelectItem key={item.id} value={item.id}>
-                      {name} ({item.name}) {item.isGrouped && ' - [LOTE]'}
+        <div className="space-y-4 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/20 p-3 rounded border">
+            <div className="space-y-1">
+              <Label>1. Tipo</Label>
+              <Select
+                value={tipo}
+                onValueChange={(v) => {
+                  setTipo(v)
+                  setFuncao('')
+                  setEspec('')
+                  setItem('')
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {tipos.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
                     </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Quantidade</Label>
-              <Input
-                type="number"
-                min={1}
-                value={qty}
-                onChange={(e) => handleQtyChange(Number(e.target.value))}
-              />
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label>Valor Unit. (R$)</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-              />
+            <div className="space-y-1">
+              <Label>2. Função</Label>
+              <Select
+                disabled={!tipo}
+                value={funcao}
+                onValueChange={(v) => {
+                  setFuncao(v)
+                  setEspec('')
+                  setItem('')
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {funcoes.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Condição Inicial</Label>
-            <Select value={condition} onValueChange={(v: Condition) => setCondition(v)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="good">Bom Estado</SelectItem>
-                <SelectItem value="damaged">Danificado</SelectItem>
-                <SelectItem value="repair">Para Reparo</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-1">
+              <Label>3. Especificação</Label>
+              <Select
+                disabled={!funcao}
+                value={especificacao}
+                onValueChange={(v) => {
+                  setEspec(v)
+                  setItem('')
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {especificacoes.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>4. Item</Label>
+              <Select
+                disabled={!especificacao}
+                value={item}
+                onValueChange={(v) => {
+                  setItem(v)
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {items.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>5. Marca</Label>
+              <Select disabled={!item} value={marca} onValueChange={setMarca}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a marca..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {marcas.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {selectedMarcaId && !isGroupedNode && (
-            <div className="flex items-center justify-between border rounded-md p-3 bg-muted/20">
-              <div className="space-y-0.5 pr-4">
-                <Label>Possui número de patrimônio?</Label>
-                <p className="text-[10px] text-muted-foreground leading-tight">
-                  Desative se a ferramenta não tiver um controle de ativo físico.
-                </p>
+          {marca && (
+            <div className="space-y-4 animate-fade-in border-t pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Quantidade</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={qty}
+                    onChange={(e) => handleQtyChange(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Preço Unitário (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </div>
               </div>
-              <Switch checked={hasAsset} onCheckedChange={setHasAsset} />
-            </div>
-          )}
+              {!isGrouped &&
+                assets.map((a, i) => (
+                  <div key={i} className="space-y-2">
+                    <Label>Patrimônio da Unidade {i + 1}</Label>
+                    <Input
+                      value={a}
+                      onChange={(e) => {
+                        const na = [...assets]
+                        na[i] = e.target.value
+                        setAssets(na)
+                      }}
+                      placeholder="Ex: PAT-12345"
+                    />
+                  </div>
+                ))}
 
-          {isGroupedNode && (
-            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded-md border border-blue-200">
-              Este item está configurado como <strong>Lote/Agrupado</strong>. O controle de
-              patrimônio individual não é aplicável.
-            </div>
-          )}
-
-          {hasAsset && !isGroupedNode && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <Label>Números de Patrimônio (Obrigatório)</Label>
-              <ScrollArea className="h-[120px] rounded-md border p-2 bg-muted/30">
-                <div className="space-y-2 pr-4">
-                  {assets.map((asset, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground w-6 text-right">
-                        {idx + 1}.
-                      </span>
-                      <Input
-                        placeholder="Ex: PAT-123"
-                        value={asset}
-                        onChange={(e) =>
-                          setAssets((prev) => {
-                            const copy = [...prev]
-                            copy[idx] = e.target.value
-                            return copy
-                          })
-                        }
-                        className="h-8"
+              <div className="space-y-2">
+                <Label>Fotos / Evidências</Label>
+                <div className="flex flex-wrap gap-2">
+                  {files.map((f, i) => (
+                    <div key={i} className="relative w-16 h-16 rounded border overflow-hidden">
+                      <img
+                        src={URL.createObjectURL(f)}
+                        className="w-full h-full object-cover"
+                        alt="upload"
                       />
+                      <button
+                        className="absolute top-0 right-0 bg-red-500 text-white rounded-bl p-0.5"
+                        onClick={() => setFiles(files.filter((_, idx) => idx !== i))}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
+                  <label className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:bg-muted/50">
+                    <Camera className="w-5 h-5 text-muted-foreground" />
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files) setFiles([...files, ...Array.from(e.target.files)])
+                      }}
+                    />
+                  </label>
                 </div>
-              </ScrollArea>
+              </div>
             </div>
           )}
         </div>
@@ -196,11 +302,8 @@ export function AllocateDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!selectedMarcaId || (hasAsset && assets.some((a) => !a.trim()))}
-          >
-            Salvar Instâncias
+          <Button onClick={handleSave} disabled={!marca || uploading}>
+            {uploading ? 'Salvando...' : 'Registrar Ativo'}
           </Button>
         </DialogFooter>
       </DialogContent>

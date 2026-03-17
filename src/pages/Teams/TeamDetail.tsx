@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   ArrowRightLeft,
   MoreVertical,
+  Send,
   PackageOpen,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -47,13 +48,13 @@ const statusMap = {
 
 export default function TeamDetail() {
   const { id } = useParams()
-  const { teams, inventory, getNodePath, transfers, currentUser, nodes } = useAppStore()
+  const { teams, inventory, getNodePath, transfers, currentUser, nodes, sendTransfer } =
+    useAppStore()
   const [allocateOpen, setAllocateOpen] = useState(false)
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
   const [transferItem, setTransferItem] = useState<InventoryItem | null>(null)
   const [receiveTransfer, setReceiveTransfer] = useState<Transfer | null>(null)
   const [adjustItem, setAdjustItem] = useState<InventoryItem | null>(null)
-
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [galleryOpen, setGalleryOpen] = useState(false)
 
@@ -61,66 +62,26 @@ export default function TeamDetail() {
   if (!team) return <div className="p-8 text-center">Equipe não encontrada.</div>
 
   const teamInventory = inventory.filter((i) => i.teamId === id)
-  const usableCount = teamInventory
-    .filter((i) => i.condition === 'good')
-    .reduce((acc, i) => acc + (i.quantity || 1), 0)
-  const inRepairCount = teamInventory
-    .filter((i) => i.condition === 'repair')
-    .reduce((acc, i) => acc + (i.quantity || 1), 0)
-  const damagedCount = teamInventory
-    .filter((i) => i.condition === 'damaged')
-    .reduce((acc, i) => acc + (i.quantity || 1), 0)
-
-  const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'pending')
+  const pendingIncoming = transfers.filter((t) => t.toTeamId === id && t.status === 'in_transit')
   const pendingOutgoing = transfers.filter((t) => t.fromTeamId === id && t.status === 'pending')
+  const inTransitOutgoing = transfers.filter(
+    (t) => t.fromTeamId === id && t.status === 'in_transit',
+  )
   const canManage = canManageTeam(currentUser, team.id)
-
-  const openGallery = (photos: string[]) => {
-    if (photos && photos.length > 0) {
-      setGalleryPhotos(photos)
-      setGalleryOpen(true)
-    }
-  }
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div className="flex items-start sm:items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="rounded-full bg-muted/50 mt-1 sm:mt-0"
-          >
+          <Button variant="ghost" size="icon" asChild className="rounded-full bg-muted/50">
             <Link to="/equipes">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">{team.name}</h2>
-            <div className="flex flex-wrap gap-2 mt-1.5">
-              <Badge
-                variant="outline"
-                className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50 dark:hover:bg-emerald-950/50"
-              >
-                {usableCount} Utilizáveis
-              </Badge>
-              {inRepairCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50 dark:hover:bg-amber-950/50"
-                >
-                  {inRepairCount} Em Reparo
-                </Badge>
-              )}
-              {damagedCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50 dark:hover:bg-red-950/50"
-                >
-                  {damagedCount} Danificados
-                </Badge>
-              )}
+            <div className="text-sm text-muted-foreground mt-1">
+              {teamInventory.length} instâncias alocadas
             </div>
           </div>
         </div>
@@ -139,11 +100,10 @@ export default function TeamDetail() {
       </div>
 
       {canManage && pendingIncoming.length > 0 && (
-        <Card className="border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down dark:border-amber-500/30 dark:bg-amber-500/10">
+        <Card className="border-emerald-500/40 bg-emerald-500/5">
           <CardHeader className="py-3">
-            <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
-              <ArrowRightLeft className="h-4 w-4" /> Ferramentas em Trânsito para Validação (
-              {pendingIncoming.length})
+            <CardTitle className="text-emerald-700 text-sm flex items-center gap-2">
+              <PackageOpen className="h-4 w-4" /> Aguardando Recebimento ({pendingIncoming.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 pb-4">
@@ -153,27 +113,61 @@ export default function TeamDetail() {
                 ? getNodePath(item.treeNodeId).find((n) => n.level === 'item')?.name
                 : 'Item'
               return (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between bg-background border rounded-md p-3 dark:border-amber-800/50"
-                >
+                <div key={t.id} className="flex justify-between bg-background border p-3 rounded">
                   <div>
                     <p className="font-medium text-sm">
                       {name}{' '}
-                      <span className="text-xs font-mono text-muted-foreground ml-2">
+                      <span className="text-xs text-muted-foreground ml-1">
                         {item?.hasAssetNumber ? item.assetNumber : 'S/N'}
                       </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Enviado por: {t.initiatedBy}
                     </p>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => setReceiveTransfer(t)}
-                    className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-700 dark:hover:bg-amber-800"
+                    className="bg-emerald-600 hover:bg-emerald-700"
                   >
-                    <PackageOpen className="h-4 w-4 mr-2" /> Verificar e Receber
+                    <PackageOpen className="h-4 w-4 mr-2" /> Validar e Receber
+                  </Button>
+                </div>
+              )
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+      {canManage && pendingOutgoing.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardHeader className="py-3">
+            <CardTitle className="text-amber-700 text-sm flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4" /> Transferências Criadas - Aguardando Envio (
+              {pendingOutgoing.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 pb-4">
+            {pendingOutgoing.map((t) => {
+              const item = inventory.find((i) => i.id === t.inventoryId)
+              const name = item
+                ? getNodePath(item.treeNodeId).find((n) => n.level === 'item')?.name
+                : 'Item'
+              return (
+                <div
+                  key={t.id}
+                  className="flex justify-between items-center bg-background border p-3 rounded"
+                >
+                  <div>
+                    <p className="font-medium text-sm">
+                      {name}{' '}
+                      <span className="text-xs text-muted-foreground ml-1">
+                        {item?.assetNumber}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Destino: {teams.find((x) => x.id === t.toTeamId)?.name}
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={() => sendTransfer(t.id)}>
+                    <Send className="h-4 w-4 mr-2" /> Enviar Fisicamente
                   </Button>
                 </div>
               )
@@ -187,92 +181,61 @@ export default function TeamDetail() {
           <Table>
             <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="w-16 text-center">Fotos</TableHead>
-                <TableHead>Patrimônio / Lote</TableHead>
-                <TableHead>Item (Marca)</TableHead>
-                <TableHead>Condição / Status</TableHead>
+                <TableHead className="w-16 text-center">Foto</TableHead>
+                <TableHead>Patrimônio</TableHead>
+                <TableHead>Item</TableHead>
+                <TableHead>Status</TableHead>
                 {canManage && <TableHead className="text-right">Ações</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {teamInventory.map((item) => {
                 const path = getNodePath(item.treeNodeId)
-                const marcaNode = path.find((n) => n.level === 'marca')
-                const itemNode = path.find((n) => n.level === 'item')
-                const isOutgoing = pendingOutgoing.some((t) => t.inventoryId === item.id)
-                const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
-
+                const isGrouped = !item.hasAssetNumber
+                const isOutgoingTransit = inTransitOutgoing.some((t) => t.inventoryId === item.id)
                 return (
                   <TableRow key={item.id}>
                     <TableCell className="text-center">
                       <Avatar
-                        className={`h-9 w-9 mx-auto rounded-md border ${item.photos?.length ? 'cursor-pointer hover:opacity-80 ring-2 ring-transparent hover:ring-primary/40 transition-all' : ''}`}
-                        onClick={() => openGallery(item.photos)}
+                        className={`h-9 w-9 mx-auto rounded border ${item.photos?.length ? 'cursor-pointer hover:opacity-80 ring-2 hover:ring-primary/40' : ''}`}
+                        onClick={() => {
+                          if (item.photos?.length) {
+                            setGalleryPhotos(item.photos)
+                            setGalleryOpen(true)
+                          }
+                        }}
                       >
                         <AvatarImage src={item.photos?.[0]} className="object-cover" />
-                        <AvatarFallback className="bg-muted">
+                        <AvatarFallback>
                           <Camera className="h-3 w-3 text-muted-foreground/50" />
                         </AvatarFallback>
                       </Avatar>
                     </TableCell>
                     <TableCell className="font-mono text-xs font-semibold">
                       {isGrouped ? (
-                        <Badge
-                          variant="secondary"
-                          className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50 dark:hover:bg-blue-900/50"
-                        >
-                          Lote: {item.quantity} un.
-                        </Badge>
-                      ) : item.hasAssetNumber ? (
-                        item.assetNumber
+                        <Badge variant="secondary">Lote: {item.quantity}</Badge>
                       ) : (
-                        <span className="text-muted-foreground italic font-normal">
-                          Sem Patrimônio
-                        </span>
+                        item.assetNumber
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{itemNode?.name || 'Item'}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {marcaNode?.name || 'Marca'}
+                      <div className="font-medium">
+                        {path.find((n) => n.level === 'item')?.name || 'Item'}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {path.find((n) => n.level === 'marca')?.name}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1 items-start">
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50' : item.condition === 'repair' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50' : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/50'}`}
-                        >
-                          {statusMap[item.condition].label}
-                        </Badge>
-                        {item.status !== 'present' && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700"
-                          >
-                            {item.status === 'in_maintenance'
-                              ? 'Em Manutenção'
-                              : item.status === 'defect_stock'
-                                ? 'Estoque de Defeito'
-                                : item.status === 'missing'
-                                  ? 'Extraviado'
-                                  : item.status === 'borrowed'
-                                    ? 'Emprestado'
-                                    : item.status === 'returned_to_team'
-                                      ? 'Devolvido'
-                                      : item.status}
-                          </Badge>
-                        )}
-                      </div>
+                      <Badge variant="outline" className="text-[10px]">
+                        {statusMap[item.condition].label}
+                      </Badge>
                     </TableCell>
                     {canManage && (
                       <TableCell className="text-right">
-                        {isOutgoing ? (
-                          <Badge
-                            variant="outline"
-                            className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50"
-                          >
-                            Em Transferência
+                        {isOutgoingTransit ? (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                            Em Trânsito
                           </Badge>
                         ) : (
                           <DropdownMenu>
@@ -284,17 +247,16 @@ export default function TeamDetail() {
                             <DropdownMenuContent align="end">
                               {isGrouped ? (
                                 <DropdownMenuItem onClick={() => setAdjustItem(item)}>
-                                  <Settings2 className="h-4 w-4 mr-2" /> Ajuste Rápido (Lote)
+                                  <Settings2 className="h-4 w-4 mr-2" /> Ajuste Lote
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem onClick={() => setUpdateItem(item)}>
-                                  <Settings2 className="h-4 w-4 mr-2" /> Editar / Reparo / Fotos
+                                  <Settings2 className="h-4 w-4 mr-2" /> Gerenciar
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => setTransferItem(item)}>
-                                <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir{' '}
-                                {isGrouped ? 'Lote' : 'Instância'}
+                                <ArrowRightLeft className="h-4 w-4 mr-2" /> Transferir
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -304,16 +266,6 @@ export default function TeamDetail() {
                   </TableRow>
                 )
               })}
-              {teamInventory.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={canManage ? 5 : 4}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    Nenhuma ferramenta alocada.
-                  </TableCell>
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </CardContent>

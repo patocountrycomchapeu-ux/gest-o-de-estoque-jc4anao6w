@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { InventoryItem } from '@/types'
-import { ArrowRightLeft } from 'lucide-react'
+import { ArrowRightLeft, ShieldAlert } from 'lucide-react'
 
 export function TransferDialog({
   item,
@@ -47,11 +47,8 @@ export function TransferDialog({
 
   const handleSave = () => {
     if (item && toTeamId) {
-      if (isGrouped) {
-        initiateTransfer(item.id, toTeamId, quantity)
-      } else {
-        initiateTransfer(item.id, toTeamId)
-      }
+      if (isGrouped) initiateTransfer(item.id, toTeamId, quantity)
+      else initiateTransfer(item.id, toTeamId)
       onOpenChange(false)
       setToTeamId('')
     }
@@ -59,6 +56,27 @@ export function TransferDialog({
 
   const otherTeams = teams.filter((t) => t.id !== teamId)
   const isInvalidQuantity = isGrouped && (quantity < 1 || quantity > (item?.quantity || 1))
+
+  if (item && item.condition !== 'good') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <ShieldAlert className="h-5 w-5" /> Transferência Bloqueada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-sm text-muted-foreground">
+            Ativos marcados como "Danificado" ou "Para Reparo" não podem ser transferidos. Eles
+            devem retornar ao status "Bom Estado" antes de serem movimentados para outra equipe.
+          </div>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -68,18 +86,14 @@ export function TransferDialog({
             <ArrowRightLeft className="h-5 w-5" /> Transferir Ferramenta
           </DialogTitle>
           <DialogDescription>
-            Inicie uma transferência de ativo. O responsável da equipe de destino deverá validar
-            visualmente o item antes do aceite final.
+            Inicie uma transferência de ativo. O status ficará como Pendente até o envio físico.
           </DialogDescription>
         </DialogHeader>
         <div className="py-6 space-y-4">
-          <div className="p-3 bg-muted/40 rounded border text-sm space-y-1 dark:border-border/50">
+          <div className="p-3 bg-muted/40 rounded border text-sm space-y-1">
             <p>
               <span className="text-muted-foreground">Instância:</span>{' '}
               {item?.hasAssetNumber ? item.assetNumber : 'Lote (S/N)'}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Status Atual:</span> Disponível para envio
             </p>
             {isGrouped && (
               <p>
@@ -88,7 +102,6 @@ export function TransferDialog({
               </p>
             )}
           </div>
-
           <div className="space-y-2">
             <Label>Equipe de Destino</Label>
             <Select value={toTeamId} onValueChange={setToTeamId}>
@@ -109,9 +122,8 @@ export function TransferDialog({
               </SelectContent>
             </Select>
           </div>
-
           {isGrouped && (
-            <div className="space-y-2 animate-fade-in">
+            <div className="space-y-2">
               <Label>Quantidade a Transferir</Label>
               <Input
                 type="number"
@@ -119,15 +131,8 @@ export function TransferDialog({
                 max={item?.quantity || 1}
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className={
-                  isInvalidQuantity ? 'border-destructive focus-visible:ring-destructive' : ''
-                }
+                className={isInvalidQuantity ? 'border-destructive' : ''}
               />
-              {isInvalidQuantity && (
-                <p className="text-xs text-destructive">
-                  A quantidade deve ser entre 1 e {item?.quantity || 1}.
-                </p>
-              )}
             </div>
           )}
         </div>

@@ -18,7 +18,7 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function RepairsPage() {
-  const { inventory, getNodePath } = useAppStore()
+  const { inventory, getNodePath, suppliers } = useAppStore()
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
 
   const repairItems = inventory.filter((i) => i.condition === 'repair')
@@ -29,26 +29,20 @@ export default function RepairsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Gestão de Reparos</h2>
         <p className="text-muted-foreground">
-          Acompanhe as ferramentas em manutenção, custos envolvidos e previsões de retorno.
+          Acompanhe as ferramentas em manutenção e fornecedores vinculados.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="bg-amber-500/5 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50">
+        <Card className="bg-amber-500/5 border-amber-200">
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-amber-800 dark:text-amber-400">
-              Total de Instâncias em Reparo
-            </div>
-            <div className="text-3xl font-bold mt-2 text-amber-900 dark:text-amber-300">
-              {repairItems.length}
-            </div>
+            <div className="text-sm font-medium text-amber-800">Instâncias em Reparo</div>
+            <div className="text-3xl font-bold mt-2 text-amber-900">{repairItems.length}</div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-800">
+        <Card className="bg-slate-50 border-slate-200">
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Custo Total Estimado (R$)
-            </div>
+            <div className="text-sm font-medium text-slate-600">Custo Total Estimado (R$)</div>
             <div className="text-3xl font-bold mt-2 tabular-nums">R$ {totalCost.toFixed(2)}</div>
           </CardContent>
         </Card>
@@ -60,7 +54,7 @@ export default function RepairsPage() {
             <Wrench className="w-5 h-5 text-amber-600" /> Ferramentas em Manutenção
           </CardTitle>
           <CardDescription>
-            Controle detalhado de envio, assistência técnica e prazos.
+            Controle detalhado de envio, assistência técnica e custos associados.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -69,8 +63,8 @@ export default function RepairsPage() {
               <TableRow>
                 <TableHead className="w-16 text-center">Foto</TableHead>
                 <TableHead>Patrimônio / Item</TableHead>
-                <TableHead>Local & Status de Envio</TableHead>
-                <TableHead>Categoria / Diagnóstico</TableHead>
+                <TableHead>Fornecedor & Envio</TableHead>
+                <TableHead>Diagnóstico</TableHead>
                 <TableHead>Custo</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -80,11 +74,12 @@ export default function RepairsPage() {
                 const path = getNodePath(item.treeNodeId)
                 const name = path.find((n) => n.level === 'item')?.name || 'Item'
                 const marca = path.find((n) => n.level === 'marca')?.name || '-'
+                const supplier = suppliers.find((s) => s.id === item.supplierId)
 
                 return (
-                  <TableRow key={item.id} className="group">
+                  <TableRow key={item.id}>
                     <TableCell className="text-center">
-                      <Avatar className="h-9 w-9 mx-auto rounded-md border">
+                      <Avatar className="h-9 w-9 mx-auto rounded border">
                         <AvatarImage src={item.photos?.[0]} className="object-cover" />
                         <AvatarFallback>
                           <Camera className="h-3 w-3 text-muted-foreground/50" />
@@ -99,29 +94,21 @@ export default function RepairsPage() {
                       <div className="text-[10px] text-muted-foreground">{marca}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm font-medium">{item.repairLocation || '-'}</div>
+                      <div className="text-sm font-medium">{supplier?.name || '-'}</div>
                       <div className="flex items-center gap-1.5 mt-1">
                         {item.repairSent ? (
-                          <span className="inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded dark:bg-blue-900/40 dark:text-blue-300">
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
                             <Send className="w-3 h-3 mr-1" /> Enviado
                           </span>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded dark:bg-amber-950/40 dark:text-amber-400">
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
                             Pendente Envio
                           </span>
                         )}
                       </div>
-                      {item.expectedReturnDate && (
-                        <div className="text-[10px] text-muted-foreground mt-1 flex items-center">
-                          Retorno prev:{' '}
-                          {format(new Date(item.expectedReturnDate), 'dd/MM/yyyy', {
-                            locale: ptBR,
-                          })}
-                        </div>
-                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50 dark:bg-muted/50">
+                      <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50">
                         {item.conditionCategory || 'Não categorizado'}
                       </div>
                       {item.repairDescription && (
@@ -133,17 +120,17 @@ export default function RepairsPage() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="tabular-nums text-sm font-medium text-slate-700 dark:text-slate-300 align-top pt-5">
+                    <TableCell className="tabular-nums text-sm font-medium pt-5">
                       R$ {item.repairCost?.toFixed(2) || '0.00'}
                     </TableCell>
-                    <TableCell className="text-right align-top pt-3">
+                    <TableCell className="text-right pt-3">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setUpdateItem(item)}
                         className="h-8"
                       >
-                        <Settings2 className="w-4 h-4 sm:mr-2" />{' '}
+                        <Settings2 className="w-4 h-4 sm:mr-2" />
                         <span className="hidden sm:inline">Gerenciar</span>
                       </Button>
                     </TableCell>

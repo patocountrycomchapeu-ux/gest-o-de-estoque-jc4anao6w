@@ -1,7 +1,8 @@
+import { useMemo } from 'react'
 import { useAppStore } from '@/store/AppStore'
 import { canManageUsers } from '@/lib/permissions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Activity, Package, Users, AlertTriangle, Wrench } from 'lucide-react'
+import { Activity, Package, DollarSign, TrendingDown, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
 import { ConditionChart } from './Dashboard/ConditionChart'
@@ -9,36 +10,70 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export default function Index() {
-  const { inventory, teams, activities, currentUser } = useAppStore()
+  const { inventory, activities, currentUser, checklists } = useAppStore()
 
   const totalUsable = inventory.filter((i) => i.condition === 'good').length
-  const damagedItems = inventory.filter((i) => i.condition === 'damaged').length
-  const repairItems = inventory.filter((i) => i.condition === 'repair').length
+
+  const kpis = useMemo(() => {
+    let value = 0
+    let maint = 0
+    inventory.forEach((i) => {
+      value += (i.price || 0) * (i.quantity || 1)
+      maint += i.repairCost || 0
+    })
+
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const recentChecklists = checklists.filter((c) => new Date(c.date) >= thirtyDaysAgo)
+
+    let totalDisc = 0
+    let totalChecked = 0
+    recentChecklists.forEach((c) => {
+      totalDisc += c.discrepancies || 0
+      totalChecked += c.totalChecked || 0
+    })
+
+    const lossRate = totalChecked > 0 ? (totalDisc / totalChecked) * 100 : 0
+
+    return { value, maint, lossRate }
+  }, [inventory, checklists])
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total de Instâncias (Em Uso)"
+          title="Total de Instâncias (Uso)"
           value={totalUsable}
           icon={Package}
           trend="Itens em bom estado"
         />
-        <StatCard title="Equipes Ativas" value={teams.length} icon={Users} />
         <StatCard
-          title="Instâncias Danificadas"
-          value={damagedItems}
-          icon={AlertTriangle}
-          critical={damagedItems > 0}
+          title="Valor do Patrimônio"
+          value={`R$ ${kpis.value.toFixed(2)}`}
+          icon={DollarSign}
+          trend="Valor total alocado"
         />
-        <StatCard title="Em Reparo" value={repairItems} icon={Wrench} warning={repairItems > 0} />
+        <StatCard
+          title="Taxa de Perda (30d)"
+          value={`${kpis.lossRate.toFixed(1)}%`}
+          icon={TrendingDown}
+          critical={kpis.lossRate > 5}
+          trend="Discrepâncias em auditorias"
+        />
+        <StatCard
+          title="Custo de Manutenção"
+          value={`R$ ${kpis.maint.toFixed(2)}`}
+          icon={Wrench}
+          warning={kpis.maint > 0}
+          trend="Total gasto em reparos"
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-1 lg:col-span-3">
           <CardHeader>
             <CardTitle>Distribuição de Estado</CardTitle>
-            <CardDescription>Visão geral das condições de todo o inventário.</CardDescription>
+            <CardDescription>Visão geral das condições do inventário.</CardDescription>
           </CardHeader>
           <CardContent>
             <ConditionChart inventory={inventory} />
@@ -70,13 +105,9 @@ export default function Index() {
                   className="flex items-start gap-4 text-sm group animate-slide-up"
                 >
                   <div
-                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'}`}
+                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}
                   >
-                    {activity.type === 'status_change' ? (
-                      <AlertTriangle className="h-3 w-3" />
-                    ) : (
-                      <Activity className="h-3 w-3" />
-                    )}
+                    <Activity className="h-3 w-3" />
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-foreground leading-snug font-medium">
@@ -105,7 +136,7 @@ export default function Index() {
 function StatCard({ title, value, icon: Icon, trend, critical, warning }: any) {
   return (
     <Card
-      className={`overflow-hidden ${critical ? 'border-destructive/50 bg-destructive/5 dark:bg-destructive/10' : warning ? 'border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/10' : ''}`}
+      className={`overflow-hidden ${critical ? 'border-destructive/50 bg-destructive/5' : warning ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react'
-import { AppState, InventoryItem, Role, TreeNode, Condition, ToolStatus } from '@/types'
+import { AppState, Role, TreeNode, Condition, ToolStatus } from '@/types'
 import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { toast } from '@/hooks/use-toast'
@@ -25,17 +25,26 @@ export function AppProvider({
     history: [],
     checklists: [],
     transfers: [],
+    suppliers: [],
   })
   const { signOut } = useAuth()
 
   useEffect(() => {
     if (!authUser) return setState((s) => ({ ...s, currentUser: null }))
     Promise.all(
-      ['profiles', 'assets', 'repairs', 'history', 'teams', 'nodes', 'transfers', 'checklists'].map(
-        (t) => supabase.from(t).select('*'),
-      ),
+      [
+        'profiles',
+        'assets',
+        'repairs',
+        'history',
+        'teams',
+        'nodes',
+        'transfers',
+        'checklists',
+        'repair_suppliers',
+      ].map((t) => supabase.from(t).select('*')),
     ).then((res) => {
-      const [profs, asts, reps, hist, tms, nds, trs, chks] = res.map((r) => r.data || [])
+      const [profs, asts, reps, hist, tms, nds, trs, chks, supps] = res.map((r) => r.data || [])
       const curr = profs.find((p) => p.id === authUser.id)
       if (!curr?.is_active) {
         signOut()
@@ -61,8 +70,14 @@ export function AppProvider({
         })),
         nodes: nds,
         teams: tms,
+        suppliers: supps.map((s) => ({
+          id: s.id,
+          name: s.name,
+          cnpj: s.cnpj,
+          currentBalance: Number(s.current_balance || 0),
+        })),
         transfers: trs.map((t) => ({
-          ...t,
+          id: t.id,
           inventoryId: t.inventory_id,
           fromTeamId: t.from_team_id,
           toTeamId: t.to_team_id,
@@ -70,8 +85,16 @@ export function AppProvider({
           initiatedAt: t.initiated_at,
           completedAt: t.completed_at,
           completedBy: t.completed_by,
+          status: t.status,
         })),
-        checklists: chks.map((c) => ({ ...c, teamId: c.team_id, leaderName: c.leader_name })),
+        checklists: chks.map((c) => ({
+          id: c.id,
+          teamId: c.team_id,
+          leaderName: c.leader_name,
+          date: c.date,
+          discrepancies: c.discrepancies,
+          totalChecked: c.total_checked,
+        })),
         history: hist.map((h) => ({
           id: h.id,
           inventoryId: h.asset_id,
@@ -98,6 +121,7 @@ export function AppProvider({
             damagedUser: a.damaged_user,
             repairCost: r?.cost,
             repairLocation: r?.location,
+            supplierId: r?.supplier_id,
             repairDescription: r?.description,
             repairUser: r?.repair_user,
             repairDate: r?.repair_date,
@@ -106,6 +130,14 @@ export function AppProvider({
             expectedReturnDate: r?.estimated_completion_date,
           }
         }),
+        activities: hist
+          .slice(0, 50)
+          .map((h) => ({
+            id: h.id,
+            date: h.timestamp,
+            description: h.description,
+            type: h.type as any,
+          })),
       }))
       if (curr.preferred_theme && curr.preferred_theme !== 'system') {
         document.documentElement.classList.remove('light', 'dark')
@@ -116,7 +148,7 @@ export function AppProvider({
 
   const logHist = (asset_id: string, type: string, desc: string, qty: number = 1) => {
     const h = {
-      id: `h_${Date.now()}_${Math.random()}`,
+      id: `h_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       asset_id,
       timestamp: new Date().toISOString(),
       type,
@@ -128,7 +160,7 @@ export function AppProvider({
     return h
   }
 
-  const addNode = (n: Omit<TreeNode, 'id'>) => {
+  const addNode = (n: any) => {
     const id = `n_${Date.now()}`
     sync('nodes', { ...n, parent_id: n.parentId, is_grouped: n.isGrouped, id })
     setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id }] }))
@@ -137,53 +169,39 @@ export function AppProvider({
   const addInventoryItem = (info: any) => {
     setState((p) => {
       const now = new Date().toISOString()
-      const isG = p.nodes.find((n) => n.id === info.treeNodeId)?.isGrouped
+      const isG = !info.hasAssetNumber
       const inv = [...p.inventory]
       const hist = [...p.history]
       if (isG) {
-        const ex = inv.find(
-          (i) =>
-            i.teamId === info.teamId &&
-            i.treeNodeId === info.treeNodeId &&
-            i.condition === info.condition &&
-            i.status === 'present',
-        )
-        if (ex) {
-          ex.quantity = (ex.quantity || 1) + info.qty
-          sync('assets', { id: ex.id, current_quantity: ex.quantity })
-        } else {
-          const id = `inv_${Date.now()}`
-          sync('assets', {
-            id,
-            team_id: info.teamId,
-            tree_node_id: info.treeNodeId,
-            condition: info.condition,
-            status: 'present',
-            current_quantity: info.qty,
-            price: info.price || 0,
-            is_batch: true,
-          })
-          inv.push({
-            id,
-            hasAssetNumber: false,
-            teamId: info.teamId,
-            treeNodeId: info.treeNodeId,
-            condition: info.condition,
-            status: 'present',
-            photos: [],
-            quantity: info.qty,
-            price: info.price || 0,
-            lastUpdated: now,
-          })
-          hist.unshift(
-            logHist(id, 'allocation', `Alocado lote com ${info.qty} un.`, info.qty) as any,
-          )
-        }
+        const id = `inv_${Date.now()}`
+        sync('assets', {
+          id,
+          team_id: info.teamId,
+          tree_node_id: info.treeNodeId,
+          condition: info.condition,
+          status: 'present',
+          current_quantity: info.qty,
+          price: info.price || 0,
+          is_batch: true,
+          photos: info.photos || [],
+        })
+        inv.push({
+          id,
+          hasAssetNumber: false,
+          teamId: info.teamId,
+          treeNodeId: info.treeNodeId,
+          condition: info.condition,
+          status: 'present',
+          photos: info.photos || [],
+          quantity: info.qty,
+          price: info.price || 0,
+          lastUpdated: now,
+        })
+        hist.unshift(logHist(id, 'allocation', `Alocado lote com ${info.qty} un.`, info.qty) as any)
       } else {
-        const total = info.hasAssetNumber ? info.assets.length : info.qty
-        Array.from({ length: total }).forEach((_, i) => {
+        Array.from({ length: info.qty }).forEach((_, i) => {
           const id = `inv_${Date.now()}_${i}`
-          const asset = info.hasAssetNumber ? info.assets[i] : null
+          const asset = info.assets[i]
           sync('assets', {
             id,
             team_id: info.teamId,
@@ -192,18 +210,19 @@ export function AppProvider({
             status: 'present',
             current_quantity: 1,
             price: info.price || 0,
-            is_batch: !info.hasAssetNumber,
+            is_batch: false,
             patrimony_number: asset,
+            photos: info.photos || [],
           })
           inv.push({
             id,
-            hasAssetNumber: info.hasAssetNumber,
+            hasAssetNumber: true,
             assetNumber: asset,
             teamId: info.teamId,
             treeNodeId: info.treeNodeId,
             condition: info.condition,
             status: 'present',
-            photos: [],
+            photos: info.photos || [],
             quantity: 1,
             price: info.price || 0,
             lastUpdated: now,
@@ -226,6 +245,7 @@ export function AppProvider({
         condition: updates.condition || it.condition,
         status: updates.status || it.status,
       })
+      let nSuppliers = p.suppliers
       if (updates.condition === 'repair' || it.condition === 'repair') {
         sync('repairs', {
           asset_id: id,
@@ -234,14 +254,26 @@ export function AppProvider({
           condition_status: updates.conditionCategory,
           cost: updates.repairCost,
           location: updates.repairLocation,
+          supplier_id: updates.supplierId,
           description: updates.reason,
           repair_user: p.currentUser?.name,
           repair_date: new Date().toISOString(),
         })
+        if (updates.repairCost > 0 && updates.supplierId) {
+          const supp = p.suppliers.find((s) => s.id === updates.supplierId)
+          if (supp) {
+            const newBal = supp.currentBalance - updates.repairCost
+            sync('repair_suppliers', { id: supp.id, current_balance: newBal })
+            nSuppliers = p.suppliers.map((s) =>
+              s.id === supp.id ? { ...s, currentBalance: newBal } : s,
+            )
+          }
+        }
       }
       return {
         ...p,
         inventory: nInv,
+        suppliers: nSuppliers,
         history: [
           logHist(id, 'status_change', `Atualizado. ${updates.reason || ''}`) as any,
           ...p.history,
@@ -291,19 +323,35 @@ export function AppProvider({
             inventoryId: tId,
             fromTeamId: it.teamId,
             toTeamId,
-            initiatedBy: p.currentUser?.name,
+            initiatedBy: p.currentUser?.name || '',
             initiatedAt: new Date().toISOString(),
             status: 'pending',
           },
           ...p.transfers,
         ],
         history: [
-          logHist(tId, 'transfer', `Transferência de ${qty || 1} un`, qty || 1) as any,
+          logHist(tId, 'transfer', `Transferência iniciada (Pendente)`) as any,
           ...p.history,
         ],
       }
     })
     toast({ title: 'Transferência iniciada' })
+  }
+
+  const sendTransfer = (trId: string) => {
+    setState((p) => {
+      sync('transfers', { id: trId, status: 'in_transit' })
+      const tr = p.transfers.find((x) => x.id === trId)
+      let nHist = p.history
+      if (tr)
+        nHist = [logHist(tr.inventoryId, 'transfer', 'Enviado (Em Trânsito)') as any, ...nHist]
+      return {
+        ...p,
+        transfers: p.transfers.map((t) => (t.id === trId ? { ...t, status: 'in_transit' } : t)),
+        history: nHist,
+      }
+    })
+    toast({ title: 'Transferência enviada' })
   }
 
   const resolveTransfer = (
@@ -342,7 +390,7 @@ export function AppProvider({
           logHist(
             tr.inventoryId,
             'transfer',
-            action === 'accept' ? 'Recebido' : 'Rejeitado',
+            action === 'accept' ? 'Recebido e Aceito' : `Rejeitado: ${notes || ''}`,
           ) as any,
           ...p.history,
         ],
@@ -351,18 +399,54 @@ export function AppProvider({
     toast({ title: 'Ação confirmada' })
   }
 
-  const updateUserRole = (id: string, role: Role) => {
-    setState((p) => ({ ...p, users: p.users.map((u) => (u.id === id ? { ...u, role } : u)) }))
-    sync('profiles', { id, role })
-    toast({ title: 'Atualizado' })
+  const addSupplier = (s: any) => {
+    const id = `supp_${Date.now()}`
+    sync('repair_suppliers', { id, name: s.name, cnpj: s.cnpj, current_balance: 0 })
+    setState((p) => ({
+      ...p,
+      suppliers: [...p.suppliers, { id, name: s.name, cnpj: s.cnpj, currentBalance: 0 }],
+    }))
+    toast({ title: 'Fornecedor criado' })
   }
-  const toggleUserStatus = (id: string) => {
+
+  const adjustSupplierBalance = (id: string, amount: number) => {
     setState((p) => {
-      const act = !p.users.find((u) => u.id === id)?.active
-      sync('profiles', { id, is_active: act })
-      return { ...p, users: p.users.map((u) => (u.id === id ? { ...u, active: act } : u)) }
+      const s = p.suppliers.find((x) => x.id === id)
+      if (!s) return p
+      const newBal = s.currentBalance + amount
+      sync('repair_suppliers', { id, current_balance: newBal })
+      return {
+        ...p,
+        suppliers: p.suppliers.map((x) => (x.id === id ? { ...x, currentBalance: newBal } : x)),
+      }
     })
-    toast({ title: 'Atualizado' })
+    toast({ title: 'Saldo atualizado' })
+  }
+
+  const submitChecklist = (
+    teamId: string,
+    leaderName: string,
+    items: any,
+    discrepancies: number,
+    totalChecked: number,
+  ) => {
+    const id = `chk_${Date.now()}`
+    sync('checklists', {
+      id,
+      team_id: teamId,
+      leader_name: leaderName,
+      date: new Date().toISOString(),
+      discrepancies,
+      total_checked: totalChecked,
+    })
+    setState((p) => ({
+      ...p,
+      checklists: [
+        ...p.checklists,
+        { id, teamId, leaderName, date: new Date().toISOString(), discrepancies, totalChecked },
+      ],
+    }))
+    toast({ title: 'Auditoria Salva' })
   }
 
   const getNodePath = (nodeId: string) => {
@@ -378,8 +462,19 @@ export function AppProvider({
     return path
   }
 
-  const adjustGroupedItem = () => {}
-  const submitChecklist = () => {}
+  const updateUserRole = (id: string, role: Role) => {
+    setState((p) => ({ ...p, users: p.users.map((u) => (u.id === id ? { ...u, role } : u)) }))
+    sync('profiles', { id, role })
+    toast({ title: 'Atualizado' })
+  }
+  const toggleUserStatus = (id: string) => {
+    setState((p) => {
+      const act = !p.users.find((u) => u.id === id)?.active
+      sync('profiles', { id, is_active: act })
+      return { ...p, users: p.users.map((u) => (u.id === id ? { ...u, active: act } : u)) }
+    })
+    toast({ title: 'Atualizado' })
+  }
   const logout = () => signOut()
 
   const val = useMemo(
@@ -389,11 +484,13 @@ export function AppProvider({
       addInventoryItem,
       updateInventoryItem,
       initiateTransfer,
+      sendTransfer,
       resolveTransfer,
       updateUserRole,
       toggleUserStatus,
       getNodePath,
-      adjustGroupedItem,
+      addSupplier,
+      adjustSupplierBalance,
       submitChecklist,
       logout,
     }),

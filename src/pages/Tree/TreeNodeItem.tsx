@@ -5,32 +5,26 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/AppStore'
 
-interface TreeNodeItemProps {
-  node: TreeNode
-  allNodes: TreeNode[]
-  onAddChild: (parentId: string, currentLevel: string) => void
-}
-
 const levelIcons: Record<string, any> = {
-  departamento: Layers,
-  secao: Folder,
-  categoria: FileBox,
+  tipo: Layers,
+  funcao: Folder,
+  especificacao: FileBox,
   item: Wrench,
   marca: Tag,
 }
 
 const nextLevel: Record<string, string> = {
-  departamento: 'secao',
-  secao: 'categoria',
-  categoria: 'item',
+  tipo: 'funcao',
+  funcao: 'especificacao',
+  especificacao: 'item',
   item: 'marca',
 }
 
-export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) {
+export function TreeNodeItem({ node, allNodes, onAddChild }: any) {
   const [isOpen, setIsOpen] = useState(false)
   const { inventory } = useAppStore()
 
-  const children = allNodes.filter((n) => n.parentId === node.id)
+  const children = allNodes.filter((n: any) => n.parentId === node.id)
   const hasChildren = children.length > 0
   const canAddChild = !!nextLevel[node.level]
   const Icon = levelIcons[node.level] || Folder
@@ -38,9 +32,9 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
   const quantity = useMemo(() => {
     const getQty = (nId: string): number => {
       const directItems = inventory.filter((i: any) => i.treeNodeId === nId)
-      const direct = directItems.reduce((sum, i) => sum + (i.quantity || 1), 0)
-      const childNodes = allNodes.filter((n) => n.parentId === nId)
-      return direct + childNodes.reduce((sum, child) => sum + getQty(child.id), 0)
+      const direct = directItems.reduce((sum: number, i: any) => sum + (i.quantity || 1), 0)
+      const childNodes = allNodes.filter((n: any) => n.parentId === nId)
+      return direct + childNodes.reduce((sum: number, child: any) => sum + getQty(child.id), 0)
     }
     return getQty(node.id)
   }, [node.id, inventory, allNodes])
@@ -75,17 +69,16 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
             {node.level}
           </span>
           {node.isGrouped && (
-            <span className="ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50">
+            <span className="ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200">
               Lote
             </span>
           )}
           {quantity > 0 && (
-            <span className="ml-2 bg-primary/10 text-primary dark:text-primary-foreground dark:bg-primary/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
+            <span className="ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
               {quantity}
             </span>
           )}
         </div>
-
         {canAddChild && (
           <Button
             variant="ghost"
@@ -95,16 +88,14 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
               e.stopPropagation()
               onAddChild(node.id, node.level)
             }}
-            title={`Adicionar ${nextLevel[node.level]}`}
           >
             <Plus className="h-3 w-3" />
           </Button>
         )}
       </div>
-
       {isOpen && hasChildren && (
         <div className="ml-5 mt-1 border-l border-border/50 pl-3 space-y-1 animate-slide-down origin-top">
-          {children.map((child) => (
+          {children.map((child: any) => (
             <TreeNodeItem key={child.id} node={child} allNodes={allNodes} onAddChild={onAddChild} />
           ))}
         </div>

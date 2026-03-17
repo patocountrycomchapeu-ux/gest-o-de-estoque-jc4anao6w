@@ -45,7 +45,6 @@ export function ReceiveDialog({
     onOpenChange(false)
     setNotes('')
   }
-
   const handleReject = () => {
     if (transfer) resolveTransfer(transfer.id, 'reject', undefined, notes)
     onOpenChange(false)
@@ -60,69 +59,41 @@ export function ReceiveDialog({
         <DialogHeader>
           <DialogTitle>Validação de Recebimento</DialogTitle>
           <DialogDescription>
-            Inspecione a ferramenta fisicamente e confronte com as evidências do remetente.
+            Inspecione a ferramenta fisicamente antes de aceitar.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-5">
-          <div className="p-3 bg-muted/40 rounded-md text-sm border space-y-1">
+        <div className="py-4 space-y-4">
+          <div className="p-3 bg-muted/40 rounded border text-sm space-y-1">
             <p>
               <span className="font-medium text-muted-foreground w-20 inline-block">Item:</span>{' '}
-              {item.hasAssetNumber ? item.assetNumber : 'Lote (S/N)'}{' '}
-              {!item.hasAssetNumber && (
-                <span className="text-xs bg-muted px-1.5 py-0.5 rounded ml-2 dark:bg-muted/50">
-                  {item.quantity} un.
-                </span>
-              )}
+              {item.hasAssetNumber ? item.assetNumber : 'Lote'}
             </p>
             <p>
               <span className="font-medium text-muted-foreground w-20 inline-block">
                 Enviado por:
               </span>{' '}
-              {transfer?.initiatedBy}
+              {transfer?.initiatedBy || '-'}
             </p>
           </div>
-
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">Evidências do Remetente</Label>
-            {item.photos && item.photos.length > 0 ? (
-              <div className="grid grid-cols-3 gap-2">
-                {item.photos.map((p, i) => (
-                  <img
-                    key={i}
-                    src={p}
-                    alt="Evidência"
-                    className="rounded-md w-full aspect-square object-cover border"
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 border border-dashed rounded-md text-center text-muted-foreground text-sm flex items-center justify-center bg-muted/20">
-                <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" /> Nenhuma foto fornecida
-                pelo remetente.
-              </div>
-            )}
-          </div>
-
           <div className="space-y-3 pt-2 border-t">
             <div className="space-y-2">
-              <Label>Estado de Conservação Verificado (Obrigatório)</Label>
+              <Label>Estado Verificado</Label>
               <Select value={condition} onValueChange={(v: Condition) => setCondition(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="good">Confirmar: Bom Estado</SelectItem>
-                  <SelectItem value="damaged">Confirmar: Danificado</SelectItem>
-                  <SelectItem value="repair">Confirmar: Para Reparo</SelectItem>
+                  <SelectItem value="good">Bom Estado</SelectItem>
+                  <SelectItem value="damaged">Danificado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Observações ou Motivo de Rejeição</Label>
+              <Label>Observações / Rejeição</Label>
               <Input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Descreva qualquer inconsistência..."
+                placeholder="Motivo se for rejeitar..."
               />
             </div>
           </div>
@@ -130,17 +101,17 @@ export function ReceiveDialog({
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
-            className="text-destructive border-destructive/30 hover:bg-destructive/10 sm:w-1/2"
+            className="text-destructive sm:w-1/2"
             onClick={handleReject}
             disabled={!notes.trim()}
           >
-            <XCircle className="h-4 w-4 mr-2" /> Rejeitar Transferência
+            <XCircle className="h-4 w-4 mr-2" /> Rejeitar
           </Button>
           <Button
             onClick={handleAccept}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2 dark:bg-emerald-700 dark:hover:bg-emerald-800"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2"
           >
-            <CheckCircle2 className="h-4 w-4 mr-2" /> Receber e Confirmar
+            <CheckCircle2 className="h-4 w-4 mr-2" /> Confirmar
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -6,25 +6,30 @@ export type ToolStatus =
   | 'in_maintenance'
   | 'defect_stock'
   | 'returned_to_team'
-export type TreeLevel = 'departamento' | 'secao' | 'categoria' | 'item' | 'marca'
+export type TreeLevel = 'tipo' | 'funcao' | 'especificacao' | 'item' | 'marca'
 export type Role = 'Gestor' | 'Encarregado Gestor' | 'Encarregado' | 'Analista' | 'Visualizador'
 
 export interface User {
   id: string
   name: string
   email: string
-  password?: string
   role: Role
   teamId?: string
   active: boolean
 }
-
 export interface TreeNode {
   id: string
   name: string
   level: TreeLevel
   parentId: string | null
   isGrouped?: boolean
+}
+
+export interface RepairSupplier {
+  id: string
+  name: string
+  cnpj: string
+  currentBalance: number
 }
 
 export interface InventoryItem {
@@ -40,6 +45,7 @@ export interface InventoryItem {
   lastUpdated: string
   price?: number
   repairCost?: number
+  supplierId?: string
   repairLocation?: string
   repairDescription?: string
   repairUser?: string
@@ -58,14 +64,12 @@ export interface Team {
   description: string
   location: string
 }
-
 export interface Activity {
   id: string
   date: string
   description: string
   type: 'allocation' | 'status_change' | 'system'
 }
-
 export interface ToolHistoryEvent {
   id: string
   inventoryId: string
@@ -74,15 +78,14 @@ export interface ToolHistoryEvent {
   description: string
   user: string
 }
-
 export interface Checklist {
   id: string
   teamId: string
   date: string
   leaderName: string
   discrepancies: number
+  totalChecked?: number
 }
-
 export interface Transfer {
   id: string
   inventoryId: string
@@ -90,11 +93,10 @@ export interface Transfer {
   toTeamId: string
   initiatedBy: string
   initiatedAt: string
-  status: 'pending' | 'completed' | 'rejected'
+  status: 'pending' | 'in_transit' | 'completed' | 'rejected'
   completedAt?: string
   completedBy?: string
 }
-
 export interface AppState {
   users: User[]
   currentUser: User | null
@@ -105,4 +107,5 @@ export interface AppState {
   history: ToolHistoryEvent[]
   checklists: Checklist[]
   transfers: Transfer[]
+  suppliers: RepairSupplier[]
 }
