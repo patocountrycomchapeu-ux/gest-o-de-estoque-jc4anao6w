@@ -21,6 +21,12 @@ export const canViewTeams = (user: User | null) => {
   return ['Gestor', 'Encarregado Gestor', 'Encarregado', 'Analista'].includes(user.role)
 }
 
+export const canViewTeam = (user: User | null, teamId: string) => {
+  if (!user) return false
+  if (['Gestor', 'Encarregado Gestor'].includes(user.role)) return true
+  return user.teamId === teamId
+}
+
 export const canManageTeam = (user: User | null, teamId: string) => {
   if (!user) return false
   if (['Gestor', 'Encarregado Gestor'].includes(user.role)) return true
