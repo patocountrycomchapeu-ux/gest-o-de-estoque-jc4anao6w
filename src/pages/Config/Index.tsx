@@ -20,13 +20,20 @@ import {
 import { Role } from '@/types'
 import { canManageUsers } from '@/lib/permissions'
 import { Navigate } from 'react-router-dom'
+import { supabase } from '@/lib/supabase/client'
 
 export default function ConfigPage() {
   const { users, currentUser, toggleUserStatus, updateUserRole } = useAppStore()
   const { theme, setTheme } = useTheme()
 
-  if (!canManageUsers(currentUser)) {
-    return <Navigate to="/" replace />
+  if (!canManageUsers(currentUser)) return <Navigate to="/" replace />
+
+  const handleThemeChange = async (c: boolean) => {
+    const t = c ? 'dark' : 'light'
+    setTheme(t)
+    if (currentUser) {
+      await supabase.from('profiles').update({ preferred_theme: t }).eq('id', currentUser.id)
+    }
   }
 
   return (
@@ -37,7 +44,6 @@ export default function ConfigPage() {
           Gerencie acessos de usuários e preferências do sistema.
         </p>
       </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Preferências do Sistema</CardTitle>
@@ -50,14 +56,10 @@ export default function ConfigPage() {
                 Alterne a aparência do sistema entre tema claro e escuro.
               </div>
             </div>
-            <Switch
-              checked={theme === 'dark'}
-              onCheckedChange={(c) => setTheme(c ? 'dark' : 'light')}
-            />
+            <Switch checked={theme === 'dark'} onCheckedChange={handleThemeChange} />
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Gestão de Usuários</CardTitle>
@@ -75,7 +77,7 @@ export default function ConfigPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((u) => (
+              {users.map((u: any) => (
                 <TableRow key={u.id}>
                   <TableCell>
                     <div className="font-medium text-sm">{u.name}</div>

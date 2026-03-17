@@ -14,11 +14,13 @@ import AuditoriaPage from './pages/Teams/Auditoria'
 import ReportsPage from './pages/Reports/Index'
 import RepairsPage from './pages/Repairs/Index'
 import ConfigPage from './pages/Config/Index'
-import { AppProvider, useAppStore } from './store/AppStore'
+import { AppProvider } from './store/AppStore'
+import { AuthProvider, useAuth } from './hooks/use-auth'
 
 function ProtectedRoute() {
-  const currentUser = useAppStore((s) => s.currentUser)
-  if (!currentUser) return <Navigate to="/login" replace />
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
@@ -41,9 +43,11 @@ const AppRoutes = () => (
   </Routes>
 )
 
-const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <AppProvider>
+const AppWithAuth = () => {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  return (
+    <AppProvider authUser={user}>
       <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
         <TooltipProvider>
           <Toaster />
@@ -52,6 +56,14 @@ const App = () => (
         </TooltipProvider>
       </BrowserRouter>
     </AppProvider>
+  )
+}
+
+const App = () => (
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <AuthProvider>
+      <AppWithAuth />
+    </AuthProvider>
   </ThemeProvider>
 )
 

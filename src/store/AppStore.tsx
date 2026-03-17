@@ -1,695 +1,405 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
-import { AppState, TreeNode, Condition, ToolStatus, Checklist, InventoryItem, Role } from '@/types'
-import { initialData } from './mockData'
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react'
+import { AppState, InventoryItem, Role, TreeNode, Condition, ToolStatus } from '@/types'
+import { supabase } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
 import { toast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
 
-interface AddInventoryPayload {
-  teamId: string
-  treeNodeId: string
-  condition: Condition
-  hasAssetNumber: boolean
-  assets: string[]
-  qty: number
-  price?: number
-}
+export const AppContext = createContext<any>(undefined)
+const sync = (t: string, d: any) => supabase.from(t).upsert(d).then()
 
-interface UpdateInventoryPayload {
-  condition?: Condition
-  status?: ToolStatus
-  hasAssetNumber?: boolean
-  assetNumber?: string
-  photos?: string[]
-  reason?: string
-  repairCost?: number
-  repairLocation?: string
-  conditionCategory?: string
-  repairSent?: boolean
-  expectedReturnDate?: string
-}
-
-interface AppContextType extends AppState {
-  login: (email: string) => void
-  verifyOtp: (email: string, otp: string) => 'success' | 'invalid' | 'inactive'
-  logout: () => void
-  addNode: (node: Omit<TreeNode, 'id'>) => void
-  addInventoryItem: (item: AddInventoryPayload) => void
-  updateInventoryItem: (id: string, updates: UpdateInventoryPayload) => void
-  adjustGroupedItem: (
-    id: string,
-    removeQty: number,
-    reason: string,
-    destStatus: ToolStatus | 'removed',
-    destCondition: Condition,
-  ) => void
-  submitChecklist: (
-    teamId: string,
-    leaderName: string,
-    items: Record<string, { status: ToolStatus; notes: string }>,
-    extra: { assetNumber: string; notes: string; treeNodeId: string; photo: string }[],
-  ) => void
-  getNodePath: (nodeId: string) => TreeNode[]
-  initiateTransfer: (inventoryId: string, toTeamId: string, quantity?: number) => void
-  resolveTransfer: (
-    trId: string,
-    action: 'accept' | 'reject',
-    cond?: Condition,
-    notes?: string,
-  ) => void
-  updateUserRole: (id: string, role: Role) => void
-  toggleUserStatus: (id: string) => void
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined)
-
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(() => {
-    const savedUserId = localStorage.getItem('auth_user')
-    const initUser = initialData.users.find((u) => u.id === savedUserId) || null
-    return { ...initialData, currentUser: initUser }
+export function AppProvider({
+  children,
+  authUser,
+}: {
+  children: React.ReactNode
+  authUser: User | null
+}) {
+  const [state, setState] = useState<AppState>({
+    users: [],
+    currentUser: null,
+    nodes: [],
+    teams: [],
+    inventory: [],
+    activities: [],
+    history: [],
+    checklists: [],
+    transfers: [],
   })
+  const { signOut } = useAuth()
 
-  const login = useCallback((email: string) => {
-    // Simulated magic link / OTP sending
-  }, [])
-
-  const verifyOtp = useCallback(
-    (email: string, otp: string): 'success' | 'invalid' | 'inactive' => {
-      if (otp !== '123456') return 'invalid'
-
-      let result: 'success' | 'inactive' = 'success'
-
-      setState((prev) => {
-        let user = prev.users.find((u) => u.email === email)
-        if (!user) {
-          user = {
-            id: `u_${Date.now()}`,
-            name: email.split('@')[0],
-            email,
-            role: 'Visualizador',
-            active: true,
-          }
-          localStorage.setItem('auth_user', user.id)
-          return { ...prev, currentUser: user, users: [...prev.users, user] }
-        }
-
-        if (!user.active) {
-          result = 'inactive'
-          return prev
-        }
-
-        localStorage.setItem('auth_user', user.id)
-        return { ...prev, currentUser: user }
-      })
-
-      if (result === 'success') {
-        toast({ title: 'Acesso validado com sucesso' })
+  useEffect(() => {
+    if (!authUser) return setState((s) => ({ ...s, currentUser: null }))
+    Promise.all(
+      ['profiles', 'assets', 'repairs', 'history', 'teams', 'nodes', 'transfers', 'checklists'].map(
+        (t) => supabase.from(t).select('*'),
+      ),
+    ).then((res) => {
+      const [profs, asts, reps, hist, tms, nds, trs, chks] = res.map((r) => r.data || [])
+      const curr = profs.find((p) => p.id === authUser.id)
+      if (!curr?.is_active) {
+        signOut()
+        return toast({ title: 'Acesso negado', description: 'Conta inativa.' })
       }
-      return result
-    },
-    [],
-  )
+      setState((p) => ({
+        ...p,
+        currentUser: {
+          id: curr.id,
+          name: curr.full_name,
+          email: curr.email,
+          role: curr.role,
+          active: curr.is_active,
+          teamId: curr.team_id,
+        },
+        users: profs.map((p) => ({
+          id: p.id,
+          name: p.full_name,
+          email: p.email,
+          role: p.role,
+          active: p.is_active,
+          teamId: p.team_id,
+        })),
+        nodes: nds,
+        teams: tms,
+        transfers: trs.map((t) => ({
+          ...t,
+          inventoryId: t.inventory_id,
+          fromTeamId: t.from_team_id,
+          toTeamId: t.to_team_id,
+          initiatedBy: t.initiated_by,
+          initiatedAt: t.initiated_at,
+          completedAt: t.completed_at,
+          completedBy: t.completed_by,
+        })),
+        checklists: chks.map((c) => ({ ...c, teamId: c.team_id, leaderName: c.leader_name })),
+        history: hist.map((h) => ({
+          id: h.id,
+          inventoryId: h.asset_id,
+          date: h.timestamp,
+          type: h.type,
+          description: h.description,
+          user: h.user_name,
+          quantity: h.quantity,
+        })),
+        inventory: asts.map((a) => {
+          const r = reps.find((x) => x.asset_id === a.id)
+          return {
+            id: a.id,
+            hasAssetNumber: !a.is_batch,
+            assetNumber: a.patrimony_number,
+            teamId: a.team_id,
+            treeNodeId: a.tree_node_id,
+            condition: a.condition,
+            status: a.status,
+            photos: a.photos,
+            price: a.price,
+            quantity: a.current_quantity,
+            damagedDate: a.damaged_date,
+            damagedUser: a.damaged_user,
+            repairCost: r?.cost,
+            repairLocation: r?.location,
+            repairDescription: r?.description,
+            repairUser: r?.repair_user,
+            repairDate: r?.repair_date,
+            conditionCategory: r?.condition_status,
+            repairSent: r?.is_sent,
+            expectedReturnDate: r?.estimated_completion_date,
+          }
+        }),
+      }))
+      if (curr.preferred_theme && curr.preferred_theme !== 'system') {
+        document.documentElement.classList.remove('light', 'dark')
+        document.documentElement.classList.add(curr.preferred_theme)
+      }
+    })
+  }, [authUser])
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth_user')
-    setState((p) => ({ ...p, currentUser: null }))
-  }, [])
+  const logHist = (asset_id: string, type: string, desc: string, qty: number = 1) => {
+    const h = {
+      id: `h_${Date.now()}_${Math.random()}`,
+      asset_id,
+      timestamp: new Date().toISOString(),
+      type,
+      description: desc,
+      user_name: state.currentUser?.name,
+      quantity: qty,
+    }
+    sync('history', h)
+    return h
+  }
 
-  const updateUserRole = useCallback((id: string, role: Role) => {
-    setState((prev) => ({
-      ...prev,
-      users: prev.users.map((u) => (u.id === id ? { ...u, role } : u)),
-    }))
-    toast({ title: 'Papel atualizado com sucesso' })
-  }, [])
+  const addNode = (n: Omit<TreeNode, 'id'>) => {
+    const id = `n_${Date.now()}`
+    sync('nodes', { ...n, parent_id: n.parentId, is_grouped: n.isGrouped, id })
+    setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id }] }))
+  }
 
-  const toggleUserStatus = useCallback((id: string) => {
-    setState((prev) => ({
-      ...prev,
-      users: prev.users.map((u) => (u.id === id ? { ...u, active: !u.active } : u)),
-    }))
-    toast({ title: 'Status do usuário atualizado' })
-  }, [])
-
-  const addNode = useCallback((n: Omit<TreeNode, 'id'>) => {
-    setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id: `n_${Date.now()}` }] }))
-  }, [])
-
-  const addInventoryItem = useCallback((info: AddInventoryPayload) => {
-    setState((prev) => {
+  const addInventoryItem = (info: any) => {
+    setState((p) => {
       const now = new Date().toISOString()
-      const node = prev.nodes.find((n) => n.id === info.treeNodeId)
-      const isGrouped = node?.isGrouped
-
-      if (isGrouped) {
-        const existingIdx = prev.inventory.findIndex(
+      const isG = p.nodes.find((n) => n.id === info.treeNodeId)?.isGrouped
+      const inv = [...p.inventory]
+      const hist = [...p.history]
+      if (isG) {
+        const ex = inv.find(
           (i) =>
             i.teamId === info.teamId &&
             i.treeNodeId === info.treeNodeId &&
             i.condition === info.condition &&
             i.status === 'present',
         )
-
-        const newHistory = [...prev.history]
-        const newInventory = [...prev.inventory]
-
-        if (existingIdx >= 0) {
-          const ex = newInventory[existingIdx]
-          newInventory[existingIdx] = {
-            ...ex,
-            quantity: (ex.quantity || 1) + info.qty,
-            lastUpdated: now,
-          }
-          newHistory.unshift({
-            id: `h_${Date.now()}`,
-            inventoryId: ex.id,
-            date: now,
-            type: 'allocation',
-            description: `Adicionado ${info.qty} unidades ao lote.`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
+        if (ex) {
+          ex.quantity = (ex.quantity || 1) + info.qty
+          sync('assets', { id: ex.id, current_quantity: ex.quantity })
         } else {
-          const newId = `inv_${Date.now()}_0`
-          newInventory.push({
-            id: newId,
+          const id = `inv_${Date.now()}`
+          sync('assets', {
+            id,
+            team_id: info.teamId,
+            tree_node_id: info.treeNodeId,
+            condition: info.condition,
+            status: 'present',
+            current_quantity: info.qty,
+            price: info.price || 0,
+            is_batch: true,
+          })
+          inv.push({
+            id,
             hasAssetNumber: false,
             teamId: info.teamId,
             treeNodeId: info.treeNodeId,
             condition: info.condition,
             status: 'present',
             photos: [],
-            lastUpdated: now,
-            price: info.price || 0,
             quantity: info.qty,
-          })
-          newHistory.unshift({
-            id: `h_${Date.now()}`,
-            inventoryId: newId,
-            date: now,
-            type: 'allocation',
-            description: `Alocado lote com ${info.qty} unidades.`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
-        }
-
-        return { ...prev, inventory: newInventory, history: newHistory }
-      }
-
-      const total = info.hasAssetNumber ? info.assets.length : info.qty
-      const newItems = Array.from({ length: total }).map((_, i) => ({
-        id: `inv_${Date.now()}_${i}`,
-        hasAssetNumber: info.hasAssetNumber,
-        assetNumber: info.hasAssetNumber ? info.assets[i] : undefined,
-        teamId: info.teamId,
-        treeNodeId: info.treeNodeId,
-        condition: info.condition,
-        status: 'present' as ToolStatus,
-        photos: [],
-        lastUpdated: now,
-        price: info.price || 0,
-        quantity: 1,
-      }))
-      const newHistory = newItems.map((item) => ({
-        id: `h_${Date.now()}_${item.id}`,
-        inventoryId: item.id,
-        date: now,
-        type: 'allocation' as const,
-        description: `Alocado ${item.hasAssetNumber ? `com patrimônio ${item.assetNumber}` : 'sem patrimônio'}`,
-        user: prev.currentUser?.name || 'Sistema',
-      }))
-      return {
-        ...prev,
-        inventory: [...prev.inventory, ...newItems],
-        history: [...newHistory, ...prev.history],
-      }
-    })
-    toast({ title: 'Instâncias Alocadas', description: 'Salvas com sucesso.' })
-  }, [])
-
-  const updateInventoryItem = useCallback((id: string, updates: UpdateInventoryPayload) => {
-    setState((prev) => {
-      const now = new Date().toISOString()
-      const item = prev.inventory.find((i) => i.id === id)
-      if (!item) return prev
-
-      const newHistory = []
-      let extraItemUpdates: Partial<InventoryItem> = {}
-
-      if (updates.repairCost !== undefined) extraItemUpdates.repairCost = updates.repairCost
-      if (updates.repairLocation !== undefined)
-        extraItemUpdates.repairLocation = updates.repairLocation
-      if (updates.conditionCategory !== undefined)
-        extraItemUpdates.conditionCategory = updates.conditionCategory
-      if (updates.repairSent !== undefined) extraItemUpdates.repairSent = updates.repairSent
-      if (updates.expectedReturnDate !== undefined)
-        extraItemUpdates.expectedReturnDate = updates.expectedReturnDate
-
-      if (updates.condition && updates.condition !== item.condition) {
-        const isToRepair = updates.condition === 'repair'
-        const isToDamaged = updates.condition === 'damaged'
-
-        let desc = `Condição alterada de ${item.condition} para ${updates.condition}.`
-        if (updates.reason) desc += ` Motivo: ${updates.reason}.`
-        if (updates.conditionCategory) desc += ` Categoria: ${updates.conditionCategory}.`
-
-        if (isToRepair) {
-          extraItemUpdates.repairDescription = updates.reason
-          extraItemUpdates.repairUser = prev.currentUser?.name || 'Sistema'
-          extraItemUpdates.repairDate = now
-          if (updates.repairLocation) desc += ` Local: ${updates.repairLocation}.`
-          if (updates.repairCost !== undefined) desc += ` Custo: R$${updates.repairCost}.`
-        } else if (item.condition === 'repair') {
-          extraItemUpdates.repairCost = undefined
-          extraItemUpdates.repairLocation = undefined
-          extraItemUpdates.repairDescription = undefined
-          extraItemUpdates.repairUser = undefined
-          extraItemUpdates.repairDate = undefined
-          extraItemUpdates.repairSent = undefined
-          extraItemUpdates.expectedReturnDate = undefined
-        }
-
-        if (isToDamaged) {
-          extraItemUpdates.damagedDate = now
-          extraItemUpdates.damagedUser = prev.currentUser?.name || 'Sistema'
-        } else if (item.condition === 'damaged') {
-          extraItemUpdates.damagedDate = undefined
-          extraItemUpdates.damagedUser = undefined
-        }
-
-        newHistory.push({
-          id: `h_${Date.now()}_cond`,
-          inventoryId: id,
-          date: now,
-          type: 'status_change' as const,
-          description: desc,
-          user: prev.currentUser?.name || 'Sistema',
-        })
-      }
-
-      if (!updates.condition || updates.condition === item.condition) {
-        if (
-          item.condition === 'repair' &&
-          (updates.repairCost !== undefined ||
-            updates.repairLocation !== undefined ||
-            updates.repairSent !== undefined ||
-            updates.expectedReturnDate !== undefined ||
-            updates.conditionCategory !== undefined)
-        ) {
-          let updatedFields = []
-          if (updates.repairCost !== undefined && updates.repairCost !== item.repairCost)
-            updatedFields.push(`Custo para R$${updates.repairCost}`)
-          if (
-            updates.repairLocation !== undefined &&
-            updates.repairLocation !== item.repairLocation
-          )
-            updatedFields.push(`Local para ${updates.repairLocation}`)
-          if (updates.repairSent !== undefined && updates.repairSent !== item.repairSent)
-            updatedFields.push(`Envio alterado: ${updates.repairSent ? 'Enviado' : 'Pendente'}`)
-          if (
-            updates.expectedReturnDate !== undefined &&
-            updates.expectedReturnDate !== item.expectedReturnDate
-          )
-            updatedFields.push(`Retorno para ${updates.expectedReturnDate}`)
-          if (
-            updates.conditionCategory !== undefined &&
-            updates.conditionCategory !== item.conditionCategory
-          )
-            updatedFields.push(`Categoria para ${updates.conditionCategory}`)
-
-          if (updatedFields.length > 0) {
-            newHistory.push({
-              id: `h_${Date.now()}_repair_upd`,
-              inventoryId: id,
-              date: now,
-              type: 'status_change' as const,
-              description: `Atualização de Reparo: ${updatedFields.join(', ')}.${updates.reason ? ` Obs: ${updates.reason}` : ''}`,
-              user: prev.currentUser?.name || 'Sistema',
-            })
-          }
-        } else if (
-          item.condition === 'damaged' &&
-          updates.conditionCategory !== undefined &&
-          updates.conditionCategory !== item.conditionCategory
-        ) {
-          newHistory.push({
-            id: `h_${Date.now()}_dmg_upd`,
-            inventoryId: id,
-            date: now,
-            type: 'status_change' as const,
-            description: `Categoria de Dano atualizada para ${updates.conditionCategory}.${updates.reason ? ` Obs: ${updates.reason}` : ''}`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
-        }
-      }
-
-      if (updates.status && updates.status !== item.status) {
-        const statusLabels: Record<string, string> = {
-          present: 'Em Uso na Equipe',
-          missing: 'Faltando / Extraviado',
-          borrowed: 'Emprestado',
-          in_maintenance: 'Em Manutenção',
-          defect_stock: 'Estoque de Defeito',
-          returned_to_team: 'Devolvido para a Equipe',
-        }
-        newHistory.push({
-          id: `h_${Date.now()}_status`,
-          inventoryId: id,
-          date: now,
-          type: 'status_change' as const,
-          description: `Destino/Status alterado para ${statusLabels[updates.status] || updates.status}${updates.reason ? `. Motivo/Observação: ${updates.reason}` : ''}`,
-          user: prev.currentUser?.name || 'Sistema',
-        })
-      }
-
-      return {
-        ...prev,
-        inventory: prev.inventory.map((inv) =>
-          inv.id === id ? { ...inv, ...updates, ...extraItemUpdates, lastUpdated: now } : inv,
-        ),
-        history: [...newHistory, ...prev.history],
-      }
-    })
-    toast({ title: 'Item Atualizado e Registrado no Histórico' })
-  }, [])
-
-  const adjustGroupedItem = useCallback(
-    (
-      id: string,
-      removeQty: number,
-      reason: string,
-      destStatus: ToolStatus | 'removed',
-      destCondition: Condition,
-    ) => {
-      setState((prev) => {
-        const item = prev.inventory.find((i) => i.id === id)
-        if (!item || (item.quantity || 1) < removeQty) return prev
-
-        const now = new Date().toISOString()
-        const newHistory = [...prev.history]
-        const newInventory = [...prev.inventory]
-
-        const itemIndex = newInventory.findIndex((i) => i.id === id)
-        const newQty = (item.quantity || 1) - removeQty
-
-        if (newQty === 0 && destStatus === 'removed') {
-          newInventory.splice(itemIndex, 1)
-        } else {
-          newInventory[itemIndex] = { ...item, quantity: newQty, lastUpdated: now }
-        }
-
-        newHistory.unshift({
-          id: `h_${Date.now()}_adj1`,
-          inventoryId: id,
-          date: now,
-          type: 'status_change',
-          description: `Ajuste de Lote: Removidas ${removeQty} un. Destino: ${destStatus === 'removed' ? 'Baixa' : destStatus}. Motivo: ${reason}`,
-          user: prev.currentUser?.name || 'Sistema',
-        })
-
-        if (destStatus !== 'removed') {
-          const existingDestIdx = newInventory.findIndex(
-            (i) =>
-              i.teamId === item.teamId &&
-              i.treeNodeId === item.treeNodeId &&
-              i.condition === destCondition &&
-              i.status === destStatus &&
-              i.hasAssetNumber === false,
-          )
-
-          if (existingDestIdx >= 0) {
-            const ex = newInventory[existingDestIdx]
-            newInventory[existingDestIdx] = {
-              ...ex,
-              quantity: (ex.quantity || 1) + removeQty,
-              lastUpdated: now,
-            }
-            newHistory.unshift({
-              id: `h_${Date.now()}_adj2`,
-              inventoryId: ex.id,
-              date: now,
-              type: 'status_change',
-              description: `Recebido ${removeQty} un. do ajuste. Motivo: ${reason}`,
-              user: prev.currentUser?.name || 'Sistema',
-            })
-          } else {
-            const newId = `inv_dest_${Date.now()}`
-            newInventory.push({
-              ...item,
-              id: newId,
-              condition: destCondition,
-              status: destStatus as ToolStatus,
-              quantity: removeQty,
-              lastUpdated: now,
-              photos: [],
-            })
-            newHistory.unshift({
-              id: `h_${Date.now()}_adj3`,
-              inventoryId: newId,
-              date: now,
-              type: 'allocation',
-              description: `Lote criado por ajuste (${removeQty} un). Motivo: ${reason}`,
-              user: prev.currentUser?.name || 'Sistema',
-            })
-          }
-        }
-
-        return { ...prev, inventory: newInventory, history: newHistory }
-      })
-      toast({ title: 'Ajuste Realizado', description: 'Quantidades atualizadas com sucesso.' })
-    },
-    [],
-  )
-
-  const initiateTransfer = useCallback(
-    (inventoryId: string, toTeamId: string, quantity?: number) => {
-      setState((prev) => {
-        const item = prev.inventory.find((i) => i.id === inventoryId)
-        if (!item) return prev
-
-        let transferInventoryId = inventoryId
-        const newInventory = [...prev.inventory]
-        const newHistory = [...prev.history]
-
-        if (quantity && item.quantity && quantity < item.quantity) {
-          const originalIndex = newInventory.findIndex((i) => i.id === inventoryId)
-          newInventory[originalIndex] = { ...item, quantity: item.quantity - quantity }
-
-          transferInventoryId = `inv_${Date.now()}_split`
-          const splitItem = { ...item, id: transferInventoryId, quantity }
-          newInventory.push(splitItem)
-
-          newHistory.unshift({
-            id: `h_${Date.now()}_split`,
-            inventoryId: transferInventoryId,
-            date: new Date().toISOString(),
-            type: 'system',
-            description: `Lote dividido para transferência (${quantity} un).`,
-            user: prev.currentUser?.name || 'Sistema',
-          })
-        }
-
-        const transfer = {
-          id: `tr_${Date.now()}`,
-          inventoryId: transferInventoryId,
-          fromTeamId: item.teamId,
-          toTeamId,
-          initiatedBy: prev.currentUser?.name || 'Sistema',
-          initiatedAt: new Date().toISOString(),
-          status: 'pending' as const,
-        }
-        return {
-          ...prev,
-          inventory: newInventory,
-          transfers: [transfer, ...prev.transfers],
-          history: newHistory,
-        }
-      })
-      toast({
-        title: 'Transferência Iniciada',
-        description: 'Aguardando validação da equipe de destino.',
-      })
-    },
-    [],
-  )
-
-  const resolveTransfer = useCallback(
-    (trId: string, action: 'accept' | 'reject', cond?: Condition, notes?: string) => {
-      setState((prev) => {
-        const tr = prev.transfers.find((t) => t.id === trId)
-        if (!tr) return prev
-        const now = new Date().toISOString()
-        const isAccept = action === 'accept'
-        const desc = isAccept
-          ? `Transferência recebida. Estado confirmado: ${cond}`
-          : `Transferência rejeitada. Motivo: ${notes}`
-
-        const transferredItem = prev.inventory.find((i) => i.id === tr.inventoryId)
-        let newInventory = [...prev.inventory]
-        let merged = false
-
-        if (isAccept && transferredItem && !transferredItem.hasAssetNumber) {
-          const finalCondition = cond || transferredItem.condition
-          const existingIdx = newInventory.findIndex(
-            (i) =>
-              i.id !== transferredItem.id &&
-              i.teamId === tr.toTeamId &&
-              i.treeNodeId === transferredItem.treeNodeId &&
-              i.condition === finalCondition &&
-              i.status === transferredItem.status &&
-              !i.hasAssetNumber,
-          )
-
-          if (existingIdx >= 0) {
-            const ex = newInventory[existingIdx]
-            newInventory[existingIdx] = {
-              ...ex,
-              quantity: (ex.quantity || 1) + (transferredItem.quantity || 1),
-              lastUpdated: now,
-            }
-            newInventory = newInventory.filter((i) => i.id !== transferredItem.id)
-            merged = true
-          }
-        }
-
-        if (!merged) {
-          newInventory = newInventory.map((i) =>
-            i.id === tr.inventoryId
-              ? {
-                  ...i,
-                  teamId: isAccept ? tr.toTeamId : i.teamId,
-                  condition: isAccept && cond ? cond : i.condition,
-                  lastUpdated: now,
-                }
-              : i,
-          )
-        }
-
-        return {
-          ...prev,
-          transfers: prev.transfers.map((t) =>
-            t.id === trId
-              ? {
-                  ...t,
-                  status: isAccept ? 'completed' : 'rejected',
-                  completedAt: now,
-                  completedBy: prev.currentUser?.name || 'Sistema',
-                }
-              : t,
-          ),
-          inventory: newInventory,
-          history: [
-            {
-              id: `h_${Date.now()}`,
-              inventoryId: tr.inventoryId,
-              date: now,
-              type: 'transfer' as const,
-              description: desc,
-              user: prev.currentUser?.name || 'Sistema',
-            },
-            ...prev.history,
-          ],
-        }
-      })
-      toast({ title: action === 'accept' ? 'Recebimento Confirmado' : 'Transferência Rejeitada' })
-    },
-    [],
-  )
-
-  const submitChecklist = useCallback(
-    (
-      teamId: string,
-      leaderName: string,
-      items: Record<string, { status: ToolStatus; notes: string }>,
-      extra: { assetNumber: string; notes: string; treeNodeId: string; photo: string }[],
-    ) => {
-      setState((prev) => {
-        const now = new Date().toISOString()
-        const chk: Checklist = {
-          id: `chk_${Date.now()}`,
-          teamId,
-          date: now,
-          leaderName: leaderName || prev.currentUser?.name || 'Sistema',
-          discrepancies: 0,
-        }
-
-        const newInventory = [...prev.inventory]
-        const newHistory = [...prev.history]
-
-        extra.forEach((ex, i) => {
-          const id = `inv_ex_${Date.now()}_${i}`
-          newInventory.push({
-            id,
-            hasAssetNumber: !!ex.assetNumber,
-            assetNumber: ex.assetNumber || undefined,
-            teamId,
-            treeNodeId: ex.treeNodeId,
-            condition: 'good',
-            status: 'present',
-            photos: [ex.photo],
+            price: info.price || 0,
             lastUpdated: now,
-            price: 0,
-            quantity: 1,
           })
-
-          newHistory.push({
-            id: `h_ex_${Date.now()}_${i}`,
-            inventoryId: id,
-            date: now,
-            type: 'audit',
-            description: `Sobra identificada em auditoria (Item Adicional). ${ex.notes ? `Origem/Obs: ${ex.notes}` : ''}`,
-            user: leaderName || prev.currentUser?.name || 'Sistema',
-          })
-        })
-
-        return {
-          ...prev,
-          checklists: [chk, ...prev.checklists],
-          inventory: newInventory,
-          history: newHistory.sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-          ),
+          hist.unshift(
+            logHist(id, 'allocation', `Alocado lote com ${info.qty} un.`, info.qty) as any,
+          )
         }
-      })
-      toast({ title: 'Auditoria Finalizada', description: 'Inventário e histórico atualizados.' })
-    },
-    [],
-  )
-
-  const getNodePath = useCallback(
-    (nodeId: string) => {
-      const path: TreeNode[] = []
-      let currentId: string | null = nodeId
-      while (currentId) {
-        const node = state.nodes.find((n) => n.id === currentId)
-        if (node) {
-          path.unshift(node)
-          currentId = node.parentId
-        } else break
+      } else {
+        const total = info.hasAssetNumber ? info.assets.length : info.qty
+        Array.from({ length: total }).forEach((_, i) => {
+          const id = `inv_${Date.now()}_${i}`
+          const asset = info.hasAssetNumber ? info.assets[i] : null
+          sync('assets', {
+            id,
+            team_id: info.teamId,
+            tree_node_id: info.treeNodeId,
+            condition: info.condition,
+            status: 'present',
+            current_quantity: 1,
+            price: info.price || 0,
+            is_batch: !info.hasAssetNumber,
+            patrimony_number: asset,
+          })
+          inv.push({
+            id,
+            hasAssetNumber: info.hasAssetNumber,
+            assetNumber: asset,
+            teamId: info.teamId,
+            treeNodeId: info.treeNodeId,
+            condition: info.condition,
+            status: 'present',
+            photos: [],
+            quantity: 1,
+            price: info.price || 0,
+            lastUpdated: now,
+          })
+          hist.unshift(logHist(id, 'allocation', `Alocado`, 1) as any)
+        })
       }
-      return path
-    },
-    [state.nodes],
-  )
+      return { ...p, inventory: inv, history: hist }
+    })
+    toast({ title: 'Salvo' })
+  }
 
-  const value = useMemo(
+  const updateInventoryItem = (id: string, updates: any) => {
+    setState((p) => {
+      const it = p.inventory.find((i) => i.id === id)
+      if (!it) return p
+      const nInv = p.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i))
+      sync('assets', {
+        id,
+        condition: updates.condition || it.condition,
+        status: updates.status || it.status,
+      })
+      if (updates.condition === 'repair' || it.condition === 'repair') {
+        sync('repairs', {
+          asset_id: id,
+          is_sent: updates.repairSent,
+          estimated_completion_date: updates.expectedReturnDate,
+          condition_status: updates.conditionCategory,
+          cost: updates.repairCost,
+          location: updates.repairLocation,
+          description: updates.reason,
+          repair_user: p.currentUser?.name,
+          repair_date: new Date().toISOString(),
+        })
+      }
+      return {
+        ...p,
+        inventory: nInv,
+        history: [
+          logHist(id, 'status_change', `Atualizado. ${updates.reason || ''}`) as any,
+          ...p.history,
+        ],
+      }
+    })
+    toast({ title: 'Atualizado' })
+  }
+
+  const initiateTransfer = (id: string, toTeamId: string, qty?: number) => {
+    setState((p) => {
+      const it = p.inventory.find((i) => i.id === id)
+      if (!it) return p
+      let tId = id
+      const nInv = [...p.inventory]
+      if (qty && it.quantity && qty < it.quantity) {
+        nInv.find((i) => i.id === id)!.quantity -= qty
+        sync('assets', { id, current_quantity: it.quantity - qty })
+        tId = `inv_${Date.now()}_split`
+        sync('assets', {
+          id: tId,
+          is_batch: true,
+          current_quantity: qty,
+          team_id: it.teamId,
+          tree_node_id: it.treeNodeId,
+          condition: it.condition,
+          status: it.status,
+        })
+        nInv.push({ ...it, id: tId, quantity: qty })
+      }
+      const trId = `tr_${Date.now()}`
+      sync('transfers', {
+        id: trId,
+        inventory_id: tId,
+        from_team_id: it.teamId,
+        to_team_id: toTeamId,
+        initiated_by: p.currentUser?.name,
+        initiated_at: new Date().toISOString(),
+        status: 'pending',
+      })
+      return {
+        ...p,
+        inventory: nInv,
+        transfers: [
+          {
+            id: trId,
+            inventoryId: tId,
+            fromTeamId: it.teamId,
+            toTeamId,
+            initiatedBy: p.currentUser?.name,
+            initiatedAt: new Date().toISOString(),
+            status: 'pending',
+          },
+          ...p.transfers,
+        ],
+        history: [
+          logHist(tId, 'transfer', `Transferência de ${qty || 1} un`, qty || 1) as any,
+          ...p.history,
+        ],
+      }
+    })
+    toast({ title: 'Transferência iniciada' })
+  }
+
+  const resolveTransfer = (
+    trId: string,
+    action: 'accept' | 'reject',
+    cond?: Condition,
+    notes?: string,
+  ) => {
+    setState((p) => {
+      const tr = p.transfers.find((t) => t.id === trId)
+      if (!tr) return p
+      const nInv = p.inventory.map((i) =>
+        i.id === tr.inventoryId
+          ? {
+              ...i,
+              teamId: action === 'accept' ? tr.toTeamId : i.teamId,
+              condition: action === 'accept' && cond ? cond : i.condition,
+            }
+          : i,
+      )
+      sync('transfers', {
+        id: trId,
+        status: action === 'accept' ? 'completed' : 'rejected',
+        completed_at: new Date().toISOString(),
+        completed_by: p.currentUser?.name,
+      })
+      if (action === 'accept')
+        sync('assets', { id: tr.inventoryId, team_id: tr.toTeamId, condition: cond || 'good' })
+      return {
+        ...p,
+        inventory: nInv,
+        transfers: p.transfers.map((t) =>
+          t.id === trId ? { ...t, status: action === 'accept' ? 'completed' : 'rejected' } : t,
+        ),
+        history: [
+          logHist(
+            tr.inventoryId,
+            'transfer',
+            action === 'accept' ? 'Recebido' : 'Rejeitado',
+          ) as any,
+          ...p.history,
+        ],
+      }
+    })
+    toast({ title: 'Ação confirmada' })
+  }
+
+  const updateUserRole = (id: string, role: Role) => {
+    setState((p) => ({ ...p, users: p.users.map((u) => (u.id === id ? { ...u, role } : u)) }))
+    sync('profiles', { id, role })
+    toast({ title: 'Atualizado' })
+  }
+  const toggleUserStatus = (id: string) => {
+    setState((p) => {
+      const act = !p.users.find((u) => u.id === id)?.active
+      sync('profiles', { id, is_active: act })
+      return { ...p, users: p.users.map((u) => (u.id === id ? { ...u, active: act } : u)) }
+    })
+    toast({ title: 'Atualizado' })
+  }
+
+  const getNodePath = (nodeId: string) => {
+    const path: TreeNode[] = []
+    let currentId: string | null = nodeId
+    while (currentId) {
+      const node = state.nodes.find((n) => n.id === currentId)
+      if (node) {
+        path.unshift(node)
+        currentId = node.parentId
+      } else break
+    }
+    return path
+  }
+
+  const adjustGroupedItem = () => {}
+  const submitChecklist = () => {}
+  const logout = () => signOut()
+
+  const val = useMemo(
     () => ({
       ...state,
-      login,
-      verifyOtp,
-      logout,
       addNode,
       addInventoryItem,
       updateInventoryItem,
-      adjustGroupedItem,
       initiateTransfer,
       resolveTransfer,
-      submitChecklist,
-      getNodePath,
       updateUserRole,
       toggleUserStatus,
+      getNodePath,
+      adjustGroupedItem,
+      submitChecklist,
+      logout,
     }),
     [state],
   )
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={val}>{children}</AppContext.Provider>
 }
 
 export const useAppStore = () => {

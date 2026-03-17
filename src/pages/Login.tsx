@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAppStore } from '@/store/AppStore'
+import { useNavigate, Navigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/use-auth'
 import {
   Card,
   CardContent,
@@ -12,37 +12,43 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Package, ShieldAlert, Mail, KeyRound } from 'lucide-react'
-import { toast } from '@/hooks/use-toast'
+import { Package, ShieldAlert, Mail, Lock, User } from 'lucide-react'
 
 export default function Login() {
-  const { login, verifyOtp } = useAppStore()
+  const { signIn, signUp, user } = useAuth()
   const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-    setError('')
-    login(email)
-    setStep(2)
-    toast({ title: 'Código enviado!', description: 'Use o código 123456 para acessar.' })
-  }
+  if (user) return <Navigate to="/" replace />
 
-  const handleOtpSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    const result = verifyOtp(email, otp)
-    if (result === 'success') {
-      navigate('/')
-    } else if (result === 'inactive') {
-      setError('Sua conta está inativa. Contate o administrador.')
+    setLoading(true)
+
+    if (isLogin) {
+      const { error: err } = await signIn(email, password)
+      if (err) setError(err.message)
+      else navigate('/')
     } else {
-      setError('Código inválido. Tente 123456.')
+      if (!name) {
+        setError('Nome é obrigatório')
+        setLoading(false)
+        return
+      }
+      const { error: err } = await signUp(email, password, name)
+      if (err) setError(err.message)
+      else {
+        alert('Conta criada com sucesso! Faça o login.')
+        setIsLogin(true)
+      }
     }
+    setLoading(false)
   }
 
   return (
@@ -54,78 +60,78 @@ export default function Login() {
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Estoque.Pro</CardTitle>
           <CardDescription>
-            {step === 1
-              ? 'Acesse com seu email de trabalho.'
-              : 'Insira o código de verificação recebido.'}
+            {isLogin ? 'Acesse sua conta para continuar.' : 'Crie sua conta de acesso.'}
           </CardDescription>
         </CardHeader>
-        {step === 1 ? (
-          <form onSubmit={handleEmailSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="usuario@estoque.pro"
-                    className="pl-9"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="username"
-                    autoFocus
-                  />
-                </div>
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2 font-medium">
+                <ShieldAlert className="w-4 h-4" /> {error}
               </div>
-            </CardContent>
-            <CardFooter className="pt-2">
-              <Button type="submit" className="w-full font-medium h-11">
-                Receber Código
-              </Button>
-            </CardFooter>
-          </form>
-        ) : (
-          <form onSubmit={handleOtpSubmit}>
-            <CardContent className="space-y-4">
-              {error && (
-                <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md flex items-center gap-2 font-medium">
-                  <ShieldAlert className="w-4 h-4" /> {error}
-                </div>
-              )}
+            )}
+            {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="otp">Código de Acesso</Label>
+                <Label htmlFor="name">Nome Completo</Label>
                 <div className="relative">
-                  <KeyRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="otp"
+                    id="name"
                     type="text"
-                    placeholder="123456"
-                    className="pl-9 font-mono text-center tracking-widest text-lg"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    required
-                    autoFocus
+                    placeholder="Seu nome"
+                    className="pl-9"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required={!isLogin}
                   />
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="pt-2 flex flex-col gap-2">
-              <Button type="submit" className="w-full font-medium h-11">
-                Validar Acesso
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full text-sm"
-                onClick={() => setStep(1)}
-              >
-                Voltar
-              </Button>
-            </CardFooter>
-          </form>
-        )}
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="usuario@estoque.pro"
+                  className="pl-9"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className="pl-9"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="pt-2 flex flex-col gap-2">
+            <Button type="submit" className="w-full font-medium h-11" disabled={loading}>
+              {loading ? 'Aguarde...' : isLogin ? 'Entrar' : 'Criar Conta'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full text-sm"
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? 'Não tem conta? Cadastre-se' : 'Já tem conta? Entrar'}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   )

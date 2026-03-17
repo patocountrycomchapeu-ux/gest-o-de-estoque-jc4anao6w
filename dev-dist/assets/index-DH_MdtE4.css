@@ -2214,10 +2214,6 @@ video {
   padding-bottom: 0px;
 }
 
-.pb-1{
-  padding-bottom: 0.25rem;
-}
-
 .pb-12{
   padding-bottom: 3rem;
 }
@@ -3201,10 +3197,6 @@ body {
 
 .focus-visible\:ring-destructive:focus-visible{
   --tw-ring-color: hsl(var(--destructive));
-}
-
-.focus-visible\:ring-destructive\/30:focus-visible{
-  --tw-ring-color: hsl(var(--destructive) / 0.3);
 }
 
 .focus-visible\:ring-ring:focus-visible{

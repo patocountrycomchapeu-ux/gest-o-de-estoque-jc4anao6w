@@ -68,27 +68,15 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
 
   const handleSubmit = () => {
     if (!item) return
-    const requiresReason =
-      condition === 'damaged' ||
-      condition === 'repair' ||
-      status === 'in_maintenance' ||
-      status === 'defect_stock' ||
-      status === 'missing'
+    const isRepOrDam = condition === 'repair' || condition === 'damaged'
+    if (isRepOrDam && !conditionCategory) return alert('Selecione a Categoria da Condição.')
 
     if (condition === 'repair') {
-      if (!repairLocation.trim()) {
-        alert('Local / Assistência do reparo é obrigatório.')
-        return
-      }
-      if (!reason.trim()) {
-        alert('Descrição do motivo/reparo é obrigatória para evitar extravios.')
-        return
-      }
-      if (repairSent && !expectedReturnDate) {
-        alert('A data de conclusão prevista é obrigatória quando o item já foi enviado.')
-        return
-      }
-
+      if (!repairLocation.trim()) return alert('Local / Assistência do reparo é obrigatório.')
+      if (!reason.trim())
+        return alert('Descrição do motivo/reparo é obrigatória para evitar extravios.')
+      if (repairSent && !expectedReturnDate)
+        return alert('A data de conclusão prevista é obrigatória quando o item já foi enviado.')
       updateInventoryItem(item.id, {
         condition,
         status,
@@ -102,19 +90,16 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
           : undefined,
       })
     } else {
-      if (requiresReason && !reason.trim()) {
-        alert('Motivo / Destino ou Comentário é obrigatório para esta alteração.')
-        return
+      if ((condition === 'damaged' || status !== 'present') && !reason.trim()) {
+        return alert('Motivo / Destino ou Comentário é obrigatório para esta alteração.')
       }
       updateInventoryItem(item.id, {
         condition,
         status,
         reason,
-        conditionCategory:
-          condition === 'damaged' && conditionCategory ? conditionCategory : undefined,
+        conditionCategory: condition === 'damaged' ? conditionCategory : undefined,
       })
     }
-
     onOpenChange(false)
   }
 
@@ -125,13 +110,13 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            Atualizar Instância: {item.hasAssetNumber ? item.assetNumber : 'Sem Patrimônio'}
+            Atualizar: {item.hasAssetNumber ? item.assetNumber : 'Sem Patrimônio'}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Condição da Ferramenta</Label>
+              <Label>Condição</Label>
               <Select
                 value={condition}
                 onValueChange={(v) => {
@@ -150,7 +135,7 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Destino / Status</Label>
+              <Label>Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as ToolStatus)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -165,13 +150,14 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
               </Select>
             </div>
           </div>
-
           {(condition === 'repair' || condition === 'damaged') && (
-            <div className="space-y-2 animate-fade-in pb-1">
-              <Label>Categoria da Condição</Label>
+            <div className="space-y-2">
+              <Label>
+                Categoria da Condição <span className="text-destructive">*</span>
+              </Label>
               <Select value={conditionCategory} onValueChange={setConditionCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Classifique o estado do item..." />
+                <SelectTrigger className={!conditionCategory ? 'border-destructive/50' : ''}>
+                  <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
                   {conditionCategories.map((cat) => (
@@ -183,45 +169,35 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
               </Select>
             </div>
           )}
-
           {condition === 'repair' && (
-            <div className="space-y-4 animate-fade-in pt-2 border-t border-border/50">
+            <div className="space-y-4 pt-2 border-t">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Custo Estimado/Gasto (R$)</Label>
+                  <Label>Custo (R$)</Label>
                   <Input
                     type="number"
                     step="0.01"
                     value={repairCost}
                     onChange={(e) => setRepairCost(e.target.value)}
-                    placeholder="0.00"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    Local / Assistência <span className="text-destructive">*</span>
+                    Local <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     value={repairLocation}
                     onChange={(e) => setRepairLocation(e.target.value)}
-                    placeholder="Ex: Oficina Y..."
                     className={!repairLocation ? 'border-destructive/30' : ''}
                   />
                 </div>
               </div>
-
               <div className="flex items-center space-x-3 bg-muted/30 p-3 rounded border">
                 <Switch checked={repairSent} onCheckedChange={setRepairSent} />
                 <div>
-                  <Label className="cursor-pointer" onClick={() => setRepairSent(!repairSent)}>
-                    Já foi enviado
-                  </Label>
-                  <p className="text-[10px] text-muted-foreground leading-tight">
-                    Marque se o item já está fisicamente no local de reparo.
-                  </p>
+                  <Label>Já foi enviado para reparo?</Label>
                 </div>
               </div>
-
               {repairSent && (
                 <div className="space-y-2 animate-slide-up">
                   <Label>
@@ -241,30 +217,18 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
               )}
             </div>
           )}
-
-          <div className="space-y-2 animate-fade-in pt-2">
-            <Label
-              className={`${condition === 'damaged' || condition === 'repair' || status !== 'present' ? 'text-destructive font-bold' : ''}`}
-            >
-              {condition === 'repair' ? 'Descrição do Reparo / Problema ' : 'Motivo / Observação '}
-              {(condition === 'damaged' ||
-                condition === 'repair' ||
-                status === 'defect_stock' ||
-                status === 'in_maintenance' ||
-                status === 'missing') &&
-                '(Obrigatório)'}
+          <div className="space-y-2">
+            <Label>
+              Motivo / Observação{' '}
+              {(condition === 'damaged' || condition === 'repair' || status !== 'present') && '*'}
             </Label>
             <Input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder={
-                condition === 'repair'
-                  ? 'Descreva o problema e detalhes do envio...'
-                  : 'Descreva o motivo da alteração de estoque/condição...'
-              }
               className={
-                condition === 'damaged' || condition === 'repair' || status !== 'present'
-                  ? 'border-destructive/50 focus-visible:ring-destructive/30'
+                (condition === 'damaged' || condition === 'repair' || status !== 'present') &&
+                !reason
+                  ? 'border-destructive/50'
                   : ''
               }
             />
@@ -274,20 +238,7 @@ export function UpdateDialog({ item, open, onOpenChange }: UpdateDialogProps) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              ((condition === 'damaged' ||
-                status === 'defect_stock' ||
-                status === 'in_maintenance' ||
-                status === 'missing') &&
-                !reason.trim()) ||
-              (condition === 'repair' &&
-                (!reason.trim() || !repairLocation.trim() || (repairSent && !expectedReturnDate)))
-            }
-          >
-            Salvar Alterações
-          </Button>
+          <Button onClick={handleSubmit}>Salvar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
