@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useAppStore } from '@/store/AppStore'
 import {
   Sidebar,
   SidebarContent,
@@ -18,9 +19,18 @@ import {
   Truck,
   Package,
 } from 'lucide-react'
+import {
+  canViewTree,
+  canViewTeams,
+  canViewRepairs,
+  canViewSuppliers,
+  canViewReports,
+  canManageUsers,
+} from '@/lib/permissions'
 
 export function AppSidebar() {
   const location = useLocation()
+  const { currentUser } = useAppStore()
 
   return (
     <Sidebar>
@@ -40,48 +50,69 @@ export function AppSidebar() {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/arvore')}>
-                <Link to="/arvore">
-                  <FolderTree /> Árvore Mercadológica
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/equipes')}>
-                <Link to="/equipes">
-                  <Users /> Equipes & Ativos
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/reparos')}>
-                <Link to="/reparos">
-                  <Wrench /> Reparos
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/fornecedores')}>
-                <Link to="/fornecedores">
-                  <Truck /> Fornecedores
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/relatorios')}>
-                <Link to="/relatorios">
-                  <FileText /> Relatórios
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname.startsWith('/configuracoes')}>
-                <Link to="/configuracoes">
-                  <Settings /> Configurações
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+
+            {canViewTree(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/arvore')}>
+                  <Link to="/arvore">
+                    <FolderTree /> Árvore Mercadológica
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {canViewTeams(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/equipes')}>
+                  <Link to="/equipes">
+                    <Users /> Equipes & Ativos
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {canViewRepairs(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/reparos')}>
+                  <Link to="/reparos">
+                    <Wrench /> Reparos
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {canViewSuppliers(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/fornecedores')}>
+                  <Link to="/fornecedores">
+                    <Truck /> Fornecedores
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {canViewReports(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/relatorios')}>
+                  <Link to="/relatorios">
+                    <FileText /> Relatórios
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {canManageUsers(currentUser) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname.startsWith('/configuracoes')}
+                >
+                  <Link to="/configuracoes">
+                    <Settings /> Configurações
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

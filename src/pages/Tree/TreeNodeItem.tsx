@@ -79,7 +79,7 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: any) {
             </span>
           )}
         </div>
-        {canAddChild && (
+        {canAddChild && onAddChild && (
           <Button
             variant="ghost"
             size="icon"

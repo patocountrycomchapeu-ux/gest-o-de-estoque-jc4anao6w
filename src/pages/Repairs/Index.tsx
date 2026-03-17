@@ -14,12 +14,15 @@ import { Settings2, Camera, Wrench, Send } from 'lucide-react'
 import { UpdateDialog } from '@/pages/Teams/UpdateDialog'
 import { InventoryItem } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { canViewRepairs, canManageRepairs } from '@/lib/permissions'
+import { Navigate } from 'react-router-dom'
 
 export default function RepairsPage() {
-  const { inventory, getNodePath, suppliers } = useAppStore()
+  const { inventory, getNodePath, suppliers, currentUser } = useAppStore()
   const [updateItem, setUpdateItem] = useState<InventoryItem | null>(null)
+
+  if (!canViewRepairs(currentUser)) return <Navigate to="/" replace />
+  const canManage = canManageRepairs(currentUser)
 
   const repairItems = inventory.filter((i) => i.condition === 'repair')
   const totalCost = repairItems.reduce((acc, curr) => acc + (curr.repairCost || 0), 0)
@@ -66,7 +69,7 @@ export default function RepairsPage() {
                 <TableHead>Fornecedor & Envio</TableHead>
                 <TableHead>Diagnóstico</TableHead>
                 <TableHead>Custo</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                {canManage && <TableHead className="text-right">Ações</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -123,23 +126,28 @@ export default function RepairsPage() {
                     <TableCell className="tabular-nums text-sm font-medium pt-5">
                       R$ {item.repairCost?.toFixed(2) || '0.00'}
                     </TableCell>
-                    <TableCell className="text-right pt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setUpdateItem(item)}
-                        className="h-8"
-                      >
-                        <Settings2 className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">Gerenciar</span>
-                      </Button>
-                    </TableCell>
+                    {canManage && (
+                      <TableCell className="text-right pt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUpdateItem(item)}
+                          className="h-8"
+                        >
+                          <Settings2 className="w-4 h-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Gerenciar</span>
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
               {repairItems.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={canManage ? 6 : 5}
+                    className="h-32 text-center text-muted-foreground"
+                  >
                     Nenhum item em reparo no momento.
                   </TableCell>
                 </TableRow>

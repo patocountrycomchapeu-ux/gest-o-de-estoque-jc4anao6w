@@ -18,9 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Plus, Wallet } from 'lucide-react'
-import { canManageUsers } from '@/lib/permissions'
+import { canViewSuppliers, canManageSuppliers } from '@/lib/permissions'
 import { Navigate } from 'react-router-dom'
 
 export default function SuppliersPage() {
@@ -32,7 +33,8 @@ export default function SuppliersPage() {
   const [cnpj, setCnpj] = useState('')
   const [amount, setAmount] = useState('')
 
-  if (!canManageUsers(currentUser)) return <Navigate to="/" replace />
+  if (!canViewSuppliers(currentUser)) return <Navigate to="/" replace />
+  const canManage = canManageSuppliers(currentUser)
 
   const handleAdd = () => {
     if (!name.trim()) return alert('Nome é obrigatório')
@@ -58,9 +60,11 @@ export default function SuppliersPage() {
             Gerencie o saldo e os prestadores de serviço de reparo.
           </p>
         </div>
-        <Button onClick={() => setAddOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Fornecedor
-        </Button>
+        {canManage && (
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Fornecedor
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -71,7 +75,7 @@ export default function SuppliersPage() {
                 <TableHead>Nome da Assistência</TableHead>
                 <TableHead>CNPJ</TableHead>
                 <TableHead className="text-right">Saldo Atual (R$)</TableHead>
-                <TableHead className="text-right w-[150px]">Ações</TableHead>
+                {canManage && <TableHead className="text-right w-[150px]">Ações</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -82,16 +86,21 @@ export default function SuppliersPage() {
                   <TableCell className="text-right tabular-nums font-semibold text-emerald-700 dark:text-emerald-400">
                     R$ {s.currentBalance.toFixed(2)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" onClick={() => setBalanceOpen(s.id)}>
-                      <Wallet className="h-4 w-4 mr-2" /> Crédito
-                    </Button>
-                  </TableCell>
+                  {canManage && (
+                    <TableCell className="text-right">
+                      <Button variant="outline" size="sm" onClick={() => setBalanceOpen(s.id)}>
+                        <Wallet className="h-4 w-4 mr-2" /> Crédito
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
               {suppliers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={canManage ? 4 : 3}
+                    className="h-24 text-center text-muted-foreground"
+                  >
                     Nenhum fornecedor cadastrado.
                   </TableCell>
                 </TableRow>

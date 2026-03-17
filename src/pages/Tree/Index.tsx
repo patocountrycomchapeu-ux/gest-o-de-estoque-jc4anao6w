@@ -15,7 +15,6 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { canManageTree } from '@/lib/permissions'
-import { Navigate } from 'react-router-dom'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
   root: 'tipo',
@@ -34,8 +33,6 @@ export default function TreePage() {
 
   const canManage = canManageTree(currentUser)
   const rootNodes = useMemo(() => nodes.filter((n) => n.parentId === null), [nodes])
-
-  if (!canManage) return <Navigate to="/" replace />
 
   const handleAddSubmit = () => {
     if (!newNodeName.trim() || !addingTo) return
@@ -66,9 +63,11 @@ export default function TreePage() {
             Marca).
           </p>
         </div>
-        <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
-          <Plus className="h-4 w-4 mr-2" /> Adicionar Tipo
-        </Button>
+        {canManage && (
+          <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
+            <Plus className="h-4 w-4 mr-2" /> Adicionar Tipo
+          </Button>
+        )}
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden shadow-subtle border-border/60">
@@ -91,10 +90,14 @@ export default function TreePage() {
                 key={node.id}
                 node={node}
                 allNodes={nodes}
-                onAddChild={(parentId, level) => {
-                  setAddingTo({ parentId, level })
-                  setIsGrouped(false)
-                }}
+                onAddChild={
+                  canManage
+                    ? (parentId: string, level: string) => {
+                        setAddingTo({ parentId, level })
+                        setIsGrouped(false)
+                      }
+                    : undefined
+                }
               />
             ))}
             {rootNodes.length === 0 && (

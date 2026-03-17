@@ -15,13 +15,36 @@ import ReportsPage from './pages/Reports/Index'
 import RepairsPage from './pages/Repairs/Index'
 import SuppliersPage from './pages/Suppliers/Index'
 import ConfigPage from './pages/Config/Index'
-import { AppProvider } from './store/AppStore'
+import { AppProvider, useAppStore } from './store/AppStore'
 import { AuthProvider, useAuth } from './hooks/use-auth'
+import {
+  canViewTree,
+  canViewTeams,
+  canViewRepairs,
+  canViewSuppliers,
+  canManageUsers,
+} from '@/lib/permissions'
 
 function ProtectedRoute() {
   const { user, loading } = useAuth()
-  if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
+  const { currentUser, isStoreLoading } = useAppStore()
+
+  if (loading || isStoreLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!user || !currentUser) return <Navigate to="/login" replace />
+
+  return <Outlet />
+}
+
+function RoleRoute({ accessCheck }: { accessCheck: (user: any) => boolean }) {
+  const { currentUser } = useAppStore()
+  if (!accessCheck(currentUser)) return <Navigate to="/" replace />
   return <Outlet />
 }
 
@@ -31,14 +54,24 @@ const AppRoutes = () => (
     <Route element={<ProtectedRoute />}>
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
-        <Route path="/arvore" element={<TreePage />} />
-        <Route path="/equipes" element={<TeamsPage />} />
-        <Route path="/equipes/:id" element={<TeamDetail />} />
-        <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
-        <Route path="/reparos" element={<RepairsPage />} />
-        <Route path="/fornecedores" element={<SuppliersPage />} />
+        <Route element={<RoleRoute accessCheck={canViewTree} />}>
+          <Route path="/arvore" element={<TreePage />} />
+        </Route>
+        <Route element={<RoleRoute accessCheck={canViewTeams} />}>
+          <Route path="/equipes" element={<TeamsPage />} />
+          <Route path="/equipes/:id" element={<TeamDetail />} />
+          <Route path="/equipes/:id/auditoria" element={<AuditoriaPage />} />
+        </Route>
+        <Route element={<RoleRoute accessCheck={canViewRepairs} />}>
+          <Route path="/reparos" element={<RepairsPage />} />
+        </Route>
+        <Route element={<RoleRoute accessCheck={canViewSuppliers} />}>
+          <Route path="/fornecedores" element={<SuppliersPage />} />
+        </Route>
         <Route path="/relatorios" element={<ReportsPage />} />
-        <Route path="/configuracoes" element={<ConfigPage />} />
+        <Route element={<RoleRoute accessCheck={canManageUsers} />}>
+          <Route path="/configuracoes" element={<ConfigPage />} />
+        </Route>
       </Route>
     </Route>
     <Route path="*" element={<NotFound />} />
@@ -47,7 +80,15 @@ const AppRoutes = () => (
 
 const AppWithAuth = () => {
   const { user, loading } = useAuth()
-  if (loading) return null
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
   return (
     <AppProvider authUser={user}>
       <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
