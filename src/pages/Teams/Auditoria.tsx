@@ -148,7 +148,7 @@ export default function AuditoriaPage() {
                         onValueChange={(v) => handleStatusChange(item.id, v as ToolStatus)}
                       >
                         <SelectTrigger
-                          className={`h-8 ${st?.status === 'present' ? 'bg-blue-50' : st?.status === 'missing' ? 'bg-red-50 text-red-700' : 'bg-amber-50'}`}
+                          className={`h-8 ${st?.status === 'present' ? 'bg-blue-50 dark:bg-blue-950/30' : st?.status === 'missing' ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' : 'bg-amber-50 dark:bg-amber-950/30'}`}
                         >
                           <SelectValue />
                         </SelectTrigger>

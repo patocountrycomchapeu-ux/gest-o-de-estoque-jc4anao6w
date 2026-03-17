@@ -27305,13 +27305,38 @@ function AppProvider({ children }) {
 			description: "Quantidades atualizadas com sucesso."
 		});
 	}, []);
-	const initiateTransfer = (0, import_react.useCallback)((inventoryId, toTeamId) => {
+	const initiateTransfer = (0, import_react.useCallback)((inventoryId, toTeamId, quantity) => {
 		setState((prev) => {
 			const item = prev.inventory.find((i) => i.id === inventoryId);
 			if (!item) return prev;
+			let transferInventoryId = inventoryId;
+			const newInventory = [...prev.inventory];
+			const newHistory = [...prev.history];
+			if (quantity && item.quantity && quantity < item.quantity) {
+				const originalIndex = newInventory.findIndex((i) => i.id === inventoryId);
+				newInventory[originalIndex] = {
+					...item,
+					quantity: item.quantity - quantity
+				};
+				transferInventoryId = `inv_${Date.now()}_split`;
+				const splitItem = {
+					...item,
+					id: transferInventoryId,
+					quantity
+				};
+				newInventory.push(splitItem);
+				newHistory.unshift({
+					id: `h_${Date.now()}_split`,
+					inventoryId: transferInventoryId,
+					date: (/* @__PURE__ */ new Date()).toISOString(),
+					type: "system",
+					description: `Lote dividido para transferência (${quantity} un).`,
+					user: prev.currentUser?.name || "Sistema"
+				});
+			}
 			const transfer = {
 				id: `tr_${Date.now()}`,
-				inventoryId,
+				inventoryId: transferInventoryId,
 				fromTeamId: item.teamId,
 				toTeamId,
 				initiatedBy: prev.currentUser?.name || "Sistema",
@@ -27320,7 +27345,9 @@ function AppProvider({ children }) {
 			};
 			return {
 				...prev,
-				transfers: [transfer, ...prev.transfers]
+				inventory: newInventory,
+				transfers: [transfer, ...prev.transfers],
+				history: newHistory
 			};
 		});
 		toast$1({
@@ -27335,6 +27362,29 @@ function AppProvider({ children }) {
 			const now = (/* @__PURE__ */ new Date()).toISOString();
 			const isAccept = action === "accept";
 			const desc = isAccept ? `Transferência recebida. Estado confirmado: ${cond}` : `Transferência rejeitada. Motivo: ${notes}`;
+			const transferredItem = prev.inventory.find((i) => i.id === tr.inventoryId);
+			let newInventory = [...prev.inventory];
+			let merged = false;
+			if (isAccept && transferredItem && !transferredItem.hasAssetNumber) {
+				const finalCondition = cond || transferredItem.condition;
+				const existingIdx = newInventory.findIndex((i) => i.id !== transferredItem.id && i.teamId === tr.toTeamId && i.treeNodeId === transferredItem.treeNodeId && i.condition === finalCondition && i.status === transferredItem.status && !i.hasAssetNumber);
+				if (existingIdx >= 0) {
+					const ex = newInventory[existingIdx];
+					newInventory[existingIdx] = {
+						...ex,
+						quantity: (ex.quantity || 1) + (transferredItem.quantity || 1),
+						lastUpdated: now
+					};
+					newInventory = newInventory.filter((i) => i.id !== transferredItem.id);
+					merged = true;
+				}
+			}
+			if (!merged) newInventory = newInventory.map((i) => i.id === tr.inventoryId ? {
+				...i,
+				teamId: isAccept ? tr.toTeamId : i.teamId,
+				condition: isAccept && cond ? cond : i.condition,
+				lastUpdated: now
+			} : i);
 			return {
 				...prev,
 				transfers: prev.transfers.map((t) => t.id === trId ? {
@@ -27343,12 +27393,7 @@ function AppProvider({ children }) {
 					completedAt: now,
 					completedBy: prev.currentUser?.name || "Sistema"
 				} : t),
-				inventory: prev.inventory.map((i) => i.id === tr.inventoryId ? {
-					...i,
-					teamId: isAccept ? tr.toTeamId : i.teamId,
-					condition: isAccept && cond ? cond : i.condition,
-					lastUpdated: now
-				} : i),
+				inventory: newInventory,
 				history: [{
 					id: `h_${Date.now()}`,
 					inventoryId: tr.inventoryId,
@@ -27438,7 +27483,7 @@ function AppProvider({ children }) {
 		toggleUserStatus
 	}), [state]);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppContext.Provider, {
-		"data-uid": "src/store/AppStore.tsx:629:10",
+		"data-uid": "src/store/AppStore.tsx:692:10",
 		"data-prohibitions": "[editContent]",
 		value,
 		children
@@ -56718,7 +56763,7 @@ function Index() {
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								"data-uid": "src/pages/Index.tsx:72:19",
 								"data-prohibitions": "[editContent]",
-								className: `mt-0.5 rounded-full p-1.5 ${activity.type === "status_change" ? "bg-amber-100 text-amber-600" : "bg-blue-100 text-blue-600"}`,
+								className: `mt-0.5 rounded-full p-1.5 ${activity.type === "status_change" ? "bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400" : "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300"}`,
 								children: activity.type === "status_change" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, {
 									"data-uid": "src/pages/Index.tsx:76:23",
 									"data-prohibitions": "[editContent]",
@@ -56763,7 +56808,7 @@ function StatCard({ title, value, icon: Icon, trend, critical, warning }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 		"data-uid": "src/pages/Index.tsx:107:5",
 		"data-prohibitions": "[editContent]",
-		className: `overflow-hidden ${critical ? "border-destructive/50 bg-destructive/5" : warning ? "border-amber-500/50 bg-amber-500/5" : ""}`,
+		className: `overflow-hidden ${critical ? "border-destructive/50 bg-destructive/5 dark:bg-destructive/10" : warning ? "border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/10" : ""}`,
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 			"data-uid": "src/pages/Index.tsx:110:7",
 			"data-prohibitions": "[editContent]",
@@ -56863,7 +56908,7 @@ function TreeNodeItem({ node, allNodes, onAddChild }) {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:73:11",
 						"data-prohibitions": "[editContent]",
-						className: "text-sm font-medium",
+						className: "text-sm font-medium text-foreground",
 						children: node.name
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
@@ -56875,13 +56920,13 @@ function TreeNodeItem({ node, allNodes, onAddChild }) {
 					node.isGrouped && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:78:13",
 						"data-prohibitions": "[]",
-						className: "ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200",
+						className: "ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50",
 						children: "Lote"
 					}),
 					quantity > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 						"data-uid": "src/pages/Tree/TreeNodeItem.tsx:83:13",
 						"data-prohibitions": "[editContent]",
-						className: "ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold",
+						className: "ml-2 bg-primary/10 text-primary dark:text-primary-foreground dark:bg-primary/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold",
 						children: quantity
 					})
 				]
@@ -57444,17 +57489,17 @@ function TeamsPage() {
 											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Package, {
 												"data-uid": "src/pages/Teams/Index.tsx:53:25",
 												"data-prohibitions": "[editContent]",
-												className: "h-4 w-4 mr-1.5 text-emerald-600"
+												className: "h-4 w-4 mr-1.5 text-emerald-600 dark:text-emerald-500"
 											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
 												"data-uid": "src/pages/Teams/Index.tsx:54:25",
 												"data-prohibitions": "[editContent]",
-												className: "font-medium text-emerald-700",
+												className: "font-medium text-emerald-700 dark:text-emerald-400",
 												children: [usableItemsCount, " Utilizáveis"]
 											})]
 										}), damagedItemsCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 											"data-uid": "src/pages/Teams/Index.tsx:59:25",
 											"data-prohibitions": "[editContent]",
-											className: "flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs",
+											className: "flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs dark:bg-destructive/20 dark:text-red-400",
 											children: [
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, {
 													"data-uid": "src/pages/Teams/Index.tsx:60:27",
@@ -57470,7 +57515,7 @@ function TeamsPage() {
 									pendingIncoming > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 										"data-uid": "src/pages/Teams/Index.tsx:65:23",
 										"data-prohibitions": "[editContent]",
-										className: "flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200",
+										className: "flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
 												"data-uid": "src/pages/Teams/Index.tsx:66:25",
@@ -60024,126 +60069,193 @@ function UpdateDialog({ item, open, onOpenChange }) {
 function TransferDialog({ item, open, onOpenChange, teamId }) {
 	const { teams, initiateTransfer } = useAppStore();
 	const [toTeamId, setToTeamId] = (0, import_react.useState)("");
+	const [quantity, setQuantity] = (0, import_react.useState)(1);
+	const isGrouped = !item?.hasAssetNumber;
+	(0, import_react.useEffect)(() => {
+		if (open && item) {
+			setQuantity(item.quantity || 1);
+			setToTeamId("");
+		}
+	}, [open, item]);
 	const handleSave = () => {
 		if (item && toTeamId) {
-			initiateTransfer(item.id, toTeamId);
+			if (isGrouped) initiateTransfer(item.id, toTeamId, quantity);
+			else initiateTransfer(item.id, toTeamId);
 			onOpenChange(false);
 			setToTeamId("");
 		}
 	};
 	const otherTeams = teams.filter((t) => t.id !== teamId);
+	const isInvalidQuantity = isGrouped && (quantity < 1 || quantity > (item?.quantity || 1));
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dialog, {
-		"data-uid": "src/pages/Teams/TransferDialog.tsx:48:5",
+		"data-uid": "src/pages/Teams/TransferDialog.tsx:64:5",
 		"data-prohibitions": "[editContent]",
 		open,
 		onOpenChange,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-			"data-uid": "src/pages/Teams/TransferDialog.tsx:49:7",
+			"data-uid": "src/pages/Teams/TransferDialog.tsx:65:7",
 			"data-prohibitions": "[editContent]",
 			children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, {
-					"data-uid": "src/pages/Teams/TransferDialog.tsx:50:9",
+					"data-uid": "src/pages/Teams/TransferDialog.tsx:66:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:51:11",
+						"data-uid": "src/pages/Teams/TransferDialog.tsx:67:11",
 						"data-prohibitions": "[]",
 						className: "flex items-center gap-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
-							"data-uid": "src/pages/Teams/TransferDialog.tsx:52:13",
+							"data-uid": "src/pages/Teams/TransferDialog.tsx:68:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-5 w-5"
 						}), " Transferir Ferramenta"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:54:11",
+						"data-uid": "src/pages/Teams/TransferDialog.tsx:70:11",
 						"data-prohibitions": "[]",
 						children: "Inicie uma transferência de ativo. O responsável da equipe de destino deverá validar visualmente o item antes do aceite final."
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/Teams/TransferDialog.tsx:59:9",
+					"data-uid": "src/pages/Teams/TransferDialog.tsx:75:9",
 					"data-prohibitions": "[editContent]",
 					className: "py-6 space-y-4",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:60:11",
-						"data-prohibitions": "[editContent]",
-						className: "p-3 bg-muted/40 rounded border text-sm space-y-1",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							"data-uid": "src/pages/Teams/TransferDialog.tsx:61:13",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/TransferDialog.tsx:76:11",
 							"data-prohibitions": "[editContent]",
+							className: "p-3 bg-muted/40 rounded border text-sm space-y-1 dark:border-border/50",
 							children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/pages/Teams/TransferDialog.tsx:62:15",
-									"data-prohibitions": "[]",
-									className: "text-muted-foreground",
-									children: "Instância:"
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:77:13",
+									"data-prohibitions": "[editContent]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											"data-uid": "src/pages/Teams/TransferDialog.tsx:78:15",
+											"data-prohibitions": "[]",
+											className: "text-muted-foreground",
+											children: "Instância:"
+										}),
+										" ",
+										item?.hasAssetNumber ? item.assetNumber : "Lote (S/N)"
+									]
 								}),
-								" ",
-								item?.hasAssetNumber ? item.assetNumber : "S/N"
-							]
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-							"data-uid": "src/pages/Teams/TransferDialog.tsx:65:13",
-							"data-prohibitions": "[]",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/pages/Teams/TransferDialog.tsx:66:15",
-								"data-prohibitions": "[]",
-								className: "text-muted-foreground",
-								children: "Status Atual:"
-							}), " Disponível para envio"]
-						})]
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:69:11",
-						"data-prohibitions": "[editContent]",
-						className: "space-y-2",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-							"data-uid": "src/pages/Teams/TransferDialog.tsx:70:13",
-							"data-prohibitions": "[]",
-							children: "Equipe de Destino"
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-							"data-uid": "src/pages/Teams/TransferDialog.tsx:71:13",
-							"data-prohibitions": "[editContent]",
-							value: toTeamId,
-							onValueChange: setToTeamId,
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-								"data-uid": "src/pages/Teams/TransferDialog.tsx:72:15",
-								"data-prohibitions": "[]",
-								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-									"data-uid": "src/pages/Teams/TransferDialog.tsx:73:17",
-									"data-prohibitions": "[editContent]",
-									placeholder: "Selecione a equipe recebedora..."
-								})
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-								"data-uid": "src/pages/Teams/TransferDialog.tsx:75:15",
-								"data-prohibitions": "[editContent]",
-								children: [otherTeams.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-									"data-uid": "src/pages/Teams/TransferDialog.tsx:77:19",
-									"data-prohibitions": "[editContent]",
-									value: t.id,
-									children: t.name
-								}, t.id)), otherTeams.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-									"data-uid": "src/pages/Teams/TransferDialog.tsx:82:19",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:81:13",
 									"data-prohibitions": "[]",
-									value: "none",
-									disabled: true,
-									children: "Nenhuma outra equipe cadastrada."
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/pages/Teams/TransferDialog.tsx:82:15",
+										"data-prohibitions": "[]",
+										className: "text-muted-foreground",
+										children: "Status Atual:"
+									}), " Disponível para envio"]
+								}),
+								isGrouped && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:85:15",
+									"data-prohibitions": "[editContent]",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											"data-uid": "src/pages/Teams/TransferDialog.tsx:86:17",
+											"data-prohibitions": "[]",
+											className: "text-muted-foreground",
+											children: "Saldo Disponível:"
+										}),
+										" ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											"data-uid": "src/pages/Teams/TransferDialog.tsx:87:17",
+											"data-prohibitions": "[editContent]",
+											className: "font-semibold",
+											children: [item?.quantity || 1, " unidades"]
+										})
+									]
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/TransferDialog.tsx:92:11",
+							"data-prohibitions": "[editContent]",
+							className: "space-y-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+								"data-uid": "src/pages/Teams/TransferDialog.tsx:93:13",
+								"data-prohibitions": "[]",
+								children: "Equipe de Destino"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+								"data-uid": "src/pages/Teams/TransferDialog.tsx:94:13",
+								"data-prohibitions": "[editContent]",
+								value: toTeamId,
+								onValueChange: setToTeamId,
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:95:15",
+									"data-prohibitions": "[]",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
+										"data-uid": "src/pages/Teams/TransferDialog.tsx:96:17",
+										"data-prohibitions": "[editContent]",
+										placeholder: "Selecione a equipe recebedora..."
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:98:15",
+									"data-prohibitions": "[editContent]",
+									children: [otherTeams.map((t) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/TransferDialog.tsx:100:19",
+										"data-prohibitions": "[editContent]",
+										value: t.id,
+										children: t.name
+									}, t.id)), otherTeams.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+										"data-uid": "src/pages/Teams/TransferDialog.tsx:105:19",
+										"data-prohibitions": "[]",
+										value: "none",
+										disabled: true,
+										children: "Nenhuma outra equipe cadastrada."
+									})]
 								})]
 							})]
-						})]
-					})]
+						}),
+						isGrouped && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Teams/TransferDialog.tsx:114:13",
+							"data-prohibitions": "[editContent]",
+							className: "space-y-2 animate-fade-in",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:115:15",
+									"data-prohibitions": "[]",
+									children: "Quantidade a Transferir"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:116:15",
+									"data-prohibitions": "[editContent]",
+									type: "number",
+									min: 1,
+									max: item?.quantity || 1,
+									value: quantity,
+									onChange: (e) => setQuantity(Number(e.target.value)),
+									className: isInvalidQuantity ? "border-destructive focus-visible:ring-destructive" : ""
+								}),
+								isInvalidQuantity && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									"data-uid": "src/pages/Teams/TransferDialog.tsx:127:17",
+									"data-prohibitions": "[editContent]",
+									className: "text-xs text-destructive",
+									children: [
+										"A quantidade deve ser entre 1 e ",
+										item?.quantity || 1,
+										"."
+									]
+								})
+							]
+						})
+					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/TransferDialog.tsx:90:9",
+					"data-uid": "src/pages/Teams/TransferDialog.tsx:134:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:91:11",
+						"data-uid": "src/pages/Teams/TransferDialog.tsx:135:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						onClick: () => onOpenChange(false),
 						children: "Cancelar"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						"data-uid": "src/pages/Teams/TransferDialog.tsx:94:11",
+						"data-uid": "src/pages/Teams/TransferDialog.tsx:138:11",
 						"data-prohibitions": "[]",
 						onClick: handleSave,
-						disabled: !toTeamId,
+						disabled: !toTeamId || isInvalidQuantity,
 						children: "Iniciar Transferência"
 					})]
 				})
@@ -60215,14 +60327,21 @@ function ReceiveDialog({ transfer, open, onOpenChange }) {
 										children: "Item:"
 									}),
 									" ",
-									item.hasAssetNumber ? item.assetNumber : "Sem Patrimônio (S/N)"
+									item.hasAssetNumber ? item.assetNumber : "Lote (S/N)",
+									" ",
+									!item.hasAssetNumber && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:72:17",
+										"data-prohibitions": "[editContent]",
+										className: "text-xs bg-muted px-1.5 py-0.5 rounded ml-2 dark:bg-muted/50",
+										children: [item.quantity, " un."]
+									})
 								]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:72:13",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:77:13",
 								"data-prohibitions": "[editContent]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:73:15",
+										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:78:15",
 										"data-prohibitions": "[]",
 										className: "font-medium text-muted-foreground w-20 inline-block",
 										children: "Enviado por:"
@@ -60233,78 +60352,78 @@ function ReceiveDialog({ transfer, open, onOpenChange }) {
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:80:11",
+							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:85:11",
 							"data-prohibitions": "[editContent]",
 							className: "space-y-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:81:13",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:86:13",
 								"data-prohibitions": "[]",
 								className: "flex items-center gap-2",
 								children: "Evidências do Remetente"
 							}), item.photos && item.photos.length > 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:83:15",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:88:15",
 								"data-prohibitions": "[editContent]",
 								className: "grid grid-cols-3 gap-2",
 								children: item.photos.map((p, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:85:19",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:90:19",
 									"data-prohibitions": "[editContent]",
 									src: p,
 									alt: "Evidência",
 									className: "rounded-md w-full aspect-square object-cover border"
 								}, i))
 							}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:94:15",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:99:15",
 								"data-prohibitions": "[]",
 								className: "p-4 border border-dashed rounded-md text-center text-muted-foreground text-sm flex items-center justify-center bg-muted/20",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TriangleAlert, {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:95:17",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:100:17",
 									"data-prohibitions": "[editContent]",
 									className: "h-4 w-4 mr-2 text-amber-500"
 								}), " Nenhuma foto fornecida pelo remetente."]
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:101:11",
+							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:106:11",
 							"data-prohibitions": "[]",
 							className: "space-y-3 pt-2 border-t",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:102:13",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:107:13",
 								"data-prohibitions": "[]",
 								className: "space-y-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:103:15",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:108:15",
 									"data-prohibitions": "[]",
 									children: "Estado de Conservação Verificado (Obrigatório)"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:104:15",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:109:15",
 									"data-prohibitions": "[]",
 									value: condition,
 									onValueChange: (v) => setCondition(v),
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
-										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:105:17",
+										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:110:17",
 										"data-prohibitions": "[]",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
-											"data-uid": "src/pages/Teams/ReceiveDialog.tsx:106:19",
+											"data-uid": "src/pages/Teams/ReceiveDialog.tsx:111:19",
 											"data-prohibitions": "[editContent]"
 										})
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, {
-										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:108:17",
+										"data-uid": "src/pages/Teams/ReceiveDialog.tsx:113:17",
 										"data-prohibitions": "[]",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:109:19",
+												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:114:19",
 												"data-prohibitions": "[]",
 												value: "good",
 												children: "Confirmar: Bom Estado"
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:110:19",
+												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:115:19",
 												"data-prohibitions": "[]",
 												value: "damaged",
 												children: "Confirmar: Danificado"
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:111:19",
+												"data-uid": "src/pages/Teams/ReceiveDialog.tsx:116:19",
 												"data-prohibitions": "[]",
 												value: "repair",
 												children: "Confirmar: Para Reparo"
@@ -60313,15 +60432,15 @@ function ReceiveDialog({ transfer, open, onOpenChange }) {
 									})]
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:115:13",
+								"data-uid": "src/pages/Teams/ReceiveDialog.tsx:120:13",
 								"data-prohibitions": "[]",
 								className: "space-y-2",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:116:15",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:121:15",
 									"data-prohibitions": "[]",
 									children: "Observações ou Motivo de Rejeição"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:117:15",
+									"data-uid": "src/pages/Teams/ReceiveDialog.tsx:122:15",
 									"data-prohibitions": "[editContent]",
 									value: notes,
 									onChange: (e) => setNotes(e.target.value),
@@ -60332,28 +60451,28 @@ function ReceiveDialog({ transfer, open, onOpenChange }) {
 					]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
-					"data-uid": "src/pages/Teams/ReceiveDialog.tsx:125:9",
+					"data-uid": "src/pages/Teams/ReceiveDialog.tsx:130:9",
 					"data-prohibitions": "[]",
 					className: "flex-col sm:flex-row gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/pages/Teams/ReceiveDialog.tsx:126:11",
+						"data-uid": "src/pages/Teams/ReceiveDialog.tsx:131:11",
 						"data-prohibitions": "[]",
 						variant: "outline",
 						className: "text-destructive border-destructive/30 hover:bg-destructive/10 sm:w-1/2",
 						onClick: handleReject,
 						disabled: !notes.trim(),
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleX, {
-							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:132:13",
+							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:137:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-4 w-4 mr-2"
 						}), " Rejeitar Transferência"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/pages/Teams/ReceiveDialog.tsx:134:11",
+						"data-uid": "src/pages/Teams/ReceiveDialog.tsx:139:11",
 						"data-prohibitions": "[]",
 						onClick: handleAccept,
-						className: "bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2",
+						className: "bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2 dark:bg-emerald-700 dark:hover:bg-emerald-800",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CircleCheck, {
-							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:138:13",
+							"data-uid": "src/pages/Teams/ReceiveDialog.tsx:143:13",
 							"data-prohibitions": "[editContent]",
 							className: "h-4 w-4 mr-2"
 						}), " Receber e Confirmar"]
@@ -60419,7 +60538,7 @@ function AdjustGroupedDialog({ item, open, onOpenChange }) {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							"data-uid": "src/pages/Teams/AdjustGroupedDialog.tsx:67:11",
 							"data-prohibitions": "[editContent]",
-							className: "p-3 bg-blue-50 border border-blue-100 rounded-md text-sm text-blue-800",
+							className: "p-3 bg-blue-50 border border-blue-100 rounded-md text-sm text-blue-800 dark:bg-blue-950/40 dark:border-blue-900/50 dark:text-blue-300",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", {
 									"data-uid": "src/pages/Teams/AdjustGroupedDialog.tsx:68:13",
@@ -62382,21 +62501,21 @@ function TeamDetail() {
 									"data-uid": "src/pages/Teams/TeamDetail.tsx:102:15",
 									"data-prohibitions": "[editContent]",
 									variant: "outline",
-									className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
+									className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50 dark:hover:bg-emerald-950/50",
 									children: [usableCount, " Utilizáveis"]
 								}),
 								inRepairCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 									"data-uid": "src/pages/Teams/TeamDetail.tsx:109:17",
 									"data-prohibitions": "[editContent]",
 									variant: "outline",
-									className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100",
+									className: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50 dark:hover:bg-amber-950/50",
 									children: [inRepairCount, " Em Reparo"]
 								}),
 								damagedCount > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 									"data-uid": "src/pages/Teams/TeamDetail.tsx:117:17",
 									"data-prohibitions": "[editContent]",
 									variant: "outline",
-									className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100",
+									className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50 dark:hover:bg-red-950/50",
 									children: [damagedCount, " Danificados"]
 								})
 							]
@@ -62436,7 +62555,7 @@ function TeamDetail() {
 			canManage && pendingIncoming.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 				"data-uid": "src/pages/Teams/TeamDetail.tsx:142:9",
 				"data-prohibitions": "[editContent]",
-				className: "border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down",
+				className: "border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down dark:border-amber-500/30 dark:bg-amber-500/10",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
 					"data-uid": "src/pages/Teams/TeamDetail.tsx:143:11",
 					"data-prohibitions": "[editContent]",
@@ -62444,7 +62563,7 @@ function TeamDetail() {
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
 						"data-uid": "src/pages/Teams/TeamDetail.tsx:144:13",
 						"data-prohibitions": "[editContent]",
-						className: "text-amber-700 text-sm flex items-center gap-2",
+						className: "text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRightLeft, {
 								"data-uid": "src/pages/Teams/TeamDetail.tsx:145:15",
@@ -62466,7 +62585,7 @@ function TeamDetail() {
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							"data-uid": "src/pages/Teams/TeamDetail.tsx:156:17",
 							"data-prohibitions": "[editContent]",
-							className: "flex items-center justify-between bg-background border rounded-md p-3",
+							className: "flex items-center justify-between bg-background border rounded-md p-3 dark:border-amber-800/50",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								"data-uid": "src/pages/Teams/TeamDetail.tsx:160:19",
 								"data-prohibitions": "[editContent]",
@@ -62495,7 +62614,7 @@ function TeamDetail() {
 								"data-prohibitions": "[]",
 								size: "sm",
 								onClick: () => setReceiveTransfer(t),
-								className: "bg-amber-600 hover:bg-amber-700 text-white",
+								className: "bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-700 dark:hover:bg-amber-800",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PackageOpen, {
 									"data-uid": "src/pages/Teams/TeamDetail.tsx:176:21",
 									"data-prohibitions": "[editContent]",
@@ -62600,7 +62719,7 @@ function TeamDetail() {
 												"data-uid": "src/pages/Teams/TeamDetail.tsx:220:25",
 												"data-prohibitions": "[editContent]",
 												variant: "secondary",
-												className: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default",
+												className: "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50 dark:hover:bg-blue-900/50",
 												children: [
 													"Lote: ",
 													item.quantity,
@@ -62639,13 +62758,13 @@ function TeamDetail() {
 													"data-uid": "src/pages/Teams/TeamDetail.tsx:242:25",
 													"data-prohibitions": "[editContent]",
 													variant: "outline",
-													className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800 border-emerald-200" : item.condition === "repair" ? "bg-amber-100 text-amber-800 border-amber-200" : "bg-red-100 text-red-800 border-red-200"}`,
+													className: `text-[10px] ${item.condition === "good" ? "bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50" : item.condition === "repair" ? "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50" : "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/50"}`,
 													children: statusMap[item.condition].label
 												}), item.status !== "present" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
 													"data-uid": "src/pages/Teams/TeamDetail.tsx:249:27",
 													"data-prohibitions": "[editContent]",
 													variant: "outline",
-													className: "text-[10px] bg-slate-100 text-slate-700 border-slate-200",
+													className: "text-[10px] bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700",
 													children: item.status === "in_maintenance" ? "Em Manutenção" : item.status === "defect_stock" ? "Estoque de Defeito" : item.status === "missing" ? "Extraviado" : item.status === "borrowed" ? "Emprestado" : item.status === "returned_to_team" ? "Devolvido" : item.status
 												})]
 											})
@@ -62658,7 +62777,7 @@ function TeamDetail() {
 												"data-uid": "src/pages/Teams/TeamDetail.tsx:271:27",
 												"data-prohibitions": "[]",
 												variant: "outline",
-												className: "bg-amber-100 text-amber-800 border-amber-200 text-[10px]",
+												className: "bg-amber-100 text-amber-800 border-amber-200 text-[10px] dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50",
 												children: "Em Transferência"
 											}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DropdownMenu, {
 												"data-uid": "src/pages/Teams/TeamDetail.tsx:278:27",
@@ -63000,7 +63119,7 @@ function AuditoriaPage() {
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
 													"data-uid": "src/pages/Teams/Auditoria.tsx:150:25",
 													"data-prohibitions": "[editContent]",
-													className: `h-8 ${st?.status === "present" ? "bg-blue-50" : st?.status === "missing" ? "bg-red-50 text-red-700" : "bg-amber-50"}`,
+													className: `h-8 ${st?.status === "present" ? "bg-blue-50 dark:bg-blue-950/30" : st?.status === "missing" ? "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400" : "bg-amber-50 dark:bg-amber-950/30"}`,
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
 														"data-uid": "src/pages/Teams/Auditoria.tsx:153:27",
 														"data-prohibitions": "[editContent]"
@@ -65539,7 +65658,7 @@ function RepairsPage() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 					"data-uid": "src/pages/Repairs/Index.tsx:37:9",
 					"data-prohibitions": "[editContent]",
-					className: "bg-amber-500/5 border-amber-200",
+					className: "bg-amber-500/5 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 						"data-uid": "src/pages/Repairs/Index.tsx:38:11",
 						"data-prohibitions": "[editContent]",
@@ -65547,30 +65666,30 @@ function RepairsPage() {
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 							"data-uid": "src/pages/Repairs/Index.tsx:39:13",
 							"data-prohibitions": "[]",
-							className: "text-sm font-medium text-amber-800",
+							className: "text-sm font-medium text-amber-800 dark:text-amber-400",
 							children: "Total de Instâncias em Reparo"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Repairs/Index.tsx:40:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:42:13",
 							"data-prohibitions": "[editContent]",
-							className: "text-3xl font-bold mt-2 text-amber-900",
+							className: "text-3xl font-bold mt-2 text-amber-900 dark:text-amber-300",
 							children: repairItems.length
 						})]
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-					"data-uid": "src/pages/Repairs/Index.tsx:43:9",
+					"data-uid": "src/pages/Repairs/Index.tsx:47:9",
 					"data-prohibitions": "[editContent]",
-					className: "bg-slate-50 border-slate-200",
+					className: "bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-800",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-						"data-uid": "src/pages/Repairs/Index.tsx:44:11",
+						"data-uid": "src/pages/Repairs/Index.tsx:48:11",
 						"data-prohibitions": "[editContent]",
 						className: "p-6",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							"data-uid": "src/pages/Repairs/Index.tsx:45:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:49:13",
 							"data-prohibitions": "[]",
-							className: "text-sm font-medium text-slate-600",
+							className: "text-sm font-medium text-slate-600 dark:text-slate-400",
 							children: "Custo Total Estimado (R$)"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/pages/Repairs/Index.tsx:46:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:52:13",
 							"data-prohibitions": "[editContent]",
 							className: "text-3xl font-bold mt-2 tabular-nums",
 							children: ["R$ ", totalCost.toFixed(2)]
@@ -65579,68 +65698,68 @@ function RepairsPage() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-				"data-uid": "src/pages/Repairs/Index.tsx:51:7",
+				"data-uid": "src/pages/Repairs/Index.tsx:57:7",
 				"data-prohibitions": "[editContent]",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
-					"data-uid": "src/pages/Repairs/Index.tsx:52:9",
+					"data-uid": "src/pages/Repairs/Index.tsx:58:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-						"data-uid": "src/pages/Repairs/Index.tsx:53:11",
+						"data-uid": "src/pages/Repairs/Index.tsx:59:11",
 						"data-prohibitions": "[]",
 						className: "flex items-center gap-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Wrench, {
-							"data-uid": "src/pages/Repairs/Index.tsx:54:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:60:13",
 							"data-prohibitions": "[editContent]",
 							className: "w-5 h-5 text-amber-600"
 						}), " Ferramentas em Manutenção"]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
-						"data-uid": "src/pages/Repairs/Index.tsx:56:11",
+						"data-uid": "src/pages/Repairs/Index.tsx:62:11",
 						"data-prohibitions": "[]",
 						children: "Controle detalhado de envio, assistência técnica e prazos."
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
-					"data-uid": "src/pages/Repairs/Index.tsx:60:9",
+					"data-uid": "src/pages/Repairs/Index.tsx:66:9",
 					"data-prohibitions": "[editContent]",
 					className: "p-0",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-						"data-uid": "src/pages/Repairs/Index.tsx:61:11",
+						"data-uid": "src/pages/Repairs/Index.tsx:67:11",
 						"data-prohibitions": "[editContent]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-							"data-uid": "src/pages/Repairs/Index.tsx:62:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:68:13",
 							"data-prohibitions": "[]",
 							className: "bg-muted/40",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/Repairs/Index.tsx:63:15",
+								"data-uid": "src/pages/Repairs/Index.tsx:69:15",
 								"data-prohibitions": "[]",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:64:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:70:17",
 										"data-prohibitions": "[]",
 										className: "w-16 text-center",
 										children: "Foto"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:65:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:71:17",
 										"data-prohibitions": "[]",
 										children: "Patrimônio / Item"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:66:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:72:17",
 										"data-prohibitions": "[]",
 										children: "Local & Status de Envio"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:67:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:73:17",
 										"data-prohibitions": "[]",
 										children: "Categoria / Diagnóstico"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:68:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:74:17",
 										"data-prohibitions": "[]",
 										children: "Custo"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/Repairs/Index.tsx:69:17",
+										"data-uid": "src/pages/Repairs/Index.tsx:75:17",
 										"data-prohibitions": "[]",
 										className: "text-right",
 										children: "Ações"
@@ -65648,35 +65767,35 @@ function RepairsPage() {
 								]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
-							"data-uid": "src/pages/Repairs/Index.tsx:72:13",
+							"data-uid": "src/pages/Repairs/Index.tsx:78:13",
 							"data-prohibitions": "[editContent]",
 							children: [repairItems.map((item) => {
 								const path = getNodePath(item.treeNodeId);
 								const name = path.find((n) => n.level === "item")?.name || "Item";
 								const marca = path.find((n) => n.level === "marca")?.name || "-";
 								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-									"data-uid": "src/pages/Repairs/Index.tsx:79:19",
+									"data-uid": "src/pages/Repairs/Index.tsx:85:19",
 									"data-prohibitions": "[editContent]",
 									className: "group",
 									children: [
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:80:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:86:21",
 											"data-prohibitions": "[]",
 											className: "text-center",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Avatar, {
-												"data-uid": "src/pages/Repairs/Index.tsx:81:23",
+												"data-uid": "src/pages/Repairs/Index.tsx:87:23",
 												"data-prohibitions": "[]",
 												className: "h-9 w-9 mx-auto rounded-md border",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarImage, {
-													"data-uid": "src/pages/Repairs/Index.tsx:82:25",
+													"data-uid": "src/pages/Repairs/Index.tsx:88:25",
 													"data-prohibitions": "[editContent]",
 													src: item.photos?.[0],
 													className: "object-cover"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-													"data-uid": "src/pages/Repairs/Index.tsx:83:25",
+													"data-uid": "src/pages/Repairs/Index.tsx:89:25",
 													"data-prohibitions": "[]",
 													children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Camera, {
-														"data-uid": "src/pages/Repairs/Index.tsx:84:27",
+														"data-uid": "src/pages/Repairs/Index.tsx:90:27",
 														"data-prohibitions": "[editContent]",
 														className: "h-3 w-3 text-muted-foreground/50"
 													})
@@ -65684,23 +65803,23 @@ function RepairsPage() {
 											})
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:88:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:94:21",
 											"data-prohibitions": "[editContent]",
 											children: [
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:89:23",
+													"data-uid": "src/pages/Repairs/Index.tsx:95:23",
 													"data-prohibitions": "[editContent]",
 													className: "font-mono text-xs font-semibold",
 													children: item.hasAssetNumber ? item.assetNumber : "S/N"
 												}),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:92:23",
+													"data-uid": "src/pages/Repairs/Index.tsx:98:23",
 													"data-prohibitions": "[editContent]",
 													className: "font-medium text-sm mt-0.5",
 													children: name
 												}),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:93:23",
+													"data-uid": "src/pages/Repairs/Index.tsx:99:23",
 													"data-prohibitions": "[editContent]",
 													className: "text-[10px] text-muted-foreground",
 													children: marca
@@ -65708,37 +65827,37 @@ function RepairsPage() {
 											]
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:95:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:101:21",
 											"data-prohibitions": "[editContent]",
 											children: [
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:96:23",
+													"data-uid": "src/pages/Repairs/Index.tsx:102:23",
 													"data-prohibitions": "[editContent]",
 													className: "text-sm font-medium",
 													children: item.repairLocation || "-"
 												}),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:97:23",
+													"data-uid": "src/pages/Repairs/Index.tsx:103:23",
 													"data-prohibitions": "[editContent]",
 													className: "flex items-center gap-1.5 mt-1",
 													children: item.repairSent ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-														"data-uid": "src/pages/Repairs/Index.tsx:99:27",
+														"data-uid": "src/pages/Repairs/Index.tsx:105:27",
 														"data-prohibitions": "[]",
-														className: "inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded",
+														className: "inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded dark:bg-blue-900/40 dark:text-blue-300",
 														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, {
-															"data-uid": "src/pages/Repairs/Index.tsx:100:29",
+															"data-uid": "src/pages/Repairs/Index.tsx:106:29",
 															"data-prohibitions": "[editContent]",
 															className: "w-3 h-3 mr-1"
 														}), " Enviado"]
 													}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Repairs/Index.tsx:103:27",
+														"data-uid": "src/pages/Repairs/Index.tsx:109:27",
 														"data-prohibitions": "[]",
-														className: "inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded",
+														className: "inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded dark:bg-amber-950/40 dark:text-amber-400",
 														children: "Pendente Envio"
 													})
 												}),
 												item.expectedReturnDate && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													"data-uid": "src/pages/Repairs/Index.tsx:109:25",
+													"data-uid": "src/pages/Repairs/Index.tsx:115:25",
 													"data-prohibitions": "[editContent]",
 													className: "text-[10px] text-muted-foreground mt-1 flex items-center",
 													children: [
@@ -65750,15 +65869,15 @@ function RepairsPage() {
 											]
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:117:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:123:21",
 											"data-prohibitions": "[editContent]",
 											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Repairs/Index.tsx:118:23",
+												"data-uid": "src/pages/Repairs/Index.tsx:124:23",
 												"data-prohibitions": "[editContent]",
-												className: "text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50",
+												className: "text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50 dark:bg-muted/50",
 												children: item.conditionCategory || "Não categorizado"
 											}), item.repairDescription && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-												"data-uid": "src/pages/Repairs/Index.tsx:122:25",
+												"data-uid": "src/pages/Repairs/Index.tsx:128:25",
 												"data-prohibitions": "[editContent]",
 												className: "text-[10px] text-muted-foreground line-clamp-2 mt-0.5",
 												title: item.repairDescription,
@@ -65766,17 +65885,17 @@ function RepairsPage() {
 											})]
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:130:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:136:21",
 											"data-prohibitions": "[editContent]",
-											className: "tabular-nums text-sm font-medium text-slate-700 align-top pt-5",
+											className: "tabular-nums text-sm font-medium text-slate-700 dark:text-slate-300 align-top pt-5",
 											children: ["R$ ", item.repairCost?.toFixed(2) || "0.00"]
 										}),
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-											"data-uid": "src/pages/Repairs/Index.tsx:133:21",
+											"data-uid": "src/pages/Repairs/Index.tsx:139:21",
 											"data-prohibitions": "[]",
 											className: "text-right align-top pt-3",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-												"data-uid": "src/pages/Repairs/Index.tsx:134:23",
+												"data-uid": "src/pages/Repairs/Index.tsx:140:23",
 												"data-prohibitions": "[]",
 												variant: "outline",
 												size: "sm",
@@ -65784,13 +65903,13 @@ function RepairsPage() {
 												className: "h-8",
 												children: [
 													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Settings2, {
-														"data-uid": "src/pages/Repairs/Index.tsx:140:25",
+														"data-uid": "src/pages/Repairs/Index.tsx:146:25",
 														"data-prohibitions": "[editContent]",
 														className: "w-4 h-4 sm:mr-2"
 													}),
 													" ",
 													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														"data-uid": "src/pages/Repairs/Index.tsx:141:25",
+														"data-uid": "src/pages/Repairs/Index.tsx:147:25",
 														"data-prohibitions": "[]",
 														className: "hidden sm:inline",
 														children: "Gerenciar"
@@ -65801,10 +65920,10 @@ function RepairsPage() {
 									]
 								}, item.id);
 							}), repairItems.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableRow, {
-								"data-uid": "src/pages/Repairs/Index.tsx:148:17",
+								"data-uid": "src/pages/Repairs/Index.tsx:154:17",
 								"data-prohibitions": "[]",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/Repairs/Index.tsx:149:19",
+									"data-uid": "src/pages/Repairs/Index.tsx:155:19",
 									"data-prohibitions": "[]",
 									colSpan: 6,
 									className: "h-32 text-center text-muted-foreground",
@@ -65816,7 +65935,7 @@ function RepairsPage() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(UpdateDialog, {
-				"data-uid": "src/pages/Repairs/Index.tsx:159:7",
+				"data-uid": "src/pages/Repairs/Index.tsx:165:7",
 				"data-prohibitions": "[editContent]",
 				item: updateItem,
 				open: !!updateItem,
@@ -66225,4 +66344,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(J, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-BbfMtlNA.js.map
+//# sourceMappingURL=index-c9o-yKcm.js.map

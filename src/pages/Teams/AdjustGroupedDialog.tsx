@@ -64,7 +64,7 @@ export function AdjustGroupedDialog({
           <DialogDescription>Remova ou altere o status de unidades deste lote.</DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-md text-sm text-blue-800">
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded-md text-sm text-blue-800 dark:bg-blue-950/40 dark:border-blue-900/50 dark:text-blue-300">
             <strong>{itemName}</strong> - {maxQty} unidades disponíveis neste registro.
           </div>
 

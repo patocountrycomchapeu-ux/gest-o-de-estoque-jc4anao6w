@@ -48,7 +48,7 @@ interface AppContextType extends AppState {
     extra: { assetNumber: string; notes: string; treeNodeId: string; photo: string }[],
   ) => void
   getNodePath: (nodeId: string) => TreeNode[]
-  initiateTransfer: (inventoryId: string, toTeamId: string) => void
+  initiateTransfer: (inventoryId: string, toTeamId: string, quantity?: number) => void
   resolveTransfer: (
     trId: string,
     action: 'accept' | 'reject',
@@ -459,26 +459,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [],
   )
 
-  const initiateTransfer = useCallback((inventoryId: string, toTeamId: string) => {
-    setState((prev) => {
-      const item = prev.inventory.find((i) => i.id === inventoryId)
-      if (!item) return prev
-      const transfer = {
-        id: `tr_${Date.now()}`,
-        inventoryId,
-        fromTeamId: item.teamId,
-        toTeamId,
-        initiatedBy: prev.currentUser?.name || 'Sistema',
-        initiatedAt: new Date().toISOString(),
-        status: 'pending' as const,
-      }
-      return { ...prev, transfers: [transfer, ...prev.transfers] }
-    })
-    toast({
-      title: 'Transferência Iniciada',
-      description: 'Aguardando validação da equipe de destino.',
-    })
-  }, [])
+  const initiateTransfer = useCallback(
+    (inventoryId: string, toTeamId: string, quantity?: number) => {
+      setState((prev) => {
+        const item = prev.inventory.find((i) => i.id === inventoryId)
+        if (!item) return prev
+
+        let transferInventoryId = inventoryId
+        const newInventory = [...prev.inventory]
+        const newHistory = [...prev.history]
+
+        if (quantity && item.quantity && quantity < item.quantity) {
+          const originalIndex = newInventory.findIndex((i) => i.id === inventoryId)
+          newInventory[originalIndex] = { ...item, quantity: item.quantity - quantity }
+
+          transferInventoryId = `inv_${Date.now()}_split`
+          const splitItem = { ...item, id: transferInventoryId, quantity }
+          newInventory.push(splitItem)
+
+          newHistory.unshift({
+            id: `h_${Date.now()}_split`,
+            inventoryId: transferInventoryId,
+            date: new Date().toISOString(),
+            type: 'system',
+            description: `Lote dividido para transferência (${quantity} un).`,
+            user: prev.currentUser?.name || 'Sistema',
+          })
+        }
+
+        const transfer = {
+          id: `tr_${Date.now()}`,
+          inventoryId: transferInventoryId,
+          fromTeamId: item.teamId,
+          toTeamId,
+          initiatedBy: prev.currentUser?.name || 'Sistema',
+          initiatedAt: new Date().toISOString(),
+          status: 'pending' as const,
+        }
+        return {
+          ...prev,
+          inventory: newInventory,
+          transfers: [transfer, ...prev.transfers],
+          history: newHistory,
+        }
+      })
+      toast({
+        title: 'Transferência Iniciada',
+        description: 'Aguardando validação da equipe de destino.',
+      })
+    },
+    [],
+  )
 
   const resolveTransfer = useCallback(
     (trId: string, action: 'accept' | 'reject', cond?: Condition, notes?: string) => {
@@ -490,6 +521,47 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const desc = isAccept
           ? `Transferência recebida. Estado confirmado: ${cond}`
           : `Transferência rejeitada. Motivo: ${notes}`
+
+        const transferredItem = prev.inventory.find((i) => i.id === tr.inventoryId)
+        let newInventory = [...prev.inventory]
+        let merged = false
+
+        if (isAccept && transferredItem && !transferredItem.hasAssetNumber) {
+          const finalCondition = cond || transferredItem.condition
+          const existingIdx = newInventory.findIndex(
+            (i) =>
+              i.id !== transferredItem.id &&
+              i.teamId === tr.toTeamId &&
+              i.treeNodeId === transferredItem.treeNodeId &&
+              i.condition === finalCondition &&
+              i.status === transferredItem.status &&
+              !i.hasAssetNumber,
+          )
+
+          if (existingIdx >= 0) {
+            const ex = newInventory[existingIdx]
+            newInventory[existingIdx] = {
+              ...ex,
+              quantity: (ex.quantity || 1) + (transferredItem.quantity || 1),
+              lastUpdated: now,
+            }
+            newInventory = newInventory.filter((i) => i.id !== transferredItem.id)
+            merged = true
+          }
+        }
+
+        if (!merged) {
+          newInventory = newInventory.map((i) =>
+            i.id === tr.inventoryId
+              ? {
+                  ...i,
+                  teamId: isAccept ? tr.toTeamId : i.teamId,
+                  condition: isAccept && cond ? cond : i.condition,
+                  lastUpdated: now,
+                }
+              : i,
+          )
+        }
 
         return {
           ...prev,
@@ -503,16 +575,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                 }
               : t,
           ),
-          inventory: prev.inventory.map((i) =>
-            i.id === tr.inventoryId
-              ? {
-                  ...i,
-                  teamId: isAccept ? tr.toTeamId : i.teamId,
-                  condition: isAccept && cond ? cond : i.condition,
-                  lastUpdated: now,
-                }
-              : i,
-          ),
+          inventory: newInventory,
           history: [
             {
               id: `h_${Date.now()}`,

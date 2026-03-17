@@ -34,15 +34,21 @@ export default function RepairsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="bg-amber-500/5 border-amber-200">
+        <Card className="bg-amber-500/5 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800/50">
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-amber-800">Total de Instâncias em Reparo</div>
-            <div className="text-3xl font-bold mt-2 text-amber-900">{repairItems.length}</div>
+            <div className="text-sm font-medium text-amber-800 dark:text-amber-400">
+              Total de Instâncias em Reparo
+            </div>
+            <div className="text-3xl font-bold mt-2 text-amber-900 dark:text-amber-300">
+              {repairItems.length}
+            </div>
           </CardContent>
         </Card>
-        <Card className="bg-slate-50 border-slate-200">
+        <Card className="bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-800">
           <CardContent className="p-6">
-            <div className="text-sm font-medium text-slate-600">Custo Total Estimado (R$)</div>
+            <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
+              Custo Total Estimado (R$)
+            </div>
             <div className="text-3xl font-bold mt-2 tabular-nums">R$ {totalCost.toFixed(2)}</div>
           </CardContent>
         </Card>
@@ -96,11 +102,11 @@ export default function RepairsPage() {
                       <div className="text-sm font-medium">{item.repairLocation || '-'}</div>
                       <div className="flex items-center gap-1.5 mt-1">
                         {item.repairSent ? (
-                          <span className="inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded dark:bg-blue-900/40 dark:text-blue-300">
                             <Send className="w-3 h-3 mr-1" /> Enviado
                           </span>
                         ) : (
-                          <span className="inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                          <span className="inline-flex items-center text-[10px] font-semibold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded dark:bg-amber-950/40 dark:text-amber-400">
                             Pendente Envio
                           </span>
                         )}
@@ -115,7 +121,7 @@ export default function RepairsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50">
+                      <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50 dark:bg-muted/50">
                         {item.conditionCategory || 'Não categorizado'}
                       </div>
                       {item.repairDescription && (
@@ -127,7 +133,7 @@ export default function RepairsPage() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="tabular-nums text-sm font-medium text-slate-700 align-top pt-5">
+                    <TableCell className="tabular-nums text-sm font-medium text-slate-700 dark:text-slate-300 align-top pt-5">
                       R$ {item.repairCost?.toFixed(2) || '0.00'}
                     </TableCell>
                     <TableCell className="text-right align-top pt-3">

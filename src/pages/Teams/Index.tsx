@@ -50,19 +50,19 @@ export default function TeamsPage() {
                     </div>
                     <div className="flex items-center justify-between text-sm pt-3 border-t">
                       <div className="flex items-center">
-                        <Package className="h-4 w-4 mr-1.5 text-emerald-600" />
-                        <span className="font-medium text-emerald-700">
+                        <Package className="h-4 w-4 mr-1.5 text-emerald-600 dark:text-emerald-500" />
+                        <span className="font-medium text-emerald-700 dark:text-emerald-400">
                           {usableItemsCount} Utilizáveis
                         </span>
                       </div>
                       {damagedItemsCount > 0 && (
-                        <div className="flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs">
+                        <div className="flex items-center text-destructive font-medium bg-destructive/10 px-2 py-0.5 rounded-full text-xs dark:bg-destructive/20 dark:text-red-400">
                           <AlertTriangle className="h-3 w-3 mr-1" /> {damagedItemsCount} avaria
                         </div>
                       )}
                     </div>
                     {pendingIncoming > 0 && (
-                      <div className="flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200">
+                      <div className="flex items-center text-amber-700 font-medium bg-amber-100/50 px-2 py-1 rounded text-xs border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50">
                         <ArrowRightLeft className="h-3.5 w-3.5 mr-1.5" />
                         {pendingIncoming} Transferência{pendingIncoming > 1 ? 's' : ''} Pendente
                         {pendingIncoming > 1 ? 's' : ''}

@@ -70,17 +70,17 @@ export function TreeNodeItem({ node, allNodes, onAddChild }: TreeNodeItemProps) 
             )}
           </div>
           <Icon className="h-4 w-4 text-muted-foreground/70" />
-          <span className="text-sm font-medium">{node.name}</span>
+          <span className="text-sm font-medium text-foreground">{node.name}</span>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground/50 border border-border px-1.5 py-0.5 rounded-sm ml-2">
             {node.level}
           </span>
           {node.isGrouped && (
-            <span className="ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200">
+            <span className="ml-2 bg-blue-100/50 text-blue-700 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50">
               Lote
             </span>
           )}
           {quantity > 0 && (
-            <span className="ml-2 bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
+            <span className="ml-2 bg-primary/10 text-primary dark:text-primary-foreground dark:bg-primary/30 text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold">
               {quantity}
             </span>
           )}

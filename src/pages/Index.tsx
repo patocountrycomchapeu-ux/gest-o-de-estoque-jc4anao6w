@@ -70,7 +70,7 @@ export default function Index() {
                   className="flex items-start gap-4 text-sm group animate-slide-up"
                 >
                   <div
-                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}
+                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'}`}
                   >
                     {activity.type === 'status_change' ? (
                       <AlertTriangle className="h-3 w-3" />
@@ -105,7 +105,7 @@ export default function Index() {
 function StatCard({ title, value, icon: Icon, trend, critical, warning }: any) {
   return (
     <Card
-      className={`overflow-hidden ${critical ? 'border-destructive/50 bg-destructive/5' : warning ? 'border-amber-500/50 bg-amber-500/5' : ''}`}
+      className={`overflow-hidden ${critical ? 'border-destructive/50 bg-destructive/5 dark:bg-destructive/10' : warning ? 'border-amber-500/50 bg-amber-500/5 dark:bg-amber-500/10' : ''}`}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>

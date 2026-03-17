@@ -101,14 +101,14 @@ export default function TeamDetail() {
             <div className="flex flex-wrap gap-2 mt-1.5">
               <Badge
                 variant="outline"
-                className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                className="bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/50 dark:hover:bg-emerald-950/50"
               >
                 {usableCount} Utilizáveis
               </Badge>
               {inRepairCount > 0 && (
                 <Badge
                   variant="outline"
-                  className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                  className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800/50 dark:hover:bg-amber-950/50"
                 >
                   {inRepairCount} Em Reparo
                 </Badge>
@@ -116,7 +116,7 @@ export default function TeamDetail() {
               {damagedCount > 0 && (
                 <Badge
                   variant="outline"
-                  className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                  className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/50 dark:hover:bg-red-950/50"
                 >
                   {damagedCount} Danificados
                 </Badge>
@@ -139,9 +139,9 @@ export default function TeamDetail() {
       </div>
 
       {canManage && pendingIncoming.length > 0 && (
-        <Card className="border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down">
+        <Card className="border-amber-500/40 bg-amber-500/5 shadow-none animate-slide-down dark:border-amber-500/30 dark:bg-amber-500/10">
           <CardHeader className="py-3">
-            <CardTitle className="text-amber-700 text-sm flex items-center gap-2">
+            <CardTitle className="text-amber-700 dark:text-amber-400 text-sm flex items-center gap-2">
               <ArrowRightLeft className="h-4 w-4" /> Ferramentas em Trânsito para Validação (
               {pendingIncoming.length})
             </CardTitle>
@@ -155,7 +155,7 @@ export default function TeamDetail() {
               return (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between bg-background border rounded-md p-3"
+                  className="flex items-center justify-between bg-background border rounded-md p-3 dark:border-amber-800/50"
                 >
                   <div>
                     <p className="font-medium text-sm">
@@ -171,7 +171,7 @@ export default function TeamDetail() {
                   <Button
                     size="sm"
                     onClick={() => setReceiveTransfer(t)}
-                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                    className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-700 dark:hover:bg-amber-800"
                   >
                     <PackageOpen className="h-4 w-4 mr-2" /> Verificar e Receber
                   </Button>
@@ -219,7 +219,7 @@ export default function TeamDetail() {
                       {isGrouped ? (
                         <Badge
                           variant="secondary"
-                          className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default"
+                          className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200 cursor-default dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50 dark:hover:bg-blue-900/50"
                         >
                           Lote: {item.quantity} un.
                         </Badge>
@@ -241,14 +241,14 @@ export default function TeamDetail() {
                       <div className="flex flex-col gap-1 items-start">
                         <Badge
                           variant="outline"
-                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : item.condition === 'repair' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-red-100 text-red-800 border-red-200'}`}
+                          className={`text-[10px] ${item.condition === 'good' ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50' : item.condition === 'repair' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50' : 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800/50'}`}
                         >
                           {statusMap[item.condition].label}
                         </Badge>
                         {item.status !== 'present' && (
                           <Badge
                             variant="outline"
-                            className="text-[10px] bg-slate-100 text-slate-700 border-slate-200"
+                            className="text-[10px] bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700"
                           >
                             {item.status === 'in_maintenance'
                               ? 'Em Manutenção'
@@ -270,7 +270,7 @@ export default function TeamDetail() {
                         {isOutgoing ? (
                           <Badge
                             variant="outline"
-                            className="bg-amber-100 text-amber-800 border-amber-200 text-[10px]"
+                            className="bg-amber-100 text-amber-800 border-amber-200 text-[10px] dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50"
                           >
                             Em Transferência
                           </Badge>

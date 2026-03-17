@@ -67,7 +67,12 @@ export function ReceiveDialog({
           <div className="p-3 bg-muted/40 rounded-md text-sm border space-y-1">
             <p>
               <span className="font-medium text-muted-foreground w-20 inline-block">Item:</span>{' '}
-              {item.hasAssetNumber ? item.assetNumber : 'Sem Patrimônio (S/N)'}
+              {item.hasAssetNumber ? item.assetNumber : 'Lote (S/N)'}{' '}
+              {!item.hasAssetNumber && (
+                <span className="text-xs bg-muted px-1.5 py-0.5 rounded ml-2 dark:bg-muted/50">
+                  {item.quantity} un.
+                </span>
+              )}
             </p>
             <p>
               <span className="font-medium text-muted-foreground w-20 inline-block">
@@ -133,7 +138,7 @@ export function ReceiveDialog({
           </Button>
           <Button
             onClick={handleAccept}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white sm:w-1/2 dark:bg-emerald-700 dark:hover:bg-emerald-800"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" /> Receber e Confirmar
           </Button>
