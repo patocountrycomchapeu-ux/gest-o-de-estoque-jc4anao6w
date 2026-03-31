@@ -6,6 +6,7 @@ import { ChecklistTab } from './ChecklistTab'
 import { TreeReportTab } from './TreeReportTab'
 import { DamagedTab } from './DamagedTab'
 import { RepairReportTab } from './RepairReportTab'
+import { SupplierCostsTab } from './SupplierCostsTab'
 
 export default function ReportsPage() {
   return (
@@ -26,6 +27,7 @@ export default function ReportsPage() {
           <TabsTrigger value="tree">Árvore Mercadológica</TabsTrigger>
           <TabsTrigger value="damaged">Danificados</TabsTrigger>
           <TabsTrigger value="repair">Em Reparo</TabsTrigger>
+          <TabsTrigger value="supplier-costs">Gastos em Fornecedores</TabsTrigger>
         </TabsList>
 
         <TabsContent
@@ -69,6 +71,12 @@ export default function ReportsPage() {
           className="print:m-0 print:block data-[state=inactive]:print:hidden"
         >
           <RepairReportTab />
+        </TabsContent>
+        <TabsContent
+          value="supplier-costs"
+          className="print:m-0 print:block data-[state=inactive]:print:hidden"
+        >
+          <SupplierCostsTab />
         </TabsContent>
       </Tabs>
     </div>
