@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAppStore } from '@/store/AppStore'
+import { useToast } from '@/hooks/use-toast'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +27,7 @@ import { Navigate } from 'react-router-dom'
 
 export default function SuppliersPage() {
   const { suppliers, addSupplier, adjustSupplierBalance, currentUser } = useAppStore()
+  const { toast } = useToast()
   const [addOpen, setAddOpen] = useState(false)
   const [balanceOpen, setBalanceOpen] = useState<string | null>(null)
 
@@ -37,16 +39,50 @@ export default function SuppliersPage() {
   const canManage = canManageSuppliers(currentUser)
 
   const handleAdd = () => {
-    if (!name.trim()) return alert('Nome é obrigatório')
+    if (!name.trim()) {
+      toast({
+        title: 'Atenção',
+        description: 'O nome do fornecedor é obrigatório.',
+        variant: 'destructive',
+      })
+      return
+    }
     addSupplier({ name, cnpj })
+    toast({
+      title: 'Sucesso',
+      description: 'Fornecedor adicionado com sucesso.',
+    })
     setAddOpen(false)
     setName('')
     setCnpj('')
   }
 
   const handleBalance = () => {
-    if (!balanceOpen || !amount) return
-    adjustSupplierBalance(balanceOpen, parseFloat(amount))
+    if (!balanceOpen) return
+
+    let normalizedAmount = amount
+    if (amount.includes(',') && amount.includes('.')) {
+      normalizedAmount = amount.replace(/\./g, '').replace(',', '.')
+    } else if (amount.includes(',')) {
+      normalizedAmount = amount.replace(',', '.')
+    }
+
+    const parsedAmount = parseFloat(normalizedAmount)
+
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast({
+        title: 'Valor inválido',
+        description: 'Por favor, insira uma quantidade de crédito válida.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    adjustSupplierBalance(balanceOpen, parsedAmount)
+    toast({
+      title: 'Crédito adicionado',
+      description: `O valor de ${Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parsedAmount)} foi adicionado ao saldo.`,
+    })
     setBalanceOpen(null)
     setAmount('')
   }
@@ -84,7 +120,9 @@ export default function SuppliersPage() {
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell className="text-muted-foreground text-xs">{s.cnpj || '-'}</TableCell>
                   <TableCell className="text-right tabular-nums font-semibold text-emerald-700 dark:text-emerald-400">
-                    R$ {s.currentBalance.toFixed(2)}
+                    {Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                      s.currentBalance || 0,
+                    )}
                   </TableCell>
                   {canManage && (
                     <TableCell className="text-right">
@@ -146,10 +184,16 @@ export default function SuppliersPage() {
             <div className="space-y-2">
               <Label>Valor (R$)</Label>
               <Input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                placeholder="Ex: 150,00"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (/^[\d.,]*$/.test(val)) {
+                    setAmount(val)
+                  }
+                }}
               />
             </div>
           </div>
