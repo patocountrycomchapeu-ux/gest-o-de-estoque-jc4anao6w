@@ -1,25 +1,132 @@
+import { useState } from 'react'
 import { useAppStore } from '@/store/AppStore'
 import { canViewTeam, canManageUsers } from '@/lib/permissions'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { MapPin, Package, AlertTriangle, ArrowRightLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { supabase } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 export default function TeamsPage() {
-  const { teams, inventory, transfers, currentUser } = useAppStore()
-  const filteredTeams = teams.filter((t) => canViewTeam(currentUser, t.id))
+  const appStore = useAppStore() as any
+  const { teams, inventory, transfers, currentUser, addTeam } = appStore
+  const filteredTeams = teams.filter((t: any) => canViewTeam(currentUser, t.id))
+
+  const [isAddingTeam, setIsAddingTeam] = useState(false)
+  const [newTeam, setNewTeam] = useState({ name: '', description: '', location: '' })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleAddTeam = async () => {
+    if (!newTeam.name.trim()) {
+      toast.error('O nome da equipe é obrigatório')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const teamId = crypto.randomUUID()
+      const teamData = {
+        id: teamId,
+        name: newTeam.name.trim(),
+        description: newTeam.description.trim(),
+        location: newTeam.location.trim(),
+      }
+
+      const { error } = await supabase.from('teams').insert(teamData)
+
+      if (error) throw error
+
+      if (typeof addTeam === 'function') {
+        addTeam(teamData)
+      } else {
+        window.location.reload()
+      }
+
+      toast.success('Equipe criada com sucesso!')
+      setIsAddingTeam(false)
+      setNewTeam({ name: '', description: '', location: '' })
+    } catch (error: any) {
+      console.error('Error adding team:', error)
+      toast.error('Erro ao criar equipe: ' + error.message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Gestão de Equipes</h2>
           <p className="text-muted-foreground">
             Visualize e gerencie as instâncias de ferramentas de cada equipe.
           </p>
         </div>
-        {canManageUsers(currentUser) && <Button>Nova Equipe</Button>}
+        {canManageUsers(currentUser) && (
+          <Button onClick={() => setIsAddingTeam(true)}>Nova Equipe</Button>
+        )}
       </div>
+
+      <Dialog open={isAddingTeam} onOpenChange={setIsAddingTeam}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nova Equipe</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome da Equipe</Label>
+              <Input
+                id="name"
+                value={newTeam.name}
+                onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
+                placeholder="Ex: Equipe Alpha"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Localização / Base</Label>
+              <Input
+                id="location"
+                value={newTeam.location}
+                onChange={(e) => setNewTeam({ ...newTeam, location: e.target.value })}
+                placeholder="Ex: Base Sul"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição (Opcional)</Label>
+              <Textarea
+                id="description"
+                value={newTeam.description}
+                onChange={(e) => setNewTeam({ ...newTeam, description: e.target.value })}
+                placeholder="Detalhes sobre a equipe..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddingTeam(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleAddTeam} disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : 'Salvar Equipe'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredTeams.map((team) => {
