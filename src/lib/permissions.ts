@@ -13,7 +13,7 @@ export const canViewTree = (user: User | null) => !!user
 
 export const canManageTree = (user: User | null) => {
   if (!user) return false
-  return ['Gestor', 'Encarregado Gestor'].includes(user.role)
+  return ['Gestor'].includes(user.role)
 }
 
 export const canViewTeams = (user: User | null) => {

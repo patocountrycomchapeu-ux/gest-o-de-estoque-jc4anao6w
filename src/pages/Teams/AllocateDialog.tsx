@@ -240,10 +240,14 @@ export function AllocateDialog({
                 <div className="space-y-2">
                   <Label>Preço Unitário (R$)</Label>
                   <Input
-                    type="number"
-                    step="0.01"
+                    type="text"
+                    inputMode="decimal"
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.')
+                      setPrice(val)
+                    }}
+                    placeholder="0.00"
                   />
                 </div>
               </div>
