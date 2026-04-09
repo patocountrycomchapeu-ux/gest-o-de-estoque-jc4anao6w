@@ -487,6 +487,65 @@ export function AppProvider({
     })
     toast({ title: 'Atualizado' })
   }
+  const createFullItemAndAllocate = async (data: any) => {
+    let currentParentId: string | null = null
+    let lastNodeId = ''
+    const levels = ['tipo', 'funcao', 'especificacao', 'item', 'marca']
+    const pathValues = [data.tipo, data.funcao, data.especificacao, data.item, data.marca]
+    let newNodes: any[] = []
+
+    let currentNodes = [...state.nodes]
+
+    for (let i = 0; i < levels.length; i++) {
+      const val = pathValues[i]
+      if (!val) break
+
+      const existing = currentNodes.find(
+        (n) =>
+          n.name.toLowerCase() === val.toLowerCase() &&
+          n.level === levels[i] &&
+          n.parentId === currentParentId,
+      )
+
+      if (existing) {
+        currentParentId = existing.id
+        lastNodeId = existing.id
+      } else {
+        const newNodeId = `n_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`
+        const isGrouped = !data.hasAssetNumber && (levels[i] === 'item' || levels[i] === 'marca')
+        const newNode = {
+          id: newNodeId,
+          name: val,
+          level: levels[i] as any,
+          parentId: currentParentId,
+          isGrouped,
+        }
+
+        sync('nodes', { ...newNode, parent_id: newNode.parentId, is_grouped: newNode.isGrouped })
+        newNodes.push(newNode)
+        currentNodes.push(newNode)
+
+        currentParentId = newNodeId
+        lastNodeId = newNodeId
+      }
+    }
+
+    if (newNodes.length > 0) {
+      setState((p) => ({ ...p, nodes: [...p.nodes, ...newNodes] }))
+    }
+
+    addInventoryItem({
+      teamId: data.teamId,
+      treeNodeId: lastNodeId,
+      condition: data.condition || 'good',
+      qty: data.qty,
+      price: data.price,
+      hasAssetNumber: data.hasAssetNumber,
+      assets: data.assets,
+      photos: data.photos,
+    })
+  }
+
   const logout = () => signOut()
 
   const val = useMemo(
@@ -505,6 +564,7 @@ export function AppProvider({
       addSupplier,
       adjustSupplierBalance,
       submitChecklist,
+      createFullItemAndAllocate,
       logout,
     }),
     [state, isStoreLoading],

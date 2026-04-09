@@ -52,13 +52,22 @@ export function AppSidebar() {
             </SidebarMenuItem>
 
             {canViewTree(currentUser) && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/arvore')}>
-                  <Link to="/arvore">
-                    <FolderTree /> Árvore Mercadológica
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname.startsWith('/arvore')}>
+                    <Link to="/arvore">
+                      <FolderTree /> Árvore Mercadológica
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname.startsWith('/itens')}>
+                    <Link to="/itens">
+                      <Package /> Itens & Cadastro
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
             )}
 
             {canViewTeams(currentUser) && (

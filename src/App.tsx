@@ -15,6 +15,7 @@ import ReportsPage from './pages/Reports/Index'
 import RepairsPage from './pages/Repairs/Index'
 import SuppliersPage from './pages/Suppliers/Index'
 import ConfigPage from './pages/Config/Index'
+import ItemsPage from './pages/Items/Index'
 import { AppProvider, useAppStore } from './store/AppStore'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 import {
@@ -56,6 +57,7 @@ const AppRoutes = () => (
         <Route path="/" element={<Index />} />
         <Route element={<RoleRoute accessCheck={canViewTree} />}>
           <Route path="/arvore" element={<TreePage />} />
+          <Route path="/itens" element={<ItemsPage />} />
         </Route>
         <Route element={<RoleRoute accessCheck={canViewTeams} />}>
           <Route path="/equipes" element={<TeamsPage />} />
