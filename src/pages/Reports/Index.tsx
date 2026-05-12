@@ -27,10 +27,10 @@ export default function ReportsPage() {
           break
         }
       }
-      const tipo = path.find((n) => n.level === 'tipo')?.name || '-'
-      const funcao = path.find((n) => n.level === 'funcao')?.name || '-'
-      const especificacao = path.find((n) => n.level === 'especificacao')?.name || '-'
-      const itemName = path.find((n) => n.level === 'item')?.name || '-'
+      const tipo = path.find((n) => n.level === 'departamento')?.name || '-'
+      const funcao = path.find((n) => n.level === 'categoria')?.name || '-'
+      const especificacao = path.find((n) => n.level === 'tipo')?.name || '-'
+      const itemName = path.find((n) => n.level === 'linha')?.name || '-'
       const marca = path.find((n) => n.level === 'marca')?.name || '-'
       const team = teams.find((t) => t.id === item.teamId)?.name || 'Sem Equipe'
       const supplier = suppliers.find((s) => s.id === item.supplierId)?.name || '-'

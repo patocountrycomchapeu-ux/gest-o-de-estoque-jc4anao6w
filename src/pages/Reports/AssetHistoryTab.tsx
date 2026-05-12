@@ -35,7 +35,7 @@ export function AssetHistoryTab() {
 
   const leafNodes = useMemo(() => {
     return nodes
-      .filter((n) => n.level === 'marca' || n.level === 'item')
+      .filter((n) => n.level === 'marca' || n.level === 'linha')
       .map((n) => {
         const path = getNodePath(n.id)
         return {
@@ -60,7 +60,7 @@ export function AssetHistoryTab() {
           return false
 
         const path = getNodePath(item.treeNodeId)
-        const itemName = path.find((n) => n.level === 'item')?.name || ''
+        const itemName = path.find((n) => n.level === 'linha')?.name || ''
         const marcaName = path.find((n) => n.level === 'marca')?.name || ''
         if (
           nameFilter &&
@@ -107,7 +107,7 @@ export function AssetHistoryTab() {
     const rows = filteredHistory.map((h) => {
       const item = inventory.find((i) => i.id === h.inventoryId)
       const path = getNodePath(item?.treeNodeId || '')
-      const name = path.find((n) => n.level === 'item')?.name || 'Item'
+      const name = path.find((n) => n.level === 'linha')?.name || 'Item'
       return `"${h.date}","${item?.hasAssetNumber ? item.assetNumber : 'S/N'}","${name}","${h.type}","${h.description.replace(/"/g, '""')}","${h.user}"`
     })
     const csv = [headers.join(','), ...rows].join('\n')
@@ -223,7 +223,7 @@ export function AssetHistoryTab() {
             {filteredHistory.map((h) => {
               const item = inventory.find((i) => i.id === h.inventoryId)
               const path = getNodePath(item?.treeNodeId || '')
-              const itemName = path.find((n) => n.level === 'item')?.name || 'Item'
+              const itemName = path.find((n) => n.level === 'linha')?.name || 'Item'
 
               return (
                 <TableRow key={h.id} className="print:border-b-gray-300">

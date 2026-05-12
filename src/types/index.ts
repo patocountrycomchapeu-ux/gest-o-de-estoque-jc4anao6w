@@ -6,7 +6,7 @@ export type ToolStatus =
   | 'in_maintenance'
   | 'defect_stock'
   | 'returned_to_team'
-export type TreeLevel = 'tipo' | 'funcao' | 'especificacao' | 'item' | 'marca'
+export type TreeLevel = 'departamento' | 'categoria' | 'tipo' | 'linha' | 'marca'
 export type Role = 'Gestor' | 'Encarregado Gestor' | 'Encarregado' | 'Analista' | 'Visualizador'
 
 export interface User {

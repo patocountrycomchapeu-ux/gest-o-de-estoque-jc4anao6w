@@ -39,116 +39,192 @@ export function AppProvider({
     setIsStoreLoading(true)
     Promise.all(
       [
-        'profiles',
-        'assets',
-        'repairs',
-        'history',
-        'teams',
-        'nodes',
-        'transfers',
-        'checklists',
-        'repair_suppliers',
+        'usuarios',
+        'perfil_acesso',
+        'departamento',
+        'categoria',
+        'tipo',
+        'linha',
+        'marca',
+        'produto',
+        'estoque',
+        'saldo_estoque',
+        'movimento_estoque',
+        'equipes',
+        'reparo',
+        'fornecedor',
+        'imagem_produto',
+        'usuarios_equipes',
       ].map((t) => supabase.from(t).select('*')),
     )
       .then((res) => {
-        const [profs, asts, reps, hist, tms, nds, trs, chks, supps] = res.map((r) => r.data || [])
+        const [
+          usrData,
+          perfisData,
+          depData,
+          catData,
+          tipData,
+          linData,
+          marData,
+          prodData,
+          estData,
+          sdoData,
+          movData,
+          eqpData,
+          repData,
+          fornData,
+          imgData,
+          usrEqpData,
+        ] = res.map((r) => r.data || [])
+
+        const profs = usrData.map((u) => {
+          const p = perfisData.find((p) => p.id === u.perfil_acesso_id)
+          const eqp = usrEqpData.find((ue) => ue.usuario_id === u.id)
+          return {
+            id: u.id,
+            name: u.nome,
+            email: u.email,
+            role: p?.descricao || 'Visualizador',
+            active: u.ativo,
+            teamId: eqp?.equipe_id,
+            theme: u.tema,
+          }
+        })
+
         const curr = profs.find((p) => p.id === authUser.id)
-        if (!curr?.is_active) {
+        if (!curr?.active) {
           signOut()
           toast({ title: 'Acesso negado', description: 'Conta inativa.' })
           setIsStoreLoading(false)
           return
         }
-        setState((p) => ({
-          ...p,
-          currentUser: {
-            id: curr.id,
-            name: curr.full_name,
-            email: curr.email,
-            role: curr.role,
-            active: curr.is_active,
-            teamId: curr.team_id,
-          },
-          users: profs.map((p) => ({
-            id: p.id,
-            name: p.full_name,
-            email: p.email,
-            role: p.role,
-            active: p.is_active,
-            teamId: p.team_id,
+
+        const nodes: TreeNode[] = [
+          ...depData.map((d) => ({
+            id: d.id,
+            name: d.descricao,
+            level: 'departamento',
+            parentId: null,
           })),
-          nodes: nds,
-          teams: tms,
-          suppliers: supps.map((s) => ({
-            id: s.id,
-            name: s.name,
-            cnpj: s.cnpj,
-            currentBalance: Number(s.current_balance || 0),
-          })),
-          transfers: trs.map((t) => ({
-            id: t.id,
-            inventoryId: t.inventory_id,
-            fromTeamId: t.from_team_id,
-            toTeamId: t.to_team_id,
-            initiatedBy: t.initiated_by,
-            initiatedAt: t.initiated_at,
-            completedAt: t.completed_at,
-            completedBy: t.completed_by,
-            status: t.status,
-          })),
-          checklists: chks.map((c) => ({
+          ...catData.map((c) => ({
             id: c.id,
-            teamId: c.team_id,
-            leaderName: c.leader_name,
-            date: c.date,
-            discrepancies: c.discrepancies,
-            totalChecked: c.total_checked,
+            name: c.descricao,
+            level: 'categoria',
+            parentId: c.departamento_id,
           })),
-          history: hist.map((h) => ({
-            id: h.id,
-            inventoryId: h.asset_id,
-            date: h.timestamp,
-            type: h.type,
-            description: h.description,
-            user: h.user_name,
-            quantity: h.quantity,
+          ...tipData.map((t) => ({
+            id: t.id,
+            name: t.descricao,
+            level: 'tipo',
+            parentId: t.categoria_id,
           })),
-          inventory: asts.map((a) => {
-            const r = reps.find((x) => x.asset_id === a.id)
+          ...linData.map((l) => ({
+            id: l.id,
+            name: l.descricao,
+            level: 'linha',
+            parentId: l.tipo_id,
+          })),
+          ...marData.map((m) => ({
+            id: m.id,
+            name: m.descricao,
+            level: 'marca',
+            parentId: m.linha_id,
+          })),
+        ] as any[]
+
+        const inventory = [
+          ...estData.map((e) => {
+            const p = prodData.find((p) => p.id === e.produto_id)
+            const rep = repData.find((r) => r.estoque_id === e.id)
+            const imgs = imgData.filter((i) => i.produto_id === p?.id).map((i) => i.url)
             return {
-              id: a.id,
-              hasAssetNumber: !a.is_batch,
-              assetNumber: a.patrimony_number,
-              teamId: a.team_id,
-              treeNodeId: a.tree_node_id,
-              condition: a.condition,
-              status: a.status,
-              photos: a.photos,
-              price: a.price,
-              quantity: a.current_quantity,
-              damagedDate: a.damaged_date,
-              damagedUser: a.damaged_user,
-              repairCost: r?.cost,
-              repairLocation: r?.location,
-              supplierId: r?.supplier_id,
-              repairDescription: r?.description,
-              repairUser: r?.repair_user,
-              repairDate: r?.repair_date,
-              conditionCategory: r?.condition_status,
-              repairSent: r?.is_sent,
-              expectedReturnDate: r?.estimated_completion_date,
+              id: e.id,
+              hasAssetNumber: true,
+              assetNumber: e.numero_patrimonio,
+              teamId: e.equipe_id,
+              treeNodeId:
+                p?.marca_id || p?.linha_id || p?.tipo_id || p?.categoria_id || p?.departamento_id,
+              condition: e.condicao,
+              status: e.status,
+              photos: imgs,
+              price: p?.preco_unitario,
+              quantity: 1,
+              repairCost: rep?.valor_servico,
+              supplierId: rep?.fornecedor_id,
+              repairDescription: rep?.descricao,
+              repairDate: rep?.created_at,
+              expectedReturnDate: rep?.previsao_finalizacao,
+              lastUpdated: e.updated_at,
             }
           }),
-          activities: hist.slice(0, 50).map((h) => ({
-            id: h.id,
-            date: h.timestamp,
-            description: h.description,
-            type: h.type as any,
+          ...sdoData.map((s) => {
+            const p = prodData.find((p) => p.id === s.produto_id)
+            const imgs = imgData.filter((i) => i.produto_id === p?.id).map((i) => i.url)
+            return {
+              id: s.id,
+              hasAssetNumber: false,
+              teamId: s.equipe_id,
+              treeNodeId:
+                p?.marca_id || p?.linha_id || p?.tipo_id || p?.categoria_id || p?.departamento_id,
+              condition: 'good',
+              status: 'present',
+              photos: imgs,
+              price: p?.preco_unitario,
+              quantity: s.quantidade,
+              lastUpdated: s.updated_at,
+            }
+          }),
+        ]
+
+        setState((p) => ({
+          ...p,
+          currentUser: curr,
+          users: profs,
+          nodes,
+          teams: eqpData.map((e) => ({
+            id: e.id,
+            name: e.nome,
+            description: e.descricao,
+            location: '',
+          })),
+          suppliers: fornData.map((f) => ({
+            id: f.id,
+            name: f.descricao,
+            cnpj: '',
+            currentBalance: 0,
+          })),
+          transfers: movData
+            .filter((m) => m.tipo_movimento === 'transferencia')
+            .map((m) => ({
+              id: m.id,
+              inventoryId: m.estoque_id || m.saldo_estoque_id,
+              fromTeamId: '',
+              toTeamId: '',
+              initiatedBy: m.usuario_id,
+              initiatedAt: m.data_hora,
+              status: 'completed',
+            })),
+          checklists: [],
+          history: movData.map((m) => ({
+            id: m.id,
+            inventoryId: m.estoque_id || m.saldo_estoque_id,
+            date: m.data_hora,
+            type: m.tipo_movimento,
+            description: m.descricao,
+            user: usrData.find((u) => u.id === m.usuario_id)?.nome || '',
+            quantity: m.quantidade,
+          })),
+          inventory,
+          activities: movData.slice(0, 50).map((m) => ({
+            id: m.id,
+            date: m.data_hora,
+            description: m.descricao,
+            type: m.tipo_movimento === 'transferencia' ? 'allocation' : 'status_change',
           })),
         }))
-        if (curr.preferred_theme && curr.preferred_theme !== 'system') {
+        if (curr.theme && curr.theme !== 'system') {
           document.documentElement.classList.remove('light', 'dark')
-          document.documentElement.classList.add(curr.preferred_theme)
+          document.documentElement.classList.add(curr.theme)
         }
         setIsStoreLoading(false)
       })
@@ -161,15 +237,24 @@ export function AppProvider({
   const logHist = (asset_id: string, type: string, desc: string, qty: number = 1) => {
     const h = {
       id: `h_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      asset_id,
-      timestamp: new Date().toISOString(),
-      type,
-      description: desc,
-      user_name: state.currentUser?.name,
-      quantity: qty,
+      estoque_id: asset_id.startsWith('inv') ? null : asset_id,
+      saldo_estoque_id: asset_id.startsWith('inv') ? asset_id : null,
+      data_hora: new Date().toISOString(),
+      tipo_movimento: type,
+      descricao: desc,
+      usuario_id: state.currentUser?.id,
+      quantidade: qty,
     }
-    sync('history', h)
-    return h
+    sync('movimento_estoque', h)
+    return {
+      id: h.id,
+      inventoryId: asset_id,
+      date: h.data_hora,
+      type: h.tipo_movimento as any,
+      description: h.descricao,
+      user: state.currentUser?.name || '',
+      quantity: h.quantidade,
+    }
   }
 
   const addNode = (n: any) => {
@@ -186,16 +271,11 @@ export function AppProvider({
       const hist = [...p.history]
       if (isG) {
         const id = `inv_${Date.now()}`
-        sync('assets', {
+        sync('saldo_estoque', {
           id,
-          team_id: info.teamId,
-          tree_node_id: info.treeNodeId,
-          condition: info.condition,
-          status: 'present',
-          current_quantity: info.qty,
-          price: info.price || 0,
-          is_batch: true,
-          photos: info.photos || [],
+          equipe_id: info.teamId,
+          produto_id: info.treeNodeId,
+          quantidade: info.qty,
         })
         inv.push({
           id,
@@ -214,18 +294,21 @@ export function AppProvider({
         Array.from({ length: info.qty }).forEach((_, i) => {
           const id = `inv_${Date.now()}_${i}`
           const asset = info.assets[i]
-          sync('assets', {
+          sync('estoque', {
             id,
-            team_id: info.teamId,
-            tree_node_id: info.treeNodeId,
-            condition: info.condition,
-            status: 'present',
-            current_quantity: 1,
-            price: info.price || 0,
-            is_batch: false,
-            patrimony_number: asset,
-            photos: info.photos || [],
+            equipe_id: info.teamId,
+            produto_id: info.treeNodeId,
+            condicao: info.condition,
+            numero_patrimonio: asset,
+            status: 'disponivel',
           })
+          if (info.photos?.length) {
+            sync('imagem_produto', {
+              id: `img_${Date.now()}_${i}`,
+              produto_id: info.treeNodeId,
+              url: info.photos[0],
+            })
+          }
           inv.push({
             id,
             hasAssetNumber: true,
@@ -252,30 +335,33 @@ export function AppProvider({
       const it = p.inventory.find((i) => i.id === id)
       if (!it) return p
       const nInv = p.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i))
-      sync('assets', {
-        id,
-        condition: updates.condition || it.condition,
-        status: updates.status || it.status,
-      })
+      if (it.hasAssetNumber) {
+        sync('estoque', {
+          id,
+          condicao: updates.condition || it.condition,
+          status: updates.status || it.status,
+        })
+      }
       let nSuppliers = p.suppliers
       if (updates.condition === 'repair' || it.condition === 'repair') {
-        sync('repairs', {
-          asset_id: id,
-          is_sent: updates.repairSent,
-          estimated_completion_date: updates.expectedReturnDate,
-          condition_status: updates.conditionCategory,
-          cost: updates.repairCost,
-          location: updates.repairLocation,
-          supplier_id: updates.supplierId,
-          description: updates.reason,
-          repair_user: p.currentUser?.name,
-          repair_date: new Date().toISOString(),
+        sync('reparo', {
+          id: `rep_${Date.now()}`,
+          estoque_id: id,
+          previsao_finalizacao: updates.expectedReturnDate,
+          valor_servico: updates.repairCost,
+          fornecedor_id: updates.supplierId,
+          descricao: updates.reason,
+          usuario_id: p.currentUser?.id,
         })
         if (updates.repairCost > 0 && updates.supplierId) {
           const supp = p.suppliers.find((s) => s.id === updates.supplierId)
           if (supp) {
             const newBal = supp.currentBalance - updates.repairCost
-            sync('repair_suppliers', { id: supp.id, current_balance: newBal })
+            sync('saldo_fornecedor', {
+              id: `sf_${Date.now()}`,
+              fornecedor_id: supp.id,
+              saldo: newBal,
+            })
             nSuppliers = p.suppliers.map((s) =>
               s.id === supp.id ? { ...s, currentBalance: newBal } : s,
             )
@@ -317,14 +403,13 @@ export function AppProvider({
         nInv.push({ ...it, id: tId, quantity: qty })
       }
       const trId = `tr_${Date.now()}`
-      sync('transfers', {
+      sync('movimento_estoque', {
         id: trId,
-        inventory_id: tId,
-        from_team_id: it.teamId,
-        to_team_id: toTeamId,
-        initiated_by: p.currentUser?.name,
-        initiated_at: new Date().toISOString(),
-        status: 'pending',
+        estoque_id: tId,
+        tipo_movimento: 'transferencia',
+        quantidade: qty || 1,
+        usuario_id: p.currentUser?.id,
+        descricao: `Transferência iniciada de ${it.teamId} para ${toTeamId}`,
       })
       return {
         ...p,
@@ -352,7 +437,7 @@ export function AppProvider({
 
   const sendTransfer = (trId: string) => {
     setState((p) => {
-      sync('transfers', { id: trId, status: 'in_transit' })
+      sync('movimento_estoque', { id: trId, descricao: 'Transferência em trânsito' })
       const tr = p.transfers.find((x) => x.id === trId)
       let nHist = p.history
       if (tr)
@@ -384,14 +469,13 @@ export function AppProvider({
             }
           : i,
       )
-      sync('transfers', {
+      sync('movimento_estoque', {
         id: trId,
-        status: action === 'accept' ? 'completed' : 'rejected',
-        completed_at: new Date().toISOString(),
-        completed_by: p.currentUser?.name,
+        descricao: action === 'accept' ? 'Transferência concluída' : 'Transferência rejeitada',
+        updated_by: p.currentUser?.id,
       })
       if (action === 'accept')
-        sync('assets', { id: tr.inventoryId, team_id: tr.toTeamId, condition: cond || 'good' })
+        sync('estoque', { id: tr.inventoryId, equipe_id: tr.toTeamId, condicao: cond || 'good' })
       return {
         ...p,
         inventory: nInv,
@@ -413,7 +497,7 @@ export function AppProvider({
 
   const addSupplier = (s: any) => {
     const id = `supp_${Date.now()}`
-    sync('repair_suppliers', { id, name: s.name, cnpj: s.cnpj, current_balance: 0 })
+    sync('fornecedor', { id, descricao: s.name, email: s.cnpj })
     setState((p) => ({
       ...p,
       suppliers: [...p.suppliers, { id, name: s.name, cnpj: s.cnpj, currentBalance: 0 }],
@@ -426,7 +510,7 @@ export function AppProvider({
       const s = p.suppliers.find((x) => x.id === id)
       if (!s) return p
       const newBal = s.currentBalance + amount
-      sync('repair_suppliers', { id, current_balance: newBal })
+      sync('saldo_fornecedor', { id: `sf_${Date.now()}`, fornecedor_id: id, saldo: newBal })
       return {
         ...p,
         suppliers: p.suppliers.map((x) => (x.id === id ? { ...x, currentBalance: newBal } : x)),
@@ -443,13 +527,12 @@ export function AppProvider({
     totalChecked: number,
   ) => {
     const id = `chk_${Date.now()}`
-    sync('checklists', {
+    sync('auditoria', {
       id,
-      team_id: teamId,
-      leader_name: leaderName,
-      date: new Date().toISOString(),
-      discrepancies,
-      total_checked: totalChecked,
+      tabela: 'estoque',
+      operacao: 'UPDATE',
+      registro_id: teamId,
+      dados_novos: { discrepancies, totalChecked, leaderName },
     })
     setState((p) => ({
       ...p,
@@ -476,13 +559,20 @@ export function AppProvider({
 
   const updateUserRole = (id: string, role: Role) => {
     setState((p) => ({ ...p, users: p.users.map((u) => (u.id === id ? { ...u, role } : u)) }))
-    sync('profiles', { id, role })
+    supabase
+      .from('perfil_acesso')
+      .select('id')
+      .ilike('descricao', role)
+      .single()
+      .then(({ data }) => {
+        if (data) sync('usuarios', { id, perfil_acesso_id: data.id })
+      })
     toast({ title: 'Atualizado' })
   }
   const toggleUserStatus = (id: string) => {
     setState((p) => {
       const act = !p.users.find((u) => u.id === id)?.active
-      sync('profiles', { id, is_active: act })
+      sync('usuarios', { id, ativo: act })
       return { ...p, users: p.users.map((u) => (u.id === id ? { ...u, active: act } : u)) }
     })
     toast({ title: 'Atualizado' })
@@ -490,11 +580,12 @@ export function AppProvider({
   const createFullItemAndAllocate = async (data: any) => {
     let currentParentId: string | null = null
     let lastNodeId = ''
-    const levels = ['tipo', 'funcao', 'especificacao', 'item', 'marca']
+    const levels = ['departamento', 'categoria', 'tipo', 'linha', 'marca']
     const pathValues = [data.tipo, data.funcao, data.especificacao, data.item, data.marca]
     let newNodes: any[] = []
 
     let currentNodes = [...state.nodes]
+    const prodIds: Record<string, string> = {}
 
     for (let i = 0; i < levels.length; i++) {
       const val = pathValues[i]
@@ -510,9 +601,10 @@ export function AppProvider({
       if (existing) {
         currentParentId = existing.id
         lastNodeId = existing.id
+        prodIds[`${levels[i]}_id`] = existing.id
       } else {
         const newNodeId = `n_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`
-        const isGrouped = !data.hasAssetNumber && (levels[i] === 'item' || levels[i] === 'marca')
+        const isGrouped = !data.hasAssetNumber && (levels[i] === 'linha' || levels[i] === 'marca')
         const newNode = {
           id: newNodeId,
           name: val,
@@ -521,14 +613,29 @@ export function AppProvider({
           isGrouped,
         }
 
-        sync('nodes', { ...newNode, parent_id: newNode.parentId, is_grouped: newNode.isGrouped })
+        const parentCol = i === 0 ? null : `${levels[i - 1]}_id`
+        const dbObj: any = { id: newNodeId, descricao: val }
+        if (parentCol && currentParentId) dbObj[parentCol] = currentParentId
+        sync(levels[i], dbObj)
+
         newNodes.push(newNode)
         currentNodes.push(newNode)
 
         currentParentId = newNodeId
         lastNodeId = newNodeId
+        prodIds[`${levels[i]}_id`] = newNodeId
       }
     }
+
+    const prodId = `prod_${Date.now()}`
+    sync('produto', {
+      id: prodId,
+      nome: data.item || 'Item',
+      ...prodIds,
+      preco_unitario: data.price || 0,
+    })
+
+    lastNodeId = prodId
 
     if (newNodes.length > 0) {
       setState((p) => ({ ...p, nodes: [...p.nodes, ...newNodes] }))

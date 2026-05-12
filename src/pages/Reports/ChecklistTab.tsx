@@ -94,7 +94,7 @@ export function ChecklistTab() {
             <TableBody>
               {teamInventory.map((item) => {
                 const path = getNodePath(item.treeNodeId)
-                const name = `${path.find((n) => n.level === 'item')?.name || 'Item'} (${path.find((n) => n.level === 'marca')?.name || '-'})`
+                const name = `${path.find((n) => n.level === 'linha')?.name || 'Item'} (${path.find((n) => n.level === 'marca')?.name || '-'})`
                 const photoUrl = item.photos?.[0]
 
                 return (
