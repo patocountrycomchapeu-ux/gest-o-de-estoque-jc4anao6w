@@ -1,11 +1,17 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -42,11 +48,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'auditoria_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "auditoria_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -77,11 +83,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'categoria_departamento_id_fkey'
-            columns: ['departamento_id']
+            foreignKeyName: "categoria_departamento_id_fkey"
+            columns: ["departamento_id"]
             isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
+            referencedRelation: "departamento"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -154,32 +160,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'danificado_equipe_id_fkey'
-            columns: ['equipe_id']
+            foreignKeyName: "danificado_equipe_id_fkey"
+            columns: ["equipe_id"]
             isOneToOne: false
-            referencedRelation: 'equipes'
-            referencedColumns: ['id']
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'danificado_estoque_id_fkey'
-            columns: ['estoque_id']
+            foreignKeyName: "danificado_estoque_id_fkey"
+            columns: ["estoque_id"]
             isOneToOne: false
-            referencedRelation: 'estoque'
-            referencedColumns: ['id']
+            referencedRelation: "estoque"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'danificado_produto_id_fkey'
-            columns: ['produto_id']
+            foreignKeyName: "danificado_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: 'produto'
-            referencedColumns: ['id']
+            referencedRelation: "produto"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'danificado_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "danificado_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -243,18 +249,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'equipes_created_by_fkey'
-            columns: ['created_by']
+            foreignKeyName: "equipes_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'equipes_updated_by_fkey'
-            columns: ['updated_by']
+            foreignKeyName: "equipes_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -291,18 +297,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'estoque_equipe_id_fkey'
-            columns: ['equipe_id']
+            foreignKeyName: "estoque_equipe_id_fkey"
+            columns: ["equipe_id"]
             isOneToOne: false
-            referencedRelation: 'equipes'
-            referencedColumns: ['id']
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'estoque_produto_id_fkey'
-            columns: ['produto_id']
+            foreignKeyName: "estoque_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: 'produto'
-            referencedColumns: ['id']
+            referencedRelation: "produto"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -387,11 +393,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'imagem_produto_produto_id_fkey'
-            columns: ['produto_id']
+            foreignKeyName: "imagem_produto_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: 'produto'
-            referencedColumns: ['id']
+            referencedRelation: "produto"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -428,25 +434,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'linha_categoria_id_fkey'
-            columns: ['categoria_id']
+            foreignKeyName: "linha_categoria_id_fkey"
+            columns: ["categoria_id"]
             isOneToOne: false
-            referencedRelation: 'categoria'
-            referencedColumns: ['id']
+            referencedRelation: "categoria"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'linha_departamento_id_fkey'
-            columns: ['departamento_id']
+            foreignKeyName: "linha_departamento_id_fkey"
+            columns: ["departamento_id"]
             isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
+            referencedRelation: "departamento"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'linha_tipo_id_fkey'
-            columns: ['tipo_id']
+            foreignKeyName: "linha_tipo_id_fkey"
+            columns: ["tipo_id"]
             isOneToOne: false
-            referencedRelation: 'tipo'
-            referencedColumns: ['id']
+            referencedRelation: "tipo"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -480,11 +486,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'logs_acesso_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "logs_acesso_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -524,32 +530,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'marca_categoria_id_fkey'
-            columns: ['categoria_id']
+            foreignKeyName: "marca_categoria_id_fkey"
+            columns: ["categoria_id"]
             isOneToOne: false
-            referencedRelation: 'categoria'
-            referencedColumns: ['id']
+            referencedRelation: "categoria"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'marca_departamento_id_fkey'
-            columns: ['departamento_id']
+            foreignKeyName: "marca_departamento_id_fkey"
+            columns: ["departamento_id"]
             isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
+            referencedRelation: "departamento"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'marca_linha_id_fkey'
-            columns: ['linha_id']
+            foreignKeyName: "marca_linha_id_fkey"
+            columns: ["linha_id"]
             isOneToOne: false
-            referencedRelation: 'linha'
-            referencedColumns: ['id']
+            referencedRelation: "linha"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'marca_tipo_id_fkey'
-            columns: ['tipo_id']
+            foreignKeyName: "marca_tipo_id_fkey"
+            columns: ["tipo_id"]
             isOneToOne: false
-            referencedRelation: 'tipo'
-            referencedColumns: ['id']
+            referencedRelation: "tipo"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -595,39 +601,39 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'movimento_estoque_created_by_fkey'
-            columns: ['created_by']
+            foreignKeyName: "movimento_estoque_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'movimento_estoque_estoque_id_fkey'
-            columns: ['estoque_id']
+            foreignKeyName: "movimento_estoque_estoque_id_fkey"
+            columns: ["estoque_id"]
             isOneToOne: false
-            referencedRelation: 'estoque'
-            referencedColumns: ['id']
+            referencedRelation: "estoque"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'movimento_estoque_saldo_estoque_id_fkey'
-            columns: ['saldo_estoque_id']
+            foreignKeyName: "movimento_estoque_saldo_estoque_id_fkey"
+            columns: ["saldo_estoque_id"]
             isOneToOne: false
-            referencedRelation: 'saldo_estoque'
-            referencedColumns: ['id']
+            referencedRelation: "saldo_estoque"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'movimento_estoque_updated_by_fkey'
-            columns: ['updated_by']
+            foreignKeyName: "movimento_estoque_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'movimento_estoque_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "movimento_estoque_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -712,53 +718,53 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'produto_categoria_id_fkey'
-            columns: ['categoria_id']
+            foreignKeyName: "produto_categoria_id_fkey"
+            columns: ["categoria_id"]
             isOneToOne: false
-            referencedRelation: 'categoria'
-            referencedColumns: ['id']
+            referencedRelation: "categoria"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_created_by_fkey'
-            columns: ['created_by']
+            foreignKeyName: "produto_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_departamento_id_fkey'
-            columns: ['departamento_id']
+            foreignKeyName: "produto_departamento_id_fkey"
+            columns: ["departamento_id"]
             isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
+            referencedRelation: "departamento"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_linha_id_fkey'
-            columns: ['linha_id']
+            foreignKeyName: "produto_linha_id_fkey"
+            columns: ["linha_id"]
             isOneToOne: false
-            referencedRelation: 'linha'
-            referencedColumns: ['id']
+            referencedRelation: "linha"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_marca_id_fkey'
-            columns: ['marca_id']
+            foreignKeyName: "produto_marca_id_fkey"
+            columns: ["marca_id"]
             isOneToOne: false
-            referencedRelation: 'marca'
-            referencedColumns: ['id']
+            referencedRelation: "marca"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_tipo_id_fkey'
-            columns: ['tipo_id']
+            foreignKeyName: "produto_tipo_id_fkey"
+            columns: ["tipo_id"]
             isOneToOne: false
-            referencedRelation: 'tipo'
-            referencedColumns: ['id']
+            referencedRelation: "tipo"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'produto_updated_by_fkey'
-            columns: ['updated_by']
+            foreignKeyName: "produto_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -807,32 +813,32 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'reparo_estoque_id_fkey'
-            columns: ['estoque_id']
+            foreignKeyName: "reparo_estoque_id_fkey"
+            columns: ["estoque_id"]
             isOneToOne: false
-            referencedRelation: 'estoque'
-            referencedColumns: ['id']
+            referencedRelation: "estoque"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'reparo_fornecedor_id_fkey'
-            columns: ['fornecedor_id']
+            foreignKeyName: "reparo_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
             isOneToOne: false
-            referencedRelation: 'fornecedor'
-            referencedColumns: ['id']
+            referencedRelation: "fornecedor"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'reparo_tipo_reparo_id_fkey'
-            columns: ['tipo_reparo_id']
+            foreignKeyName: "reparo_tipo_reparo_id_fkey"
+            columns: ["tipo_reparo_id"]
             isOneToOne: false
-            referencedRelation: 'tipo_reparo'
-            referencedColumns: ['id']
+            referencedRelation: "tipo_reparo"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'reparo_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "reparo_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -863,18 +869,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'saldo_estoque_equipe_id_fkey'
-            columns: ['equipe_id']
+            foreignKeyName: "saldo_estoque_equipe_id_fkey"
+            columns: ["equipe_id"]
             isOneToOne: false
-            referencedRelation: 'equipes'
-            referencedColumns: ['id']
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'saldo_estoque_produto_id_fkey'
-            columns: ['produto_id']
+            foreignKeyName: "saldo_estoque_produto_id_fkey"
+            columns: ["produto_id"]
             isOneToOne: false
-            referencedRelation: 'produto'
-            referencedColumns: ['id']
+            referencedRelation: "produto"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -902,11 +908,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'saldo_fornecedor_fornecedor_id_fkey'
-            columns: ['fornecedor_id']
+            foreignKeyName: "saldo_fornecedor_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
             isOneToOne: false
-            referencedRelation: 'fornecedor'
-            referencedColumns: ['id']
+            referencedRelation: "fornecedor"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -940,18 +946,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'tipo_categoria_id_fkey'
-            columns: ['categoria_id']
+            foreignKeyName: "tipo_categoria_id_fkey"
+            columns: ["categoria_id"]
             isOneToOne: false
-            referencedRelation: 'categoria'
-            referencedColumns: ['id']
+            referencedRelation: "categoria"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'tipo_departamento_id_fkey'
-            columns: ['departamento_id']
+            foreignKeyName: "tipo_departamento_id_fkey"
+            columns: ["departamento_id"]
             isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
+            referencedRelation: "departamento"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1024,25 +1030,25 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'usuarios_created_by_fkey'
-            columns: ['created_by']
+            foreignKeyName: "usuarios_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'usuarios_perfil_acesso_id_fkey'
-            columns: ['perfil_acesso_id']
+            foreignKeyName: "usuarios_perfil_acesso_id_fkey"
+            columns: ["perfil_acesso_id"]
             isOneToOne: false
-            referencedRelation: 'perfil_acesso'
-            referencedColumns: ['id']
+            referencedRelation: "perfil_acesso"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'usuarios_updated_by_fkey'
-            columns: ['updated_by']
+            foreignKeyName: "usuarios_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1067,18 +1073,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'usuarios_equipes_equipe_id_fkey'
-            columns: ['equipe_id']
+            foreignKeyName: "usuarios_equipes_equipe_id_fkey"
+            columns: ["equipe_id"]
             isOneToOne: false
-            referencedRelation: 'equipes'
-            referencedColumns: ['id']
+            referencedRelation: "equipes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'usuarios_equipes_usuario_id_fkey'
-            columns: ['usuario_id']
+            foreignKeyName: "usuarios_equipes_usuario_id_fkey"
+            columns: ["usuario_id"]
             isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1100,31 +1106,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1133,23 +1141,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1158,23 +1166,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1183,36 +1191,36 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
@@ -1220,6 +1228,7 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -1543,6 +1552,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: categoria
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1553,6 +1565,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: config_global
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1563,6 +1578,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: danificado
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "danificado_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "danificado_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1573,6 +1591,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: departamento
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1583,6 +1604,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: equipes
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "equipes_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "equipes_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1593,6 +1617,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: estoque
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1603,6 +1630,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: fornecedor
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1617,6 +1647,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: imagem_produto
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1627,6 +1660,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: linha
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1641,6 +1677,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: marca
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1651,11 +1690,17 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: movimento_estoque
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "movimento_estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
 //   Policy "movimento_estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 // Table: perfil_acesso
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1666,6 +1711,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: produto
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1676,6 +1724,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: reparo
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "reparo_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "reparo_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1686,6 +1737,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: saldo_estoque
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "saldo_estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "saldo_estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1696,6 +1750,9 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: saldo_fornecedor
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1706,6 +1763,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: tipo
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1716,6 +1776,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: tipo_reparo
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1726,6 +1789,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: usuarios
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1736,6 +1802,9 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: usuarios_equipes
+//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "usuarios_equipes_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "usuarios_equipes_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1754,7 +1823,7 @@ export const Constants = {
 //     RETURN (SELECT role FROM profiles WHERE id = auth.uid()) IN ('Gestor', 'Encarregado Gestor', 'Encarregado');
 //   END;
 //   $function$
-//
+//   
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -1765,12 +1834,12 @@ export const Constants = {
 //     v_perfil_visualizador_id UUID;
 //   BEGIN
 //     SELECT id INTO v_perfil_visualizador_id FROM public.perfil_acesso WHERE descricao ILIKE 'visualizador' LIMIT 1;
-//
+//   
 //     INSERT INTO public.usuarios (id, email, nome, perfil_acesso_id, status)
 //     VALUES (
-//       NEW.id,
-//       NEW.email,
-//       COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+//       NEW.id, 
+//       NEW.email, 
+//       COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)), 
 //       v_perfil_visualizador_id,
 //       'ativo'
 //     )
@@ -1778,7 +1847,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION is_admin()
 //   CREATE OR REPLACE FUNCTION public.is_admin()
 //    RETURNS boolean
@@ -1788,14 +1857,14 @@ export const Constants = {
 //   DECLARE
 //     v_admin BOOLEAN;
 //   BEGIN
-//     SELECT (p.descricao ILIKE 'admin') INTO v_admin
+//     SELECT (p.descricao ILIKE 'gestor') INTO v_admin
 //     FROM public.usuarios u
 //     JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id
 //     WHERE u.id = auth.uid();
 //     RETURN COALESCE(v_admin, false);
 //   END;
 //   $function$
-//
+//   
 // FUNCTION sync_node_camel_case()
 //   CREATE OR REPLACE FUNCTION public.sync_node_camel_case()
 //    RETURNS trigger
@@ -1808,18 +1877,18 @@ export const Constants = {
 //     ELSIF NEW.parent_id IS NOT NULL AND (NEW."parentId" IS NULL OR NEW."parentId" != NEW.parent_id) THEN
 //       NEW."parentId" := NEW.parent_id;
 //     END IF;
-//
+//     
 //     -- Sync is_grouped and isGrouped bidirectionally
 //     IF NEW."isGrouped" IS NOT NULL AND (NEW.is_grouped IS NULL OR NEW.is_grouped != NEW."isGrouped") THEN
 //       NEW.is_grouped := NEW."isGrouped";
 //     ELSIF NEW.is_grouped IS NOT NULL AND (NEW."isGrouped" IS NULL OR NEW."isGrouped" != NEW.is_grouped) THEN
 //       NEW."isGrouped" := NEW.is_grouped;
 //     END IF;
-//
+//   
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION trigger_audit_log()
 //   CREATE OR REPLACE FUNCTION public.trigger_audit_log()
 //    RETURNS trigger
@@ -1833,7 +1902,7 @@ export const Constants = {
 //     v_registro_id text;
 //   BEGIN
 //     v_operacao := TG_OP;
-//
+//     
 //     IF v_operacao = 'INSERT' THEN
 //       v_new := to_jsonb(NEW);
 //       v_registro_id := NEW.id::text;
@@ -1857,7 +1926,7 @@ export const Constants = {
 //     RETURN NULL;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION trigger_set_updated_at()
 //   CREATE OR REPLACE FUNCTION public.trigger_set_updated_at()
 //    RETURNS trigger
@@ -1868,7 +1937,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION user_teams()
 //   CREATE OR REPLACE FUNCTION public.user_teams()
 //    RETURNS SETOF uuid
@@ -1879,7 +1948,7 @@ export const Constants = {
 //     RETURN QUERY SELECT equipe_id FROM public.usuarios_equipes WHERE usuario_id = auth.uid();
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: equipes
@@ -1923,3 +1992,4 @@ export const Constants = {
 //   CREATE INDEX idx_usuarios_equipes_equipe_id ON public.usuarios_equipes USING btree (equipe_id)
 //   CREATE INDEX idx_usuarios_equipes_usuario_id ON public.usuarios_equipes USING btree (usuario_id)
 //   CREATE UNIQUE INDEX uk_usuarios_equipes ON public.usuarios_equipes USING btree (usuario_id, equipe_id)
+
