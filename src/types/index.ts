@@ -63,6 +63,26 @@ export interface Team {
   name: string
   description: string
   location: string
+  managerId?: string
+  managerName?: string
+}
+
+export interface AddNodePayload {
+  name: string
+  level: TreeLevel
+  parentId: string | null
+  isGrouped?: boolean
+}
+
+export interface AddInventoryPayload {
+  teamId: string
+  treeNodeId: string
+  condition: Condition
+  qty: number
+  price?: number
+  hasAssetNumber: boolean
+  assets?: string[]
+  photos?: string[]
 }
 export interface Activity {
   id: string

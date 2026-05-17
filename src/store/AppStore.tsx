@@ -1,5 +1,14 @@
 import React, { createContext, useContext, useState, useMemo, useEffect } from 'react'
-import { AppState, Role, TreeNode, Condition, ToolStatus } from '@/types'
+import {
+  AppState,
+  Role,
+  TreeNode,
+  Condition,
+  ToolStatus,
+  AddNodePayload,
+  AddInventoryPayload,
+  InventoryItem,
+} from '@/types'
 import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { toast } from '@/hooks/use-toast'
@@ -181,12 +190,20 @@ export function AppProvider({
           currentUser: curr,
           users: profs,
           nodes,
-          teams: eqpData.map((e) => ({
-            id: e.id,
-            name: e.nome,
-            description: e.descricao,
-            location: '',
-          })),
+          teams: eqpData
+            .filter((e) => e.ativa !== false)
+            .map((e) => {
+              const rel = usrEqpData.find((ue) => ue.equipe_id === e.id)
+              const mgr = usrData.find((u) => u.id === rel?.usuario_id)
+              return {
+                id: e.id,
+                name: e.nome,
+                description: e.descricao || '',
+                location: '',
+                managerId: mgr?.id,
+                managerName: mgr?.nome,
+              }
+            }),
           suppliers: fornData.map((f) => ({
             id: f.id,
             name: f.descricao,
@@ -257,13 +274,13 @@ export function AppProvider({
     }
   }
 
-  const addNode = (n: any) => {
+  const addNode = (n: AddNodePayload) => {
     const id = `n_${Date.now()}`
     sync('nodes', { ...n, parent_id: n.parentId, is_grouped: n.isGrouped, id })
     setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id }] }))
   }
 
-  const addInventoryItem = (info: any) => {
+  const addInventoryItem = (info: AddInventoryPayload) => {
     setState((p) => {
       const now = new Date().toISOString()
       const isG = !info.hasAssetNumber
@@ -330,7 +347,10 @@ export function AppProvider({
     toast({ title: 'Salvo' })
   }
 
-  const updateInventoryItem = (id: string, updates: any) => {
+  const updateInventoryItem = (
+    id: string,
+    updates: Partial<InventoryItem> & { reason?: string },
+  ) => {
     setState((p) => {
       const it = p.inventory.find((i) => i.id === id)
       if (!it) return p
@@ -522,7 +542,7 @@ export function AppProvider({
   const submitChecklist = (
     teamId: string,
     leaderName: string,
-    items: any,
+    items: any[],
     discrepancies: number,
     totalChecked: number,
   ) => {
@@ -557,27 +577,44 @@ export function AppProvider({
     return path
   }
 
-  const updateUserRole = (id: string, role: Role) => {
+  const updateUserRole = async (id: string, role: Role) => {
     setState((p) => ({ ...p, users: p.users.map((u) => (u.id === id ? { ...u, role } : u)) }))
-    supabase
-      .from('perfil_acesso')
-      .select('id')
-      .ilike('descricao', role)
-      .single()
-      .then(({ data }) => {
-        if (data) sync('usuarios', { id, perfil_acesso_id: data.id })
-      })
-    toast({ title: 'Atualizado' })
+    try {
+      const { userService } = await import('@/services/UserService')
+      await userService.updateUserRole(id, role)
+      toast({ title: 'Atualizado' })
+    } catch (e) {
+      console.error(e)
+    }
   }
-  const toggleUserStatus = (id: string) => {
+  const toggleUserStatus = async (id: string) => {
+    let act = true
     setState((p) => {
-      const act = !p.users.find((u) => u.id === id)?.active
-      sync('usuarios', { id, ativo: act })
+      act = !p.users.find((u) => u.id === id)?.active
       return { ...p, users: p.users.map((u) => (u.id === id ? { ...u, active: act } : u)) }
     })
-    toast({ title: 'Atualizado' })
+    try {
+      const { userService } = await import('@/services/UserService')
+      await userService.toggleUserStatus(id, act)
+      toast({ title: 'Atualizado' })
+    } catch (e) {
+      console.error(e)
+    }
   }
-  const createFullItemAndAllocate = async (data: any) => {
+  const createFullItemAndAllocate = async (data: {
+    tipo: string
+    funcao?: string
+    especificacao?: string
+    item: string
+    marca: string
+    hasAssetNumber: boolean
+    qty: number
+    price?: number
+    teamId: string
+    condition?: Condition
+    assets?: string[]
+    photos?: string[]
+  }) => {
     let currentParentId: string | null = null
     let lastNodeId = ''
     const levels = ['departamento', 'categoria', 'tipo', 'linha', 'marca']
