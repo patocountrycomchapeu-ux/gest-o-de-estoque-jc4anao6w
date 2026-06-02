@@ -1088,7 +1088,9 @@ export type Database = {
     }
     Functions: {
       can_write: { Args: never; Returns: boolean }
+      get_user_teams: { Args: never; Returns: string[] }
       is_admin: { Args: never; Returns: boolean }
+      is_gestor: { Args: never; Returns: boolean }
       user_teams: { Args: never; Returns: string[] }
     }
     Enums: {
@@ -1552,6 +1554,11 @@ export const Constants = {
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "tree_all_categoria" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_categoria" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
@@ -1591,6 +1598,11 @@ export const Constants = {
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "tree_all_departamento" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_departamento" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
@@ -1599,24 +1611,27 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 //   Policy "equipes_delete" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
+//     USING: is_gestor()
 //   Policy "equipes_insert" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
+//     WITH CHECK: is_gestor()
 //   Policy "equipes_select" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR (id IN ( SELECT user_teams() AS user_teams)))
+//     USING: (is_gestor() OR (id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "equipes_update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//     WITH CHECK: (is_admin() OR true)
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
 // Table: estoque
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "estoque_all" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //   Policy "estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
 //   Policy "estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR (equipe_id IN ( SELECT user_teams() AS user_teams)) OR (equipe_id IS NULL))
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)) OR (equipe_id IS NULL))
 //   Policy "estoque_update" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
@@ -1660,6 +1675,11 @@ export const Constants = {
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "tree_all_linha" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_linha" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
@@ -1676,6 +1696,11 @@ export const Constants = {
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "tree_all_marca" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_marca" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
@@ -1711,6 +1736,11 @@ export const Constants = {
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
+//   Policy "tree_all_produto" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_produto" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
@@ -1731,12 +1761,15 @@ export const Constants = {
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "saldo_estoque_all" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "saldo_estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "saldo_estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
 //   Policy "saldo_estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR (equipe_id IN ( SELECT user_teams() AS user_teams)))
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)) OR (equipe_id IS NULL))
 //   Policy "saldo_estoque_update" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -1762,6 +1795,11 @@ export const Constants = {
 //   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
 //     WITH CHECK: true
 //   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "tree_all_tipo" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
+//   Policy "tree_select_tipo" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
@@ -1792,10 +1830,17 @@ export const Constants = {
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
+//   Policy "usuarios_select" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
+//   Policy "usuarios_update" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (is_gestor() OR (id = auth.uid()))
 // Table: usuarios_equipes
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "usuarios_equipes_all" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
 //   Policy "usuarios_equipes_delete" (DELETE, PERMISSIVE) roles={authenticated}
 //     USING: true
 //   Policy "usuarios_equipes_insert" (INSERT, PERMISSIVE) roles={authenticated}
@@ -1812,6 +1857,17 @@ export const Constants = {
 //   AS $function$
 //   BEGIN
 //     RETURN (SELECT role FROM profiles WHERE id = auth.uid()) IN ('Gestor', 'Encarregado Gestor', 'Encarregado');
+//   END;
+//   $function$
+//
+// FUNCTION get_user_teams()
+//   CREATE OR REPLACE FUNCTION public.get_user_teams()
+//    RETURNS SETOF uuid
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     RETURN QUERY SELECT equipe_id FROM public.usuarios_equipes WHERE usuario_id = auth.uid();
 //   END;
 //   $function$
 //
@@ -1841,6 +1897,23 @@ export const Constants = {
 //
 // FUNCTION is_admin()
 //   CREATE OR REPLACE FUNCTION public.is_admin()
+//    RETURNS boolean
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   DECLARE
+//     v_admin BOOLEAN;
+//   BEGIN
+//     SELECT (p.descricao ILIKE 'gestor') INTO v_admin
+//     FROM public.usuarios u
+//     JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id
+//     WHERE u.id = auth.uid();
+//     RETURN COALESCE(v_admin, false);
+//   END;
+//   $function$
+//
+// FUNCTION is_gestor()
+//   CREATE OR REPLACE FUNCTION public.is_gestor()
 //    RETURNS boolean
 //    LANGUAGE plpgsql
 //    SECURITY DEFINER

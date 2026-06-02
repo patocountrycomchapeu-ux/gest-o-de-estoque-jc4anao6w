@@ -6,18 +6,20 @@ import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/AppStore'
 
 const levelIcons: Record<string, any> = {
-  tipo: Layers,
-  funcao: Folder,
-  especificacao: FileBox,
-  item: Wrench,
+  departamento: Layers,
+  categoria: Folder,
+  linha: FileBox,
+  tipo: Wrench,
   marca: Tag,
+  produto: FileBox,
 }
 
 const nextLevel: Record<string, string> = {
-  tipo: 'funcao',
-  funcao: 'especificacao',
-  especificacao: 'item',
-  item: 'marca',
+  departamento: 'categoria',
+  categoria: 'linha',
+  linha: 'tipo',
+  tipo: 'marca',
+  marca: 'produto',
 }
 
 export function TreeNodeItem({ node, allNodes, onAddChild }: any) {

@@ -6,8 +6,16 @@ export type ToolStatus =
   | 'in_maintenance'
   | 'defect_stock'
   | 'returned_to_team'
-export type TreeLevel = 'departamento' | 'categoria' | 'tipo' | 'linha' | 'marca'
-export type Role = 'Gestor' | 'Encarregado Gestor' | 'Encarregado' | 'Analista' | 'Visualizador'
+export type TreeLevel = 'departamento' | 'categoria' | 'linha' | 'tipo' | 'marca' | 'produto'
+export type Role =
+  | 'Gestor'
+  | 'Gerente'
+  | 'Supervisor'
+  | 'Membro Comum'
+  | 'Encarregado Gestor'
+  | 'Encarregado'
+  | 'Analista'
+  | 'Visualizador'
 
 export interface User {
   id: string

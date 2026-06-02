@@ -17,11 +17,12 @@ import { Switch } from '@/components/ui/switch'
 import { canManageTree } from '@/lib/permissions'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
-  root: 'tipo',
-  tipo: 'funcao',
-  funcao: 'especificacao',
-  especificacao: 'item',
-  item: 'marca',
+  root: 'departamento',
+  departamento: 'categoria',
+  categoria: 'linha',
+  linha: 'tipo',
+  tipo: 'marca',
+  marca: 'produto',
 }
 
 export default function TreePage() {
@@ -42,7 +43,7 @@ export default function TreePage() {
         name: newNodeName,
         level: levelToCreate,
         parentId: addingTo.parentId,
-        isGrouped: levelToCreate === 'item' || levelToCreate === 'marca' ? isGrouped : undefined,
+        isGrouped: levelToCreate === 'produto' || levelToCreate === 'marca' ? isGrouped : undefined,
       })
     }
     setAddingTo(null)
@@ -51,7 +52,7 @@ export default function TreePage() {
   }
 
   const levelToCreate = addingTo ? nextLevelMap[addingTo.level] : null
-  const showGroupedToggle = levelToCreate === 'item' || levelToCreate === 'marca'
+  const showGroupedToggle = levelToCreate === 'produto' || levelToCreate === 'marca'
 
   return (
     <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
@@ -59,13 +60,13 @@ export default function TreePage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Árvore Mercadológica</h2>
           <p className="text-muted-foreground">
-            Gerencie a hierarquia de 5 níveis (Tipo &gt; Função &gt; Especificação &gt; Item &gt;
-            Marca).
+            Gerencie a hierarquia (Departamento &gt; Categoria &gt; Linha &gt; Tipo &gt; Marca &gt;
+            Produto).
           </p>
         </div>
         {canManage && (
           <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
-            <Plus className="h-4 w-4 mr-2" /> Adicionar Tipo
+            <Plus className="h-4 w-4 mr-2" /> Adicionar Departamento
           </Button>
         )}
       </div>
@@ -101,8 +102,10 @@ export default function TreePage() {
               />
             ))}
             {rootNodes.length === 0 && (
-              <p className="text-muted-foreground text-center py-8">Nenhum Tipo cadastrado.</p>
-            )}
+              <p className="text-muted-foreground text-center py-8">
+                Nenhum Departamento cadastrado.
+              </p>
+            )}{' '}
           </div>
         </CardContent>
       </Card>

@@ -27,18 +27,28 @@ export default function Login() {
   const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (user) return <Navigate to="/" replace />
+  if (user) return <Navigate to="/arvore-mercadologica" replace />
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccessMsg('')
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setError('Por favor, informe um email válido.')
+      return
+    }
+    if (!password) {
+      setError('Por favor, informe sua senha.')
+      return
+    }
+
     setLoading(true)
 
     if (isLogin) {
       const { error: err } = await signIn(email, password)
       if (err) setError(err.message)
-      else navigate('/')
+      else navigate('/arvore-mercadologica')
     } else {
       if (!name) {
         setError('Nome é obrigatório')

@@ -54,8 +54,11 @@ export function AppSidebar() {
             {canViewTree(currentUser) && (
               <>
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={location.pathname.startsWith('/arvore')}>
-                    <Link to="/arvore">
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname.startsWith('/arvore-mercadologica')}
+                  >
+                    <Link to="/arvore-mercadologica">
                       <FolderTree /> Árvore Mercadológica
                     </Link>
                   </SidebarMenuButton>

@@ -56,7 +56,7 @@ const AppRoutes = () => (
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
         <Route element={<RoleRoute accessCheck={canViewTree} />}>
-          <Route path="/arvore" element={<TreePage />} />
+          <Route path="/arvore-mercadologica" element={<TreePage />} />
           <Route path="/itens" element={<ItemsPage />} />
         </Route>
         <Route element={<RoleRoute accessCheck={canViewTeams} />}>
