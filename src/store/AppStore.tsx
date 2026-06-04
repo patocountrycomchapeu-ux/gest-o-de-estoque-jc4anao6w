@@ -41,7 +41,18 @@ export function AppProvider({
 
   useEffect(() => {
     if (!authUser) {
-      setState((s) => ({ ...s, currentUser: null }))
+      setState({
+        users: [],
+        currentUser: null,
+        nodes: [],
+        teams: [],
+        inventory: [],
+        activities: [],
+        history: [],
+        checklists: [],
+        transfers: [],
+        suppliers: [],
+      })
       setIsStoreLoading(false)
       return
     }
@@ -690,7 +701,21 @@ export function AppProvider({
     })
   }
 
-  const logout = () => signOut()
+  const logout = () => {
+    setState({
+      users: [],
+      currentUser: null,
+      nodes: [],
+      teams: [],
+      inventory: [],
+      activities: [],
+      history: [],
+      checklists: [],
+      transfers: [],
+      suppliers: [],
+    })
+    signOut()
+  }
 
   const val = useMemo(
     () => ({

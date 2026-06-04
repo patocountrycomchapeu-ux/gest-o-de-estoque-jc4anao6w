@@ -1856,7 +1856,7 @@ export const Constants = {
 //    SECURITY DEFINER
 //   AS $function$
 //   BEGIN
-//     RETURN (SELECT role FROM profiles WHERE id = auth.uid()) IN ('Gestor', 'Encarregado Gestor', 'Encarregado');
+//     RETURN (SELECT p.descricao FROM public.usuarios u JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id WHERE u.id = auth.uid()) IN ('Gestor', 'Encarregado Gestor', 'Encarregado', 'Gerente', 'Supervisor');
 //   END;
 //   $function$
 //
@@ -1878,16 +1878,19 @@ export const Constants = {
 //    SECURITY DEFINER
 //   AS $function$
 //   DECLARE
-//     v_perfil_visualizador_id UUID;
+//     v_perfil_padrao_id UUID;
 //   BEGIN
-//     SELECT id INTO v_perfil_visualizador_id FROM public.perfil_acesso WHERE descricao ILIKE 'visualizador' LIMIT 1;
+//     SELECT id INTO v_perfil_padrao_id FROM public.perfil_acesso WHERE descricao ILIKE 'Membro Comum' LIMIT 1;
+//     IF v_perfil_padrao_id IS NULL THEN
+//       SELECT id INTO v_perfil_padrao_id FROM public.perfil_acesso WHERE descricao ILIKE 'visualizador' LIMIT 1;
+//     END IF;
 //
 //     INSERT INTO public.usuarios (id, email, nome, perfil_acesso_id, status)
 //     VALUES (
 //       NEW.id,
 //       NEW.email,
 //       COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
-//       v_perfil_visualizador_id,
+//       v_perfil_padrao_id,
 //       'ativo'
 //     )
 //     ON CONFLICT (id) DO NOTHING;
@@ -1904,7 +1907,7 @@ export const Constants = {
 //   DECLARE
 //     v_admin BOOLEAN;
 //   BEGIN
-//     SELECT (p.descricao ILIKE 'gestor') INTO v_admin
+//     SELECT (p.descricao ILIKE 'gestor' OR p.descricao ILIKE 'gerente') INTO v_admin
 //     FROM public.usuarios u
 //     JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id
 //     WHERE u.id = auth.uid();
@@ -1921,7 +1924,7 @@ export const Constants = {
 //   DECLARE
 //     v_admin BOOLEAN;
 //   BEGIN
-//     SELECT (p.descricao ILIKE 'gestor') INTO v_admin
+//     SELECT (p.descricao ILIKE 'gestor' OR p.descricao ILIKE 'gerente') INTO v_admin
 //     FROM public.usuarios u
 //     JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id
 //     WHERE u.id = auth.uid();

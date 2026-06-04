@@ -16,8 +16,10 @@ import RepairsPage from './pages/Repairs/Index'
 import SuppliersPage from './pages/Suppliers/Index'
 import ConfigPage from './pages/Config/Index'
 import ItemsPage from './pages/Items/Index'
+import UpdatePassword from './pages/UpdatePassword'
 import { AppProvider, useAppStore } from './store/AppStore'
 import { AuthProvider, useAuth } from './hooks/use-auth'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   canViewTree,
   canViewTeams,
@@ -26,16 +28,51 @@ import {
   canManageUsers,
 } from '@/lib/permissions'
 
+function AppSkeleton() {
+  return (
+    <div className="flex h-screen w-full flex-col bg-background">
+      <header className="sticky top-0 z-30 flex h-14 w-full items-center justify-between border-b bg-background px-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <div className="flex items-center gap-3">
+          <Skeleton className="hidden sm:block h-7 w-24" />
+          <Skeleton className="h-9 w-9 rounded-full" />
+        </div>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="hidden w-64 flex-col border-r bg-muted/20 p-4 sm:flex">
+          <Skeleton className="h-10 w-full mb-6" />
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-8 w-5/6" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </aside>
+        <main className="flex-1 p-6 space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+          </div>
+          <Skeleton className="h-64 w-full rounded-xl" />
+        </main>
+      </div>
+    </div>
+  )
+}
+
 function ProtectedRoute() {
   const { user, loading } = useAuth()
   const { currentUser, isStoreLoading } = useAppStore()
 
   if (loading || isStoreLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
+    return <AppSkeleton />
   }
 
   if (!user || !currentUser) return <Navigate to="/login" replace />
@@ -52,6 +89,7 @@ function RoleRoute({ accessCheck }: { accessCheck: (user: any) => boolean }) {
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<Login />} />
+    <Route path="/update-password" element={<UpdatePassword />} />
     <Route element={<ProtectedRoute />}>
       <Route element={<Layout />}>
         <Route path="/" element={<Index />} />
@@ -84,11 +122,7 @@ const AppWithAuth = () => {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    )
+    return <AppSkeleton />
   }
 
   return (

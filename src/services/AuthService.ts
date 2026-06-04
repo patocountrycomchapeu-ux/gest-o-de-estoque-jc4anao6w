@@ -14,6 +14,26 @@ export class AuthService {
     return supabase.auth.signInWithPassword({ email, password })
   }
 
+  async resetPassword(email: string) {
+    return supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/update-password`,
+    })
+  }
+
+  async resendConfirmationEmail(email: string) {
+    return supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+      },
+    })
+  }
+
+  async updatePassword(password: string) {
+    return supabase.auth.updateUser({ password })
+  }
+
   async signOut() {
     return supabase.auth.signOut()
   }
