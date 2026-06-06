@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Lock, ShieldAlert } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function UpdatePassword() {
   const { updatePassword } = useAuth()
@@ -49,7 +50,7 @@ export default function UpdatePassword() {
         title: 'Senha atualizada',
         description: 'Sua senha foi alterada com sucesso.',
       })
-      navigate('/')
+      navigate('/login')
     }
   }
 
@@ -102,7 +103,11 @@ export default function UpdatePassword() {
           </CardContent>
           <CardFooter className="pt-2">
             <Button type="submit" className="w-full font-medium h-11" disabled={loading}>
-              {loading ? 'Aguarde...' : 'Atualizar Senha'}
+              {loading ? (
+                <Skeleton className="h-5 w-32 bg-primary-foreground/20" />
+              ) : (
+                'Atualizar Senha'
+              )}
             </Button>
           </CardFooter>
         </form>

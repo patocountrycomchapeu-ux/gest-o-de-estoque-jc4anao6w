@@ -28,6 +28,18 @@ import {
   canManageUsers,
 } from '@/lib/permissions'
 
+function AuthSkeleton() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-sm space-y-6 flex flex-col items-center animate-pulse">
+        <Skeleton className="h-16 w-16 rounded-full" />
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-[300px] w-full rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
 function AppSkeleton() {
   return (
     <div className="flex h-screen w-full flex-col bg-background">
@@ -122,7 +134,9 @@ const AppWithAuth = () => {
   const { user, loading } = useAuth()
 
   if (loading) {
-    return <AppSkeleton />
+    const isAuthRoute =
+      window.location.pathname === '/login' || window.location.pathname === '/update-password'
+    return isAuthRoute ? <AuthSkeleton /> : <AppSkeleton />
   }
 
   return (

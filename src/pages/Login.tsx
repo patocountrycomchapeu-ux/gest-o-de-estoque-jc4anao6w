@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Package, ShieldAlert, Mail, Lock, User, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 type ViewMode = 'login' | 'register' | 'forgot-password'
 
@@ -64,6 +65,7 @@ export default function Login() {
             : err.message,
         )
       } else {
+        localStorage.setItem('estoque_pro_remember', rememberMe.toString())
         navigate('/arvore-mercadologica')
       }
     } else if (view === 'register') {
@@ -92,10 +94,10 @@ export default function Login() {
       if (err) {
         setError(err.message)
       } else {
-        setSuccessMsg('E-mail de recuperação enviado com sucesso!')
+        setSuccessMsg('Link de recuperação enviado para o seu e-mail.')
         toast({
           title: 'Recuperação de Senha',
-          description: 'E-mail de recuperação enviado com sucesso!',
+          description: 'Link de recuperação enviado para o seu e-mail.',
         })
         setView('login')
       }
@@ -243,13 +245,15 @@ export default function Login() {
           </CardContent>
           <CardFooter className="pt-2 flex flex-col gap-2">
             <Button type="submit" className="w-full font-medium h-11" disabled={loading}>
-              {loading
-                ? 'Aguarde...'
-                : view === 'login'
-                  ? 'Entrar'
-                  : view === 'register'
-                    ? 'Criar Conta'
-                    : 'Enviar Link'}
+              {loading ? (
+                <Skeleton className="h-5 w-24 bg-primary-foreground/20" />
+              ) : view === 'login' ? (
+                'Entrar'
+              ) : view === 'register' ? (
+                'Criar Conta'
+              ) : (
+                'Enviar Link'
+              )}
             </Button>
 
             {view === 'forgot-password' ? (

@@ -701,7 +701,7 @@ export function AppProvider({
     })
   }
 
-  const logout = () => {
+  const logout = async () => {
     setState({
       users: [],
       currentUser: null,
@@ -714,7 +714,17 @@ export function AppProvider({
       transfers: [],
       suppliers: [],
     })
-    signOut()
+
+    await signOut()
+
+    // Clear local storage and session storage except basic preferences
+    const theme = localStorage.getItem('theme') || localStorage.getItem('vite-ui-theme')
+    localStorage.clear()
+    sessionStorage.clear()
+    if (theme) {
+      localStorage.setItem('vite-ui-theme', theme)
+      localStorage.setItem('theme', theme)
+    }
   }
 
   const val = useMemo(
