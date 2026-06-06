@@ -32,7 +32,7 @@ export default function Login() {
   const [successMsg, setSuccessMsg] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (user) return <Navigate to="/arvore-mercadologica" replace />
+  if (user) return <Navigate to="/" replace />
 
   const isEmailNotConfirmed =
     error.toLowerCase().includes('email not confirmed') ||
@@ -66,7 +66,7 @@ export default function Login() {
         )
       } else {
         localStorage.setItem('estoque_pro_remember', rememberMe.toString())
-        navigate('/arvore-mercadologica')
+        navigate('/')
       }
     } else if (view === 'register') {
       if (!password) {

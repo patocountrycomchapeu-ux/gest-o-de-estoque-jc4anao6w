@@ -670,11 +670,13 @@ export function AppProvider({
   const submitChecklist = (
     teamId: string,
     leaderName: string,
-    items: any[],
+    items: Record<string, any>,
     discrepancies: number,
     totalChecked: number,
   ) => {
     const id = crypto.randomUUID()
+
+    // Save to auditoria
     sync('auditoria', {
       id,
       tabela: 'estoque',
@@ -682,13 +684,79 @@ export function AppProvider({
       registro_id: teamId,
       dados_novos: { discrepancies, totalChecked, leaderName },
     })
-    setState((p) => ({
-      ...p,
-      checklists: [
-        ...p.checklists,
-        { id, teamId, leaderName, date: new Date().toISOString(), discrepancies, totalChecked },
-      ],
-    }))
+
+    // Create history logs and update inventory condition based on checklist
+    setState((p) => {
+      let nInv = [...p.inventory]
+      let nHist = [...p.history]
+
+      Object.entries(items).forEach(([invId, st]) => {
+        const invIt = nInv.find((i) => i.id === invId)
+        if (invIt && st.status !== 'present') {
+          // Update condition
+          if (st.status === 'damaged') {
+            nInv = nInv.map((i) => {
+              if (i.id === invId) {
+                const newPhotos = st.photoUrl ? [...(i.photos || []), st.photoUrl] : i.photos || []
+                return {
+                  ...i,
+                  condition: 'damaged',
+                  conditionCategory: st.notes,
+                  photos: newPhotos,
+                }
+              }
+              return i
+            })
+            if (invIt.hasAssetNumber) {
+              sync('estoque', { id: invId, condicao: 'damaged' })
+            }
+            if (st.photoUrl && invIt.treeNodeId) {
+              sync('imagem_produto', {
+                id: crypto.randomUUID(),
+                produto_id: invIt.treeNodeId,
+                url: st.photoUrl,
+              })
+            }
+          } else if (st.status === 'missing') {
+            nInv = nInv.map((i) => (i.id === invId ? { ...i, status: 'missing' } : i))
+            if (invIt.hasAssetNumber) {
+              sync('estoque', { id: invId, status: 'missing' })
+            }
+          }
+
+          // Log history
+          nHist = [
+            logHist(
+              invId,
+              invIt.hasAssetNumber,
+              'audit',
+              `Auditoria: Item marcado como ${st.status === 'damaged' ? 'Danificado' : 'Extraviado'}. ${st.notes || ''}`,
+            ) as any,
+            ...nHist,
+          ]
+        } else if (invIt) {
+          nHist = [
+            logHist(
+              invId,
+              invIt.hasAssetNumber,
+              'audit',
+              `Auditoria: Confirmado presente por ${leaderName}`,
+            ) as any,
+            ...nHist,
+          ]
+        }
+      })
+
+      return {
+        ...p,
+        inventory: nInv,
+        history: nHist,
+        checklists: [
+          ...p.checklists,
+          { id, teamId, leaderName, date: new Date().toISOString(), discrepancies, totalChecked },
+        ],
+      }
+    })
     toast({ title: 'Auditoria Salva' })
   }
 
@@ -819,6 +887,52 @@ export function AppProvider({
     })
   }
 
+  const updateProfile = async (updates: { name?: string; theme?: string }) => {
+    if (!state.currentUser) return
+    try {
+      await supabase
+        .from('usuarios')
+        .update({
+          nome: updates.name || state.currentUser.name,
+          tema: updates.theme || state.currentUser.theme,
+        })
+        .eq('id', state.currentUser.id)
+
+      setState((p) => {
+        const nUser = p.currentUser
+          ? {
+              ...p.currentUser,
+              name: updates.name || p.currentUser.name,
+              theme: updates.theme || p.currentUser.theme,
+            }
+          : null
+
+        if (updates.theme && updates.theme !== 'system') {
+          document.documentElement.classList.remove('light', 'dark')
+          document.documentElement.classList.add(updates.theme)
+        } else if (updates.theme === 'system') {
+          document.documentElement.classList.remove('light', 'dark')
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          if (isDark) document.documentElement.classList.add('dark')
+        }
+
+        return {
+          ...p,
+          currentUser: nUser,
+          users: p.users.map((u) =>
+            u.id === state.currentUser?.id
+              ? { ...u, name: updates.name || u.name, theme: updates.theme || u.theme }
+              : u,
+          ),
+        }
+      })
+      toast({ title: 'Perfil atualizado com sucesso' })
+    } catch (e) {
+      console.error(e)
+      toast({ title: 'Erro ao atualizar perfil', variant: 'destructive' })
+    }
+  }
+
   const logout = async () => {
     setState({
       users: [],
@@ -862,6 +976,7 @@ export function AppProvider({
       adjustSupplierBalance,
       submitChecklist,
       createFullItemAndAllocate,
+      updateProfile,
       logout,
     }),
     [state, kpis, isStoreLoading],

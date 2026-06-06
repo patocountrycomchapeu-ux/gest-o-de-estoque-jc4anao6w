@@ -10,12 +10,12 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Settings2, Camera, Wrench, Send } from 'lucide-react'
+import { Settings2, Camera, Wrench, Send, History } from 'lucide-react'
 import { UpdateDialog } from '@/pages/Teams/UpdateDialog'
 import { InventoryItem } from '@/types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { canViewRepairs, canManageRepairs } from '@/lib/permissions'
-import { Navigate } from 'react-router-dom'
+import { Navigate, Link } from 'react-router-dom'
 
 export default function RepairsPage() {
   const { inventory, getNodePath, suppliers, currentUser } = useAppStore()
@@ -128,15 +128,28 @@ export default function RepairsPage() {
                     </TableCell>
                     {canManage && (
                       <TableCell className="text-right pt-3">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setUpdateItem(item)}
-                          className="h-8"
-                        >
-                          <Settings2 className="w-4 h-4 sm:mr-2" />
-                          <span className="hidden sm:inline">Gerenciar</span>
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="h-8 w-8 p-0"
+                            title="Ver Histórico"
+                          >
+                            <Link to={`/itens/${item.id}/historico`}>
+                              <History className="w-4 h-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setUpdateItem(item)}
+                            className="h-8"
+                          >
+                            <Settings2 className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Gerenciar</span>
+                          </Button>
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>

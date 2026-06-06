@@ -18,6 +18,7 @@ import {
   Settings,
   Truck,
   Package,
+  User,
 } from 'lucide-react'
 import {
   canViewTree,
@@ -125,6 +126,14 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
+
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={location.pathname === '/perfil'}>
+                <Link to="/perfil">
+                  <User /> Meu Perfil
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

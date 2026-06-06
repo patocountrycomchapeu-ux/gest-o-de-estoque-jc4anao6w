@@ -49,7 +49,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await authService.signIn(email, password)
+    const { data, error } = await authService.signIn(email, password)
+    if (!error && data?.user) {
+      import('@/lib/supabase/client').then(({ supabase }) => {
+        supabase
+          .from('logs_acesso')
+          .insert({
+            usuario_id: data.user.id,
+            acao: 'Login',
+            user_agent: navigator.userAgent,
+          })
+          .then()
+      })
+    }
     return { error }
   }
 

@@ -16,7 +16,9 @@ import RepairsPage from './pages/Repairs/Index'
 import SuppliersPage from './pages/Suppliers/Index'
 import ConfigPage from './pages/Config/Index'
 import ItemsPage from './pages/Items/Index'
+import AssetHistory from './pages/Items/AssetHistory'
 import UpdatePassword from './pages/UpdatePassword'
+import UserProfile from './pages/UserProfile'
 import { AppProvider, useAppStore } from './store/AppStore'
 import { AuthProvider, useAuth } from './hooks/use-auth'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -108,6 +110,7 @@ const AppRoutes = () => (
         <Route element={<RoleRoute accessCheck={canViewTree} />}>
           <Route path="/arvore-mercadologica" element={<TreePage />} />
           <Route path="/itens" element={<ItemsPage />} />
+          <Route path="/itens/:id/historico" element={<AssetHistory />} />
         </Route>
         <Route element={<RoleRoute accessCheck={canViewTeams} />}>
           <Route path="/equipes" element={<TeamsPage />} />
@@ -121,6 +124,7 @@ const AppRoutes = () => (
           <Route path="/fornecedores" element={<SuppliersPage />} />
         </Route>
         <Route path="/relatorios" element={<ReportsPage />} />
+        <Route path="/perfil" element={<UserProfile />} />
         <Route element={<RoleRoute accessCheck={canManageUsers} />}>
           <Route path="/configuracoes" element={<ConfigPage />} />
         </Route>

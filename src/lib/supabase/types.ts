@@ -1541,9 +1541,10 @@ export const Constants = {
 
 // --- ROW LEVEL SECURITY POLICIES ---
 // Table: auditoria
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "insert_auditor" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (can_write() OR true)
+//   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//     WITH CHECK: true
 // Table: categoria
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
