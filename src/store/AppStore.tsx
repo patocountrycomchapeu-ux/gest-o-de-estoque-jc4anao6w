@@ -15,7 +15,14 @@ import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
 
 export const AppContext = createContext<any>(undefined)
-const sync = (t: string, d: any) => supabase.from(t).upsert(d).then()
+
+const sync = async (t: string, d: any) => {
+  try {
+    await supabase.from(t).upsert(d)
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 export function AppProvider({
   children,
@@ -56,46 +63,27 @@ export function AppProvider({
       setIsStoreLoading(false)
       return
     }
+
     setIsStoreLoading(true)
-    Promise.all(
-      [
-        'usuarios',
-        'perfil_acesso',
-        'departamento',
-        'categoria',
-        'tipo',
-        'linha',
-        'marca',
-        'produto',
-        'estoque',
-        'saldo_estoque',
-        'movimento_estoque',
-        'equipes',
-        'reparo',
-        'fornecedor',
-        'imagem_produto',
-        'usuarios_equipes',
-      ].map((t) => supabase.from(t).select('*')),
-    )
-      .then((res) => {
-        const [
-          usrData,
-          perfisData,
-          depData,
-          catData,
-          tipData,
-          linData,
-          marData,
-          prodData,
-          estData,
-          sdoData,
-          movData,
-          eqpData,
-          repData,
-          fornData,
-          imgData,
-          usrEqpData,
-        ] = res.map((r) => r.data || [])
+
+    const loadData = async () => {
+      try {
+        // Data Hydration Phase 1: High priority data to free the UI instantly
+        const [usrRes, perfisRes, depRes, catRes, eqpRes, usrEqpRes] = await Promise.all([
+          supabase.from('usuarios').select('*'),
+          supabase.from('perfil_acesso').select('*'),
+          supabase.from('departamento').select('*'),
+          supabase.from('categoria').select('*'),
+          supabase.from('equipes').select('*'),
+          supabase.from('usuarios_equipes').select('*'),
+        ])
+
+        const usrData = usrRes.data || []
+        const perfisData = perfisRes.data || []
+        const depData = depRes.data || []
+        const catData = catRes.data || []
+        const eqpData = eqpRes.data || []
+        const usrEqpData = usrEqpRes.data || []
 
         const profs = usrData.map((u) => {
           const p = perfisData.find((p) => p.id === u.perfil_acesso_id)
@@ -119,38 +107,108 @@ export function AppProvider({
           return
         }
 
-        const nodes: TreeNode[] = [
+        const initialNodes: TreeNode[] = [
           ...depData.map((d) => ({
             id: d.id,
             name: d.descricao,
-            level: 'departamento',
+            level: 'departamento' as const,
             parentId: null,
           })),
           ...catData.map((c) => ({
             id: c.id,
             name: c.descricao,
-            level: 'categoria',
-            parentId: c.departamento_id,
+            level: 'categoria' as const,
+            parentId: c.departamento_id!,
           })),
+        ]
+
+        setState((p) => ({
+          ...p,
+          currentUser: curr,
+          users: profs,
+          nodes: initialNodes,
+          teams: eqpData
+            .filter((e) => e.ativa !== false)
+            .map((e) => {
+              const rel = usrEqpData.find((ue) => ue.equipe_id === e.id)
+              const mgr = usrData.find((u) => u.id === rel?.usuario_id)
+              return {
+                id: e.id,
+                name: e.nome,
+                description: e.descricao || '',
+                location: '',
+                managerId: mgr?.id,
+                managerName: mgr?.nome,
+              }
+            }),
+        }))
+
+        if (curr.theme && curr.theme !== 'system') {
+          document.documentElement.classList.remove('light', 'dark')
+          document.documentElement.classList.add(curr.theme)
+        }
+
+        setIsStoreLoading(false) // UI is liberated with top nodes
+
+        // Data Hydration Phase 2: Lower level nodes and full inventory
+        const [
+          tipRes,
+          linRes,
+          marRes,
+          prodRes,
+          estRes,
+          sdoRes,
+          movRes,
+          repRes,
+          fornRes,
+          imgRes,
+          sdoFornRes,
+        ] = await Promise.all([
+          supabase.from('tipo').select('*'),
+          supabase.from('linha').select('*'),
+          supabase.from('marca').select('*'),
+          supabase.from('produto').select('*'),
+          supabase.from('estoque').select('*'),
+          supabase.from('saldo_estoque').select('*'),
+          supabase.from('movimento_estoque').select('*'),
+          supabase.from('reparo').select('*'),
+          supabase.from('fornecedor').select('*'),
+          supabase.from('imagem_produto').select('*'),
+          supabase.from('saldo_fornecedor').select('*'),
+        ])
+
+        const tipData = tipRes.data || []
+        const linData = linRes.data || []
+        const marData = marRes.data || []
+        const prodData = prodRes.data || []
+        const estData = estRes.data || []
+        const sdoData = sdoRes.data || []
+        const movData = movRes.data || []
+        const repData = repRes.data || []
+        const fornData = fornRes.data || []
+        const imgData = imgRes.data || []
+        const sdoFornData = sdoFornRes.data || []
+
+        const lowerNodes: TreeNode[] = [
           ...tipData.map((t) => ({
             id: t.id,
             name: t.descricao,
-            level: 'tipo',
-            parentId: t.categoria_id,
+            level: 'tipo' as const,
+            parentId: t.categoria_id!,
           })),
           ...linData.map((l) => ({
             id: l.id,
             name: l.descricao,
-            level: 'linha',
-            parentId: l.tipo_id,
+            level: 'linha' as const,
+            parentId: l.tipo_id!,
           })),
           ...marData.map((m) => ({
             id: m.id,
             name: m.descricao,
-            level: 'marca',
-            parentId: m.linha_id,
+            level: 'marca' as const,
+            parentId: m.linha_id!,
           })),
-        ] as any[]
+        ]
 
         const inventory = [
           ...estData.map((e) => {
@@ -198,29 +256,16 @@ export function AppProvider({
 
         setState((p) => ({
           ...p,
-          currentUser: curr,
-          users: profs,
-          nodes,
-          teams: eqpData
-            .filter((e) => e.ativa !== false)
-            .map((e) => {
-              const rel = usrEqpData.find((ue) => ue.equipe_id === e.id)
-              const mgr = usrData.find((u) => u.id === rel?.usuario_id)
-              return {
-                id: e.id,
-                name: e.nome,
-                description: e.descricao || '',
-                location: '',
-                managerId: mgr?.id,
-                managerName: mgr?.nome,
-              }
-            }),
-          suppliers: fornData.map((f) => ({
-            id: f.id,
-            name: f.descricao,
-            cnpj: '',
-            currentBalance: 0,
-          })),
+          nodes: [...p.nodes, ...lowerNodes],
+          suppliers: fornData.map((f) => {
+            const saldo = sdoFornData.find((s) => s.fornecedor_id === f.id)?.saldo || 0
+            return {
+              id: f.id,
+              name: f.descricao,
+              cnpj: f.email || '',
+              currentBalance: saldo,
+            }
+          }),
           transfers: movData
             .filter((m) => m.tipo_movimento === 'transferencia')
             .map((m) => ({
@@ -230,9 +275,14 @@ export function AppProvider({
               toTeamId: '',
               initiatedBy: m.usuario_id,
               initiatedAt: m.data_hora,
-              status: 'completed',
+              status: m.descricao?.includes('pendente')
+                ? 'pending'
+                : m.descricao?.includes('trânsito')
+                  ? 'in_transit'
+                  : m.descricao?.includes('rejeitada')
+                    ? 'rejected'
+                    : 'completed',
             })),
-          checklists: [],
           history: movData.map((m) => ({
             id: m.id,
             inventoryId: m.estoque_id || m.saldo_estoque_id,
@@ -250,23 +300,40 @@ export function AppProvider({
             type: m.tipo_movimento === 'transferencia' ? 'allocation' : 'status_change',
           })),
         }))
-        if (curr.theme && curr.theme !== 'system') {
-          document.documentElement.classList.remove('light', 'dark')
-          document.documentElement.classList.add(curr.theme)
-        }
-        setIsStoreLoading(false)
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Error loading data', err)
         setIsStoreLoading(false)
-      })
-  }, [authUser])
+      }
+    }
 
-  const logHist = (asset_id: string, type: string, desc: string, qty: number = 1) => {
+    loadData()
+  }, [authUser, signOut])
+
+  const kpis = useMemo(() => {
+    return {
+      totalAssets: state.inventory.reduce((acc, it) => acc + (it.quantity || 1), 0),
+      totalValue: state.inventory.reduce(
+        (acc, it) => acc + (it.price || 0) * (it.quantity || 1),
+        0,
+      ),
+      totalRepairCost: state.inventory.reduce((acc, it) => acc + (it.repairCost || 0), 0),
+      damagedItems: state.inventory.filter(
+        (it) => it.condition === 'damaged' || it.condition === 'repair',
+      ).length,
+    }
+  }, [state.inventory])
+
+  const logHist = (
+    asset_id: string,
+    isAsset: boolean,
+    type: string,
+    desc: string,
+    qty: number = 1,
+  ) => {
     const h = {
-      id: `h_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      estoque_id: asset_id.startsWith('inv') ? null : asset_id,
-      saldo_estoque_id: asset_id.startsWith('inv') ? asset_id : null,
+      id: crypto.randomUUID(),
+      estoque_id: isAsset ? asset_id : null,
+      saldo_estoque_id: isAsset ? null : asset_id,
       data_hora: new Date().toISOString(),
       tipo_movimento: type,
       descricao: desc,
@@ -286,9 +353,23 @@ export function AppProvider({
   }
 
   const addNode = (n: AddNodePayload) => {
-    const id = `n_${Date.now()}`
-    sync('nodes', { ...n, parent_id: n.parentId, is_grouped: n.isGrouped, id })
-    setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id }] }))
+    const id = crypto.randomUUID()
+    const parentIds: Record<string, string> = {}
+    let currentId: string | null = n.parentId
+
+    while (currentId) {
+      const node = state.nodes.find((x) => x.id === currentId)
+      if (node) {
+        parentIds[`${node.level}_id`] = node.id
+        currentId = node.parentId
+      } else {
+        break
+      }
+    }
+
+    const dbObj: any = { id, descricao: n.name, ativo: true, ...parentIds }
+    sync(n.level, dbObj)
+    setState((p) => ({ ...p, nodes: [...p.nodes, { ...n, id } as TreeNode] }))
   }
 
   const addInventoryItem = (info: AddInventoryPayload) => {
@@ -297,8 +378,9 @@ export function AppProvider({
       const isG = !info.hasAssetNumber
       const inv = [...p.inventory]
       const hist = [...p.history]
+
       if (isG) {
-        const id = `inv_${Date.now()}`
+        const id = crypto.randomUUID()
         sync('saldo_estoque', {
           id,
           equipe_id: info.teamId,
@@ -317,11 +399,13 @@ export function AppProvider({
           price: info.price || 0,
           lastUpdated: now,
         })
-        hist.unshift(logHist(id, 'allocation', `Alocado lote com ${info.qty} un.`, info.qty) as any)
+        hist.unshift(
+          logHist(id, false, 'allocation', `Alocado lote com ${info.qty} un.`, info.qty) as any,
+        )
       } else {
         Array.from({ length: info.qty }).forEach((_, i) => {
-          const id = `inv_${Date.now()}_${i}`
-          const asset = info.assets[i]
+          const id = crypto.randomUUID()
+          const asset = info.assets ? info.assets[i] : undefined
           sync('estoque', {
             id,
             equipe_id: info.teamId,
@@ -330,9 +414,9 @@ export function AppProvider({
             numero_patrimonio: asset,
             status: 'disponivel',
           })
-          if (info.photos?.length) {
+          if (i === 0 && info.photos?.length) {
             sync('imagem_produto', {
-              id: `img_${Date.now()}_${i}`,
+              id: crypto.randomUUID(),
               produto_id: info.treeNodeId,
               url: info.photos[0],
             })
@@ -350,7 +434,7 @@ export function AppProvider({
             price: info.price || 0,
             lastUpdated: now,
           })
-          hist.unshift(logHist(id, 'allocation', `Alocado`, 1) as any)
+          hist.unshift(logHist(id, true, 'allocation', `Alocado`, 1) as any)
         })
       }
       return { ...p, inventory: inv, history: hist }
@@ -366,17 +450,21 @@ export function AppProvider({
       const it = p.inventory.find((i) => i.id === id)
       if (!it) return p
       const nInv = p.inventory.map((i) => (i.id === id ? { ...i, ...updates } : i))
+
       if (it.hasAssetNumber) {
         sync('estoque', {
           id,
           condicao: updates.condition || it.condition,
           status: updates.status || it.status,
         })
+      } else if (updates.quantity !== undefined) {
+        sync('saldo_estoque', { id, quantidade: updates.quantity })
       }
+
       let nSuppliers = p.suppliers
-      if (updates.condition === 'repair' || it.condition === 'repair') {
+      if (it.hasAssetNumber && (updates.condition === 'repair' || it.condition === 'repair')) {
         sync('reparo', {
-          id: `rep_${Date.now()}`,
+          id: crypto.randomUUID(),
           estoque_id: id,
           previsao_finalizacao: updates.expectedReturnDate,
           valor_servico: updates.repairCost,
@@ -384,12 +472,12 @@ export function AppProvider({
           descricao: updates.reason,
           usuario_id: p.currentUser?.id,
         })
-        if (updates.repairCost > 0 && updates.supplierId) {
+        if (updates.repairCost && updates.repairCost > 0 && updates.supplierId) {
           const supp = p.suppliers.find((s) => s.id === updates.supplierId)
           if (supp) {
             const newBal = supp.currentBalance - updates.repairCost
             sync('saldo_fornecedor', {
-              id: `sf_${Date.now()}`,
+              id: crypto.randomUUID(),
               fornecedor_id: supp.id,
               saldo: newBal,
             })
@@ -399,12 +487,18 @@ export function AppProvider({
           }
         }
       }
+
       return {
         ...p,
         inventory: nInv,
         suppliers: nSuppliers,
         history: [
-          logHist(id, 'status_change', `Atualizado. ${updates.reason || ''}`) as any,
+          logHist(
+            id,
+            it.hasAssetNumber,
+            'status_change',
+            `Atualizado. ${updates.reason || ''}`,
+          ) as any,
           ...p.history,
         ],
       }
@@ -418,30 +512,31 @@ export function AppProvider({
       if (!it) return p
       let tId = id
       const nInv = [...p.inventory]
+
       if (qty && it.quantity && qty < it.quantity) {
         nInv.find((i) => i.id === id)!.quantity -= qty
-        sync('assets', { id, current_quantity: it.quantity - qty })
-        tId = `inv_${Date.now()}_split`
-        sync('assets', {
+        sync('saldo_estoque', { id, quantidade: it.quantity - qty })
+        tId = crypto.randomUUID()
+        sync('saldo_estoque', {
           id: tId,
-          is_batch: true,
-          current_quantity: qty,
-          team_id: it.teamId,
-          tree_node_id: it.treeNodeId,
-          condition: it.condition,
-          status: it.status,
+          quantidade: qty,
+          equipe_id: it.teamId,
+          produto_id: it.treeNodeId,
         })
         nInv.push({ ...it, id: tId, quantity: qty })
       }
-      const trId = `tr_${Date.now()}`
+
+      const trId = crypto.randomUUID()
       sync('movimento_estoque', {
         id: trId,
-        estoque_id: tId,
+        estoque_id: it.hasAssetNumber ? tId : null,
+        saldo_estoque_id: it.hasAssetNumber ? null : tId,
         tipo_movimento: 'transferencia',
         quantidade: qty || 1,
         usuario_id: p.currentUser?.id,
-        descricao: `Transferência iniciada de ${it.teamId} para ${toTeamId}`,
+        descricao: `Transferência iniciada de ${it.teamId} para ${toTeamId} (pendente)`,
       })
+
       return {
         ...p,
         inventory: nInv,
@@ -458,7 +553,7 @@ export function AppProvider({
           ...p.transfers,
         ],
         history: [
-          logHist(tId, 'transfer', `Transferência iniciada (Pendente)`) as any,
+          logHist(tId, it.hasAssetNumber, 'transfer', `Transferência iniciada (Pendente)`) as any,
           ...p.history,
         ],
       }
@@ -471,8 +566,18 @@ export function AppProvider({
       sync('movimento_estoque', { id: trId, descricao: 'Transferência em trânsito' })
       const tr = p.transfers.find((x) => x.id === trId)
       let nHist = p.history
-      if (tr)
-        nHist = [logHist(tr.inventoryId, 'transfer', 'Enviado (Em Trânsito)') as any, ...nHist]
+      if (tr) {
+        const invIt = p.inventory.find((i) => i.id === tr.inventoryId)
+        nHist = [
+          logHist(
+            tr.inventoryId,
+            !!invIt?.hasAssetNumber,
+            'transfer',
+            'Enviado (Em Trânsito)',
+          ) as any,
+          ...nHist,
+        ]
+      }
       return {
         ...p,
         transfers: p.transfers.map((t) => (t.id === trId ? { ...t, status: 'in_transit' } : t)),
@@ -505,8 +610,15 @@ export function AppProvider({
         descricao: action === 'accept' ? 'Transferência concluída' : 'Transferência rejeitada',
         updated_by: p.currentUser?.id,
       })
-      if (action === 'accept')
-        sync('estoque', { id: tr.inventoryId, equipe_id: tr.toTeamId, condicao: cond || 'good' })
+      const invIt = nInv.find((i) => i.id === tr.inventoryId)
+      if (action === 'accept' && invIt) {
+        if (invIt.hasAssetNumber) {
+          sync('estoque', { id: tr.inventoryId, equipe_id: tr.toTeamId, condicao: cond || 'good' })
+        } else {
+          sync('saldo_estoque', { id: tr.inventoryId, equipe_id: tr.toTeamId })
+        }
+      }
+
       return {
         ...p,
         inventory: nInv,
@@ -516,6 +628,7 @@ export function AppProvider({
         history: [
           logHist(
             tr.inventoryId,
+            !!invIt?.hasAssetNumber,
             'transfer',
             action === 'accept' ? 'Recebido e Aceito' : `Rejeitado: ${notes || ''}`,
           ) as any,
@@ -527,7 +640,7 @@ export function AppProvider({
   }
 
   const addSupplier = (s: any) => {
-    const id = `supp_${Date.now()}`
+    const id = crypto.randomUUID()
     sync('fornecedor', { id, descricao: s.name, email: s.cnpj })
     setState((p) => ({
       ...p,
@@ -541,7 +654,11 @@ export function AppProvider({
       const s = p.suppliers.find((x) => x.id === id)
       if (!s) return p
       const newBal = s.currentBalance + amount
-      sync('saldo_fornecedor', { id: `sf_${Date.now()}`, fornecedor_id: id, saldo: newBal })
+      sync('saldo_fornecedor', {
+        id: crypto.randomUUID(),
+        fornecedor_id: id,
+        saldo: newBal,
+      })
       return {
         ...p,
         suppliers: p.suppliers.map((x) => (x.id === id ? { ...x, currentBalance: newBal } : x)),
@@ -557,7 +674,7 @@ export function AppProvider({
     discrepancies: number,
     totalChecked: number,
   ) => {
-    const id = `chk_${Date.now()}`
+    const id = crypto.randomUUID()
     sync('auditoria', {
       id,
       tabela: 'estoque',
@@ -598,6 +715,7 @@ export function AppProvider({
       console.error(e)
     }
   }
+
   const toggleUserStatus = async (id: string) => {
     let act = true
     setState((p) => {
@@ -612,6 +730,7 @@ export function AppProvider({
       console.error(e)
     }
   }
+
   const createFullItemAndAllocate = async (data: {
     tipo: string
     funcao?: string
@@ -633,7 +752,7 @@ export function AppProvider({
     let newNodes: any[] = []
 
     let currentNodes = [...state.nodes]
-    const prodIds: Record<string, string> = {}
+    const parentIds: Record<string, string> = {}
 
     for (let i = 0; i < levels.length; i++) {
       const val = pathValues[i]
@@ -649,9 +768,9 @@ export function AppProvider({
       if (existing) {
         currentParentId = existing.id
         lastNodeId = existing.id
-        prodIds[`${levels[i]}_id`] = existing.id
+        parentIds[`${levels[i]}_id`] = existing.id
       } else {
-        const newNodeId = `n_${Date.now()}_${i}_${Math.random().toString(36).substr(2, 9)}`
+        const newNodeId = crypto.randomUUID()
         const isGrouped = !data.hasAssetNumber && (levels[i] === 'linha' || levels[i] === 'marca')
         const newNode = {
           id: newNodeId,
@@ -661,9 +780,7 @@ export function AppProvider({
           isGrouped,
         }
 
-        const parentCol = i === 0 ? null : `${levels[i - 1]}_id`
-        const dbObj: any = { id: newNodeId, descricao: val }
-        if (parentCol && currentParentId) dbObj[parentCol] = currentParentId
+        const dbObj: any = { id: newNodeId, descricao: val, ativo: true, ...parentIds }
         sync(levels[i], dbObj)
 
         newNodes.push(newNode)
@@ -671,16 +788,17 @@ export function AppProvider({
 
         currentParentId = newNodeId
         lastNodeId = newNodeId
-        prodIds[`${levels[i]}_id`] = newNodeId
+        parentIds[`${levels[i]}_id`] = newNodeId
       }
     }
 
-    const prodId = `prod_${Date.now()}`
+    const prodId = crypto.randomUUID()
     sync('produto', {
       id: prodId,
       nome: data.item || 'Item',
-      ...prodIds,
+      ...parentIds,
       preco_unitario: data.price || 0,
+      ativo: true,
     })
 
     lastNodeId = prodId
@@ -717,7 +835,6 @@ export function AppProvider({
 
     await signOut()
 
-    // Clear local storage and session storage except basic preferences
     const theme = localStorage.getItem('theme') || localStorage.getItem('vite-ui-theme')
     localStorage.clear()
     sessionStorage.clear()
@@ -730,6 +847,7 @@ export function AppProvider({
   const val = useMemo(
     () => ({
       ...state,
+      kpis,
       isStoreLoading,
       addNode,
       addInventoryItem,
@@ -746,7 +864,7 @@ export function AppProvider({
       createFullItemAndAllocate,
       logout,
     }),
-    [state, isStoreLoading],
+    [state, kpis, isStoreLoading],
   )
   return <AppContext.Provider value={val}>{children}</AppContext.Provider>
 }

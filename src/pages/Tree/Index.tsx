@@ -3,7 +3,7 @@ import { useAppStore } from '@/store/AppStore'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, Home, ChevronRight } from 'lucide-react'
 import { TreeNodeItem } from './TreeNodeItem'
 import {
   Dialog,
@@ -15,25 +15,58 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { canManageTree } from '@/lib/permissions'
+import { useSearchParams } from 'react-router-dom'
 
 const nextLevelMap: Record<string, import('@/types').TreeLevel> = {
   root: 'departamento',
   departamento: 'categoria',
-  categoria: 'linha',
-  linha: 'tipo',
-  tipo: 'marca',
+  categoria: 'tipo',
+  tipo: 'linha',
+  linha: 'marca',
   marca: 'produto',
 }
 
 export default function TreePage() {
-  const { nodes, addNode, currentUser } = useAppStore()
+  const { nodes, addNode, currentUser, getNodePath } = useAppStore()
+  const [searchParams] = useSearchParams()
+  const selectedNodeId = searchParams.get('node')
+
   const [search, setSearch] = useState('')
   const [addingTo, setAddingTo] = useState<{ parentId: string | null; level: string } | null>(null)
   const [newNodeName, setNewNodeName] = useState('')
   const [isGrouped, setIsGrouped] = useState(false)
 
   const canManage = canManageTree(currentUser)
-  const rootNodes = useMemo(() => nodes.filter((n) => n.parentId === null), [nodes])
+
+  const filteredNodes = useMemo(() => {
+    if (!search) return nodes
+    const lowerSearch = search.toLowerCase()
+
+    // Nodes matching search
+    const matching = nodes.filter((n) => n.name.toLowerCase().includes(lowerSearch))
+
+    // Build tree to include all parents of matching nodes
+    const toKeep = new Set<string>()
+
+    matching.forEach((m) => {
+      let curr: string | null = m.id
+      while (curr) {
+        if (toKeep.has(curr)) break
+        toKeep.add(curr)
+        const node = nodes.find((n) => n.id === curr)
+        curr = node?.parentId || null
+      }
+    })
+
+    return nodes.filter((n) => toKeep.has(n.id))
+  }, [nodes, search])
+
+  const rootNodes = useMemo(() => filteredNodes.filter((n) => n.parentId === null), [filteredNodes])
+
+  const breadcrumbs = useMemo(() => {
+    if (!selectedNodeId) return null
+    return getNodePath(selectedNodeId)
+  }, [selectedNodeId, getNodePath])
 
   const handleAddSubmit = () => {
     if (!newNodeName.trim() || !addingTo) return
@@ -59,10 +92,26 @@ export default function TreePage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Árvore Mercadológica</h2>
-          <p className="text-muted-foreground">
-            Gerencie a hierarquia (Departamento &gt; Categoria &gt; Linha &gt; Tipo &gt; Marca &gt;
-            Produto).
-          </p>
+          {breadcrumbs && breadcrumbs.length > 0 ? (
+            <div className="flex items-center text-sm text-muted-foreground mt-1 flex-wrap gap-1">
+              <Home className="h-3 w-3" />
+              {breadcrumbs.map((bc: any, idx: number) => (
+                <div key={bc.id} className="flex items-center gap-1">
+                  <ChevronRight className="h-3 w-3" />
+                  <span
+                    className={idx === breadcrumbs.length - 1 ? 'text-foreground font-medium' : ''}
+                  >
+                    {bc.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Gerencie a hierarquia (Departamento &gt; Categoria &gt; Tipo &gt; Linha &gt; Marca
+              &gt; Produto).
+            </p>
+          )}
         </div>
         {canManage && (
           <Button onClick={() => setAddingTo({ parentId: null, level: 'root' })}>
@@ -90,7 +139,8 @@ export default function TreePage() {
               <TreeNodeItem
                 key={node.id}
                 node={node}
-                allNodes={nodes}
+                allNodes={filteredNodes}
+                searchActive={search.length > 0}
                 onAddChild={
                   canManage
                     ? (parentId: string, level: string) => {
@@ -103,7 +153,7 @@ export default function TreePage() {
             ))}
             {rootNodes.length === 0 && (
               <p className="text-muted-foreground text-center py-8">
-                Nenhum Departamento cadastrado.
+                {search ? 'Nenhum resultado encontrado.' : 'Nenhum Departamento cadastrado.'}
               </p>
             )}{' '}
           </div>

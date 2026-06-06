@@ -25,13 +25,13 @@ export interface User {
   teamId?: string
   active: boolean
 }
-export interface TreeNode {
-  id: string
-  name: string
-  level: TreeLevel
-  parentId: string | null
-  isGrouped?: boolean
-}
+export type TreeNode =
+  | { id: string; name: string; level: 'departamento'; parentId: null; isGrouped?: boolean }
+  | { id: string; name: string; level: 'categoria'; parentId: string; isGrouped?: boolean }
+  | { id: string; name: string; level: 'linha'; parentId: string; isGrouped?: boolean }
+  | { id: string; name: string; level: 'tipo'; parentId: string; isGrouped?: boolean }
+  | { id: string; name: string; level: 'marca'; parentId: string; isGrouped?: boolean }
+  | { id: string; name: string; level: 'produto'; parentId: string; isGrouped?: boolean }
 
 export interface RepairSupplier {
   id: string
