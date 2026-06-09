@@ -9,8 +9,8 @@ import {
   AddInventoryPayload,
   InventoryItem,
 } from '@/types'
-import { supabase } from '@/lib/supabase/client'
-import { User } from '@supabase/supabase-js'
+import { apiFetch } from '@/lib/api'
+import { AuthUser as User } from '@/services/AuthService'
 import { toast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
 
@@ -18,9 +18,24 @@ export const AppContext = createContext<any>(undefined)
 
 const sync = async (t: string, d: any) => {
   try {
-    await supabase.from(t).upsert(d)
-  } catch (e) {
-    console.error(e)
+    const endpoint = `/${t.replace(/_/g, '-')}`
+    await apiFetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(d),
+    })
+  } catch (e: any) {
+    console.error('Sync Error:', e)
+    if (
+      e.message?.includes('409') ||
+      e.message?.toLowerCase().includes('duplicate') ||
+      e.message?.toLowerCase().includes('conflict')
+    ) {
+      toast({
+        title: 'Erro de Validação',
+        description: 'Operação não permitida: ' + e.message,
+        variant: 'destructive',
+      })
+    }
   }
 }
 
@@ -69,21 +84,14 @@ export function AppProvider({
     const loadData = async () => {
       try {
         // Data Hydration Phase 1: High priority data to free the UI instantly
-        const [usrRes, perfisRes, depRes, catRes, eqpRes, usrEqpRes] = await Promise.all([
-          supabase.from('usuarios').select('*'),
-          supabase.from('perfil_acesso').select('*'),
-          supabase.from('departamento').select('*'),
-          supabase.from('categoria').select('*'),
-          supabase.from('equipes').select('*'),
-          supabase.from('usuarios_equipes').select('*'),
+        const [usrData, perfisData, depData, catData, eqpData, usrEqpData] = await Promise.all([
+          apiFetch('/usuarios').catch(() => []),
+          apiFetch('/perfil-acesso').catch(() => []),
+          apiFetch('/departamento').catch(() => []),
+          apiFetch('/categoria').catch(() => []),
+          apiFetch('/equipes').catch(() => []),
+          apiFetch('/usuarios-equipes').catch(() => []),
         ])
-
-        const usrData = usrRes.data || []
-        const perfisData = perfisRes.data || []
-        const depData = depRes.data || []
-        const catData = catRes.data || []
-        const eqpData = eqpRes.data || []
-        const usrEqpData = usrEqpRes.data || []
 
         const profs = usrData.map((u) => {
           const p = perfisData.find((p) => p.id === u.perfil_acesso_id)
@@ -152,42 +160,30 @@ export function AppProvider({
 
         // Data Hydration Phase 2: Lower level nodes and full inventory
         const [
-          tipRes,
-          linRes,
-          marRes,
-          prodRes,
-          estRes,
-          sdoRes,
-          movRes,
-          repRes,
-          fornRes,
-          imgRes,
-          sdoFornRes,
+          tipData,
+          linData,
+          marData,
+          prodData,
+          estData,
+          sdoData,
+          movData,
+          repData,
+          fornData,
+          imgData,
+          sdoFornData,
         ] = await Promise.all([
-          supabase.from('tipo').select('*'),
-          supabase.from('linha').select('*'),
-          supabase.from('marca').select('*'),
-          supabase.from('produto').select('*'),
-          supabase.from('estoque').select('*'),
-          supabase.from('saldo_estoque').select('*'),
-          supabase.from('movimento_estoque').select('*'),
-          supabase.from('reparo').select('*'),
-          supabase.from('fornecedor').select('*'),
-          supabase.from('imagem_produto').select('*'),
-          supabase.from('saldo_fornecedor').select('*'),
+          apiFetch('/tipo').catch(() => []),
+          apiFetch('/linha').catch(() => []),
+          apiFetch('/marca').catch(() => []),
+          apiFetch('/produto').catch(() => []),
+          apiFetch('/estoque').catch(() => []),
+          apiFetch('/saldo-estoque').catch(() => []),
+          apiFetch('/movimento-estoque').catch(() => []),
+          apiFetch('/reparo').catch(() => []),
+          apiFetch('/fornecedor').catch(() => []),
+          apiFetch('/imagem-produto').catch(() => []),
+          apiFetch('/saldo-fornecedor').catch(() => []),
         ])
-
-        const tipData = tipRes.data || []
-        const linData = linRes.data || []
-        const marData = marRes.data || []
-        const prodData = prodRes.data || []
-        const estData = estRes.data || []
-        const sdoData = sdoRes.data || []
-        const movData = movRes.data || []
-        const repData = repRes.data || []
-        const fornData = fornRes.data || []
-        const imgData = imgRes.data || []
-        const sdoFornData = sdoFornRes.data || []
 
         const lowerNodes: TreeNode[] = [
           ...tipData.map((t) => ({
@@ -890,13 +886,13 @@ export function AppProvider({
   const updateProfile = async (updates: { name?: string; theme?: string }) => {
     if (!state.currentUser) return
     try {
-      await supabase
-        .from('usuarios')
-        .update({
+      await apiFetch(`/usuarios/${state.currentUser.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
           nome: updates.name || state.currentUser.name,
           tema: updates.theme || state.currentUser.theme,
-        })
-        .eq('id', state.currentUser.id)
+        }),
+      })
 
       setState((p) => {
         const nUser = p.currentUser

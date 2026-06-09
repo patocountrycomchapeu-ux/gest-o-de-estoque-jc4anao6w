@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import { Role } from '@/types'
 import { BaseService } from './BaseService'
 import { Database } from '@/lib/supabase/types'
@@ -11,19 +11,22 @@ export class UserService extends BaseService<UsuarioRow> {
   }
 
   async updateUserRole(userId: string, role: Role): Promise<void> {
-    const { data } = await supabase
-      .from('perfil_acesso')
-      .select('id')
-      .ilike('descricao', role)
-      .single()
+    const roles: any[] = await apiFetch('/perfil-acesso')
+    const roleData = roles.find((r) => r.descricao?.toLowerCase() === role.toLowerCase())
 
-    if (data) {
-      await supabase.from('usuarios').update({ perfil_acesso_id: data.id }).eq('id', userId)
+    if (roleData) {
+      await apiFetch(`/usuarios/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ perfil_acesso_id: roleData.id }),
+      })
     }
   }
 
   async toggleUserStatus(userId: string, newStatus: boolean): Promise<void> {
-    await supabase.from('usuarios').update({ ativo: newStatus }).eq('id', userId)
+    await apiFetch(`/usuarios/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ativo: newStatus }),
+    })
   }
 }
 

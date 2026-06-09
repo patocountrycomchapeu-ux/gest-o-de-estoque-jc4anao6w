@@ -1719,18 +1719,15 @@ export const Constants = {
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
 // Table: config_global
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "config_global_delete" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//   Policy "config_global_insert" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: is_gestor()
+//   Policy "config_global_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//     WITH CHECK: true
-//   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
-//   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//     WITH CHECK: (is_admin() OR true)
+//   Policy "config_global_update" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
 // Table: danificado
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1776,21 +1773,15 @@ export const Constants = {
 //     USING: is_gestor()
 //     WITH CHECK: is_gestor()
 // Table: estoque
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-//   Policy "estoque_all" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
-//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
+//     USING: is_gestor()
 //   Policy "estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)) OR (equipe_id IS NULL))
 //   Policy "estoque_update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//     WITH CHECK: (is_admin() OR true)
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 // Table: fornecedor
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1870,34 +1861,25 @@ export const Constants = {
 //   Policy "movimento_estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
 // Table: perfil_acesso
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "perfil_acesso_delete" (DELETE, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//   Policy "perfil_acesso_insert" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: is_gestor()
+//   Policy "perfil_acesso_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: true
-//     WITH CHECK: true
-//   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
-//   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//     WITH CHECK: (is_admin() OR true)
+//   Policy "perfil_acesso_update" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: is_gestor()
+//     WITH CHECK: is_gestor()
 // Table: saldo_estoque
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-//   Policy "saldo_estoque_all" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
-//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "saldo_estoque_delete" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: true
+//     USING: is_gestor()
 //   Policy "saldo_estoque_insert" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 //   Policy "saldo_estoque_select" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)) OR (equipe_id IS NULL))
 //   Policy "saldo_estoque_update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
+//     USING: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
+//     WITH CHECK: (is_gestor() OR (equipe_id IN ( SELECT get_user_teams() AS get_user_teams)))
 // Table: saldo_fornecedor
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true

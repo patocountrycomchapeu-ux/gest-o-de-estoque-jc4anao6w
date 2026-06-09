@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import { BaseService } from './BaseService'
 import { Database } from '@/lib/supabase/types'
 
@@ -10,20 +10,12 @@ export class EstoqueService extends BaseService<EstoqueRow> {
   }
 
   async getEstoqueByEquipe(equipeId: string): Promise<EstoqueRow[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select('*')
-      .eq('equipe_id', equipeId)
-
-    if (error) throw error
-    return data as EstoqueRow[]
+    return apiFetch(`${this.endpoint}?equipeId=${equipeId}`) as Promise<EstoqueRow[]>
   }
 
   subscribeToEstoque(callback: (payload: any) => void) {
-    return supabase
-      .channel('estoque_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'estoque' }, callback)
-      .subscribe()
+    console.warn('subscribeToEstoque not implemented for external API')
+    return { unsubscribe: () => {} }
   }
 }
 

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import { BaseService } from './BaseService'
 import { Database } from '@/lib/supabase/types'
 
@@ -10,24 +10,11 @@ export class MovimentoEstoqueService extends BaseService<MovimentoRow> {
   }
 
   async getMovimentosPorEstoque(estoqueId: string): Promise<MovimentoRow[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select('*')
-      .eq('estoque_id', estoqueId)
-      .order('data_hora', { ascending: false })
-
-    if (error) throw error
-    return data as MovimentoRow[]
+    return apiFetch(`${this.endpoint}?estoqueId=${estoqueId}`) as Promise<MovimentoRow[]>
   }
 
   async getTodosMovimentos(): Promise<MovimentoRow[]> {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select('*')
-      .order('data_hora', { ascending: false })
-
-    if (error) throw error
-    return data as MovimentoRow[]
+    return this.getAll()
   }
 }
 

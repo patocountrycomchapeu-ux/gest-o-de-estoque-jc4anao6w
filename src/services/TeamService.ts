@@ -1,20 +1,20 @@
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import { Team } from '@/types'
 
 export class TeamService {
   async createTeam(name: string, description: string, managerId?: string): Promise<Team> {
-    const { data: teamData, error } = await supabase
-      .from('equipes')
-      .insert({ nome: name, descricao: description, ativa: true, status: 'ativo' })
-      .select()
-      .single()
-
-    if (error) throw error
+    const teamData = await apiFetch('/equipes', {
+      method: 'POST',
+      body: JSON.stringify({ nome: name, descricao: description, ativa: true, status: 'ativo' }),
+    })
 
     if (managerId) {
-      await supabase.from('usuarios_equipes').insert({
-        equipe_id: teamData.id,
-        usuario_id: managerId,
+      await apiFetch('/usuarios-equipes', {
+        method: 'POST',
+        body: JSON.stringify({
+          equipe_id: teamData.id,
+          usuario_id: managerId,
+        }),
       })
     }
 
@@ -33,29 +33,32 @@ export class TeamService {
     description: string,
     managerId?: string,
   ): Promise<void> {
-    const { error } = await supabase
-      .from('equipes')
-      .update({ nome: name, descricao: description })
-      .eq('id', id)
+    await apiFetch(`/equipes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nome: name, descricao: description }),
+    })
 
-    if (error) throw error
-
-    await supabase.from('usuarios_equipes').delete().eq('equipe_id', id)
     if (managerId) {
-      await supabase.from('usuarios_equipes').insert({
-        equipe_id: id,
-        usuario_id: managerId,
+      await apiFetch(`/equipes/${id}/manager`, {
+        method: 'PUT',
+        body: JSON.stringify({ usuario_id: managerId }),
+      }).catch(async () => {
+        await apiFetch('/usuarios-equipes', {
+          method: 'POST',
+          body: JSON.stringify({
+            equipe_id: id,
+            usuario_id: managerId,
+          }),
+        })
       })
     }
   }
 
   async deleteTeam(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('equipes')
-      .update({ ativa: false, status: 'inativo' })
-      .eq('id', id)
-
-    if (error) throw error
+    await apiFetch(`/equipes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ativa: false, status: 'inativo' }),
+    })
   }
 }
 

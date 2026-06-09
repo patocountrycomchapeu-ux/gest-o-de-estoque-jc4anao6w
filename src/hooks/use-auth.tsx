@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { User, Session } from '@supabase/supabase-js'
-import { authService } from '@/services/AuthService'
+import { authService, AuthUser, AuthSession } from '@/services/AuthService'
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
+  session: AuthSession | null
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
@@ -23,24 +22,16 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = authService.onAuthStateChange((event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
     authService.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
-    return () => subscription.unsubscribe()
   }, [])
 
   const signUp = async (email: string, password: string, fullName: string) => {
@@ -51,15 +42,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     const { data, error } = await authService.signIn(email, password)
     if (!error && data?.user) {
-      import('@/lib/supabase/client').then(({ supabase }) => {
-        supabase
-          .from('logs_acesso')
-          .insert({
+      setSession(data.session)
+      setUser(data.user)
+      import('@/lib/api').then(({ apiFetch }) => {
+        apiFetch('/logs-acesso', {
+          method: 'POST',
+          body: JSON.stringify({
             usuario_id: data.user.id,
             acao: 'Login',
             user_agent: navigator.userAgent,
-          })
-          .then()
+          }),
+        }).catch(console.error)
       })
     }
     return { error }
@@ -67,6 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const { error } = await authService.signOut()
+    setSession(null)
+    setUser(null)
     return { error }
   }
 
