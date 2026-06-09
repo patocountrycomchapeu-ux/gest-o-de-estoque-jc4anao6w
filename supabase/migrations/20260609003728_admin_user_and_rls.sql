@@ -56,30 +56,27 @@ BEGIN
   WHERE u.id = auth.uid();
   RETURN COALESCE(v_admin, false);
 END;
-$;
+$$;
 
-CREATE OR REPLACE FUNCTION public.get_user_teams()
-RETURNS SETOF uuid
+CREATE OR REPLACE FUNCTION public.get_user_teams()RETURNS SETOF uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY SELECT equipe_id FROM public.usuarios_equipes WHERE usuario_id = auth.uid();
 END;
-$;
+$$;
 
-CREATE OR REPLACE FUNCTION public.can_write()
-RETURNS boolean
+CREATE OR REPLACE FUNCTION public.can_write()RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
   RETURN (SELECT p.descricao FROM public.usuarios u JOIN public.perfil_acesso p ON u.perfil_acesso_id = p.id WHERE u.id = auth.uid()) IN ('Gestor', 'Encarregado Gestor', 'Encarregado', 'Gerente', 'Supervisor');
 END;
-$;
+$$;
 
--- Enable RLS for referenced tables
-ALTER TABLE public.estoque ENABLE ROW LEVEL SECURITY;
+-- Enable RLS for referenced tablesALTER TABLE public.estoque ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saldo_estoque ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.config_global ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.perfil_acesso ENABLE ROW LEVEL SECURITY;
