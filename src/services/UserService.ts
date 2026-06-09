@@ -1,8 +1,11 @@
 import { supabase } from '@/lib/supabase/client'
 import { Role } from '@/types'
 import { BaseService } from './BaseService'
+import { Database } from '@/lib/supabase/types'
 
-export class UserService extends BaseService<any> {
+type UsuarioRow = Database['public']['Tables']['usuarios']['Row']
+
+export class UserService extends BaseService<UsuarioRow> {
   constructor() {
     super('usuarios')
   }

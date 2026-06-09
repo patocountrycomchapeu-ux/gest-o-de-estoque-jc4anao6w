@@ -9,6 +9,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      arvore_de_nivel: {
+        Row: {
+          id: number
+          nivel: string
+          nome: string
+          parent_id: number | null
+        }
+        Insert: {
+          id?: number
+          nivel: string
+          nome: string
+          parent_id?: number | null
+        }
+        Update: {
+          id?: number
+          nivel?: string
+          nome?: string
+          parent_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fkk7v40gortnsusofmb8umsi4hg'
+            columns: ['parent_id']
+            isOneToOne: false
+            referencedRelation: 'arvore_de_nivel'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      ativo_patrimoniado: {
+        Row: {
+          condicao: string
+          id: number
+          numero_patrimonio: string | null
+        }
+        Insert: {
+          condicao: string
+          id: number
+          numero_patrimonio?: string | null
+        }
+        Update: {
+          condicao?: string
+          id?: number
+          numero_patrimonio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fkmda6tonxtmhw93q9meeq3wrah'
+            columns: ['id']
+            isOneToOne: true
+            referencedRelation: 'estoque_item'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       auditoria: {
         Row: {
           dados_antigos: Json | null
@@ -168,13 +223,6 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
-            foreignKeyName: 'danificado_produto_id_fkey'
-            columns: ['produto_id']
-            isOneToOne: false
-            referencedRelation: 'produto'
-            referencedColumns: ['id']
-          },
-          {
             foreignKeyName: 'danificado_usuario_id_fkey'
             columns: ['usuario_id']
             isOneToOne: false
@@ -206,6 +254,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      equipe: {
+        Row: {
+          gerente_id: number | null
+          id: number
+          nome: string
+        }
+        Insert: {
+          gerente_id?: number | null
+          id?: number
+          nome: string
+        }
+        Update: {
+          gerente_id?: number | null
+          id?: number
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk9c3v9ij7dgudqhbwmw7knnjcf'
+            columns: ['gerente_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+        ]
       }
       equipes: {
         Row: {
@@ -297,8 +371,47 @@ export type Database = {
             referencedRelation: 'equipes'
             referencedColumns: ['id']
           },
+        ]
+      }
+      estoque_item: {
+        Row: {
+          equipe_id: number | null
+          id: number
+          produto_id: number
+          responsavel_id: number | null
+          status: string
+        }
+        Insert: {
+          equipe_id?: number | null
+          id?: number
+          produto_id: number
+          responsavel_id?: number | null
+          status: string
+        }
+        Update: {
+          equipe_id?: number | null
+          id?: number
+          produto_id?: number
+          responsavel_id?: number | null
+          status?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: 'estoque_produto_id_fkey'
+            foreignKeyName: 'fk8vfwii3vj9g0k7uv5435kamoe'
+            columns: ['equipe_id']
+            isOneToOne: false
+            referencedRelation: 'equipe'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fkdpi9opvfhuymmfcnhuqt86pve'
+            columns: ['responsavel_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fktopobkkocr2ckp8wi8ql147s2'
             columns: ['produto_id']
             isOneToOne: false
             referencedRelation: 'produto'
@@ -385,12 +498,27 @@ export type Database = {
           produto_id?: string | null
           url?: string
         }
+        Relationships: []
+      }
+      item_consumivel: {
+        Row: {
+          id: number
+          quantidade: number
+        }
+        Insert: {
+          id: number
+          quantidade: number
+        }
+        Update: {
+          id?: number
+          quantidade?: number
+        }
         Relationships: [
           {
-            foreignKeyName: 'imagem_produto_produto_id_fkey'
-            columns: ['produto_id']
-            isOneToOne: false
-            referencedRelation: 'produto'
+            foreignKeyName: 'fkpcp04241ui580s0flemovbb7m'
+            columns: ['id']
+            isOneToOne: true
+            referencedRelation: 'estoque_item'
             referencedColumns: ['id']
           },
         ]
@@ -657,181 +785,76 @@ export type Database = {
       }
       produto: {
         Row: {
-          ativo: boolean | null
-          categoria_id: string | null
-          created_at: string
-          created_by: string | null
-          departamento_id: string | null
+          arvore_id: number
           descricao: string | null
-          id: string
-          linha_id: string | null
-          marca_id: string | null
+          eh_consumivel: boolean
+          id: number
           nome: string
-          preco_unitario: number | null
-          sku: string | null
-          status: string | null
-          tipo_id: string | null
-          updated_at: string
-          updated_by: string | null
+          quantidade_estoque: number
+          sku: string
         }
         Insert: {
-          ativo?: boolean | null
-          categoria_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          departamento_id?: string | null
+          arvore_id: number
           descricao?: string | null
-          id?: string
-          linha_id?: string | null
-          marca_id?: string | null
+          eh_consumivel: boolean
+          id?: number
           nome: string
-          preco_unitario?: number | null
-          sku?: string | null
-          status?: string | null
-          tipo_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          quantidade_estoque: number
+          sku: string
         }
         Update: {
-          ativo?: boolean | null
-          categoria_id?: string | null
-          created_at?: string
-          created_by?: string | null
-          departamento_id?: string | null
+          arvore_id?: number
           descricao?: string | null
-          id?: string
-          linha_id?: string | null
-          marca_id?: string | null
+          eh_consumivel?: boolean
+          id?: number
           nome?: string
-          preco_unitario?: number | null
-          sku?: string | null
-          status?: string | null
-          tipo_id?: string | null
-          updated_at?: string
-          updated_by?: string | null
+          quantidade_estoque?: number
+          sku?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'produto_categoria_id_fkey'
-            columns: ['categoria_id']
+            foreignKeyName: 'fkr8wji70da15v2h84ust4y8pld'
+            columns: ['arvore_id']
             isOneToOne: false
-            referencedRelation: 'categoria'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'usuarios'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_departamento_id_fkey'
-            columns: ['departamento_id']
-            isOneToOne: false
-            referencedRelation: 'departamento'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_linha_id_fkey'
-            columns: ['linha_id']
-            isOneToOne: false
-            referencedRelation: 'linha'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_marca_id_fkey'
-            columns: ['marca_id']
-            isOneToOne: false
-            referencedRelation: 'marca'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_tipo_id_fkey'
-            columns: ['tipo_id']
-            isOneToOne: false
-            referencedRelation: 'tipo'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'produto_updated_by_fkey'
-            columns: ['updated_by']
-            isOneToOne: false
-            referencedRelation: 'usuarios'
+            referencedRelation: 'arvore_de_nivel'
             referencedColumns: ['id']
           },
         ]
       }
       reparo: {
         Row: {
-          created_at: string
-          descricao: string | null
-          estoque_id: string | null
-          fornecedor_id: string | null
-          id: string
-          previsao_finalizacao: string | null
-          status: string | null
-          tipo_reparo_id: string | null
-          updated_at: string
-          usuario_id: string | null
-          valor_orcamento: number | null
-          valor_servico: number | null
+          custo: number | null
+          data_reparo: string | null
+          data_reporte: string
+          id: number
+          item_id: number
+          problema_relatado: string
+          status: string
         }
         Insert: {
-          created_at?: string
-          descricao?: string | null
-          estoque_id?: string | null
-          fornecedor_id?: string | null
-          id?: string
-          previsao_finalizacao?: string | null
-          status?: string | null
-          tipo_reparo_id?: string | null
-          updated_at?: string
-          usuario_id?: string | null
-          valor_orcamento?: number | null
-          valor_servico?: number | null
+          custo?: number | null
+          data_reparo?: string | null
+          data_reporte: string
+          id?: number
+          item_id: number
+          problema_relatado: string
+          status: string
         }
         Update: {
-          created_at?: string
-          descricao?: string | null
-          estoque_id?: string | null
-          fornecedor_id?: string | null
-          id?: string
-          previsao_finalizacao?: string | null
-          status?: string | null
-          tipo_reparo_id?: string | null
-          updated_at?: string
-          usuario_id?: string | null
-          valor_orcamento?: number | null
-          valor_servico?: number | null
+          custo?: number | null
+          data_reparo?: string | null
+          data_reporte?: string
+          id?: number
+          item_id?: number
+          problema_relatado?: string
+          status?: string
         }
         Relationships: [
           {
-            foreignKeyName: 'reparo_estoque_id_fkey'
-            columns: ['estoque_id']
+            foreignKeyName: 'fklcrav3yki1vhg2dvv7uafp7iy'
+            columns: ['item_id']
             isOneToOne: false
-            referencedRelation: 'estoque'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'reparo_fornecedor_id_fkey'
-            columns: ['fornecedor_id']
-            isOneToOne: false
-            referencedRelation: 'fornecedor'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'reparo_tipo_reparo_id_fkey'
-            columns: ['tipo_reparo_id']
-            isOneToOne: false
-            referencedRelation: 'tipo_reparo'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'reparo_usuario_id_fkey'
-            columns: ['usuario_id']
-            isOneToOne: false
-            referencedRelation: 'usuarios'
+            referencedRelation: 'ativo_patrimoniado'
             referencedColumns: ['id']
           },
         ]
@@ -867,13 +890,6 @@ export type Database = {
             columns: ['equipe_id']
             isOneToOne: false
             referencedRelation: 'equipes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'saldo_estoque_produto_id_fkey'
-            columns: ['produto_id']
-            isOneToOne: false
-            referencedRelation: 'produto'
             referencedColumns: ['id']
           },
         ]
@@ -978,6 +994,100 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      transferencia: {
+        Row: {
+          data_conclusao: string | null
+          data_solicitacao: string
+          destino_equipe_id: number
+          id: number
+          item_id: number
+          origem_equipe_id: number
+          solicitante_id: number
+          status: string
+        }
+        Insert: {
+          data_conclusao?: string | null
+          data_solicitacao: string
+          destino_equipe_id: number
+          id?: number
+          item_id: number
+          origem_equipe_id: number
+          solicitante_id: number
+          status: string
+        }
+        Update: {
+          data_conclusao?: string | null
+          data_solicitacao?: string
+          destino_equipe_id?: number
+          id?: number
+          item_id?: number
+          origem_equipe_id?: number
+          solicitante_id?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fk9jf28oerjsmetpfv1d9vypeub'
+            columns: ['destino_equipe_id']
+            isOneToOne: false
+            referencedRelation: 'equipe'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fka8y6x4heiuy43wcu73igc3x3i'
+            columns: ['origem_equipe_id']
+            isOneToOne: false
+            referencedRelation: 'equipe'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fkn9kscmopsej96crskf44k26w9'
+            columns: ['solicitante_id']
+            isOneToOne: false
+            referencedRelation: 'usuario'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fkp0f8c4bqx6y7ey3a5j1h9dtvv'
+            columns: ['item_id']
+            isOneToOne: false
+            referencedRelation: 'estoque_item'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      usuario: {
+        Row: {
+          email: string
+          equipe_id: number | null
+          id: number
+          name: string
+          perfil: string
+        }
+        Insert: {
+          email: string
+          equipe_id?: number | null
+          id?: number
+          name: string
+          perfil: string
+        }
+        Update: {
+          email?: string
+          equipe_id?: number | null
+          id?: number
+          name?: string
+          perfil?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fkpfi75i61qxklywrex8k0ufoi0'
+            columns: ['equipe_id']
+            isOneToOne: false
+            referencedRelation: 'equipe'
+            referencedColumns: ['id']
+          },
+        ]
       }
       usuarios: {
         Row: {
@@ -1233,6 +1343,15 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: arvore_de_nivel
+//   id: bigint (not null, default: nextval('arvore_de_nivel_id_seq'::regclass))
+//   nivel: character varying (not null)
+//   nome: character varying (not null)
+//   parent_id: bigint (nullable)
+// Table: ativo_patrimoniado
+//   condicao: character varying (not null)
+//   numero_patrimonio: character varying (nullable)
+//   id: bigint (not null)
 // Table: auditoria
 //   id: uuid (not null, default: gen_random_uuid())
 //   tabela: text (not null)
@@ -1274,6 +1393,10 @@ export const Constants = {
 //   ativo: boolean (nullable, default: true)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: equipe
+//   id: bigint (not null, default: nextval('equipe_id_seq'::regclass))
+//   nome: character varying (not null)
+//   gerente_id: bigint (nullable)
 // Table: equipes
 //   id: uuid (not null, default: gen_random_uuid())
 //   nome: text (not null)
@@ -1293,6 +1416,12 @@ export const Constants = {
 //   condicao: text (nullable, default: 'bom'::text)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: estoque_item
+//   id: bigint (not null, default: nextval('estoque_item_id_seq'::regclass))
+//   status: character varying (not null)
+//   equipe_id: bigint (nullable)
+//   produto_id: bigint (not null)
+//   responsavel_id: bigint (nullable)
 // Table: fornecedor
 //   id: uuid (not null, default: gen_random_uuid())
 //   descricao: text (not null)
@@ -1314,6 +1443,9 @@ export const Constants = {
 //   url: text (not null)
 //   ordem: integer (nullable, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: item_consumivel
+//   quantidade: integer (not null)
+//   id: bigint (not null)
 // Table: linha
 //   id: uuid (not null, default: gen_random_uuid())
 //   descricao: text (not null)
@@ -1360,35 +1492,21 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
 // Table: produto
-//   id: uuid (not null, default: gen_random_uuid())
-//   nome: text (not null)
-//   descricao: text (nullable)
-//   departamento_id: uuid (nullable)
-//   categoria_id: uuid (nullable)
-//   tipo_id: uuid (nullable)
-//   linha_id: uuid (nullable)
-//   marca_id: uuid (nullable)
-//   sku: text (nullable)
-//   preco_unitario: numeric (nullable, default: 0)
-//   ativo: boolean (nullable, default: true)
-//   created_at: timestamp with time zone (not null, default: now())
-//   updated_at: timestamp with time zone (not null, default: now())
-//   created_by: uuid (nullable)
-//   updated_by: uuid (nullable)
-//   status: character varying (nullable, default: 'ativo'::character varying)
+//   id: bigint (not null, default: nextval('produto_id_seq'::regclass))
+//   descricao: character varying (nullable)
+//   eh_consumivel: boolean (not null)
+//   nome: character varying (not null)
+//   quantidade_estoque: integer (not null)
+//   sku: character varying (not null)
+//   arvore_id: bigint (not null)
 // Table: reparo
-//   id: uuid (not null, default: gen_random_uuid())
-//   estoque_id: uuid (nullable)
-//   fornecedor_id: uuid (nullable)
-//   tipo_reparo_id: uuid (nullable)
-//   status: text (nullable, default: 'pendente'::text)
-//   descricao: text (nullable)
-//   usuario_id: uuid (nullable)
-//   valor_orcamento: numeric (nullable, default: 0)
-//   valor_servico: numeric (nullable, default: 0)
-//   previsao_finalizacao: date (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-//   updated_at: timestamp with time zone (not null, default: now())
+//   id: bigint (not null, default: nextval('reparo_id_seq'::regclass))
+//   custo: numeric (nullable)
+//   data_reparo: timestamp without time zone (nullable)
+//   data_reporte: timestamp without time zone (not null)
+//   problema_relatado: character varying (not null)
+//   status: character varying (not null)
+//   item_id: bigint (not null)
 // Table: saldo_estoque
 //   id: uuid (not null, default: gen_random_uuid())
 //   produto_id: uuid (nullable)
@@ -1416,6 +1534,21 @@ export const Constants = {
 //   ativo: boolean (nullable, default: true)
 //   created_at: timestamp with time zone (not null, default: now())
 //   updated_at: timestamp with time zone (not null, default: now())
+// Table: transferencia
+//   id: bigint (not null, default: nextval('transferencia_id_seq'::regclass))
+//   data_conclusao: timestamp without time zone (nullable)
+//   data_solicitacao: timestamp without time zone (not null)
+//   status: character varying (not null)
+//   destino_equipe_id: bigint (not null)
+//   item_id: bigint (not null)
+//   origem_equipe_id: bigint (not null)
+//   solicitante_id: bigint (not null)
+// Table: usuario
+//   id: bigint (not null, default: nextval('usuario_id_seq'::regclass))
+//   email: character varying (not null)
+//   name: character varying (not null)
+//   perfil: character varying (not null)
+//   equipe_id: bigint (nullable)
 // Table: usuarios
 //   id: uuid (not null)
 //   nome: text (not null)
@@ -1436,6 +1569,15 @@ export const Constants = {
 //   created_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
+// Table: arvore_de_nivel
+//   CHECK arvore_de_nivel_nivel_check: CHECK (((nivel)::text = ANY ((ARRAY['DEPARTAMENTO'::character varying, 'CATEGORIA'::character varying, 'SUBCATEGORIA'::character varying, 'FAMILIA'::character varying, 'SUBFAMILIA'::character varying])::text[])))
+//   PRIMARY KEY arvore_de_nivel_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY fkk7v40gortnsusofmb8umsi4hg: FOREIGN KEY (parent_id) REFERENCES arvore_de_nivel(id)
+// Table: ativo_patrimoniado
+//   CHECK ativo_patrimoniado_condicao_check: CHECK (((condicao)::text = ANY ((ARRAY['NOVO'::character varying, 'BOM'::character varying, 'RAZOÁVEL'::character varying, 'RUIM'::character varying, 'QUEBRADO'::character varying, 'EM_REPARO'::character varying])::text[])))
+//   PRIMARY KEY ativo_patrimoniado_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY fkmda6tonxtmhw93q9meeq3wrah: FOREIGN KEY (id) REFERENCES estoque_item(id)
+//   UNIQUE uk_iw6y887371yfhbnba1dvfxe72: UNIQUE (numero_patrimonio)
 // Table: auditoria
 //   CHECK auditoria_operacao_check: CHECK (((operacao)::text = ANY ((ARRAY['INSERT'::character varying, 'UPDATE'::character varying, 'DELETE'::character varying])::text[])))
 //   PRIMARY KEY auditoria_pkey: PRIMARY KEY (id)
@@ -1450,10 +1592,12 @@ export const Constants = {
 //   FOREIGN KEY danificado_equipe_id_fkey: FOREIGN KEY (equipe_id) REFERENCES equipes(id)
 //   FOREIGN KEY danificado_estoque_id_fkey: FOREIGN KEY (estoque_id) REFERENCES estoque(id)
 //   PRIMARY KEY danificado_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY danificado_produto_id_fkey: FOREIGN KEY (produto_id) REFERENCES produto(id)
 //   FOREIGN KEY danificado_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 // Table: departamento
 //   PRIMARY KEY departamento_pkey: PRIMARY KEY (id)
+// Table: equipe
+//   PRIMARY KEY equipe_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY fk9c3v9ij7dgudqhbwmw7knnjcf: FOREIGN KEY (gerente_id) REFERENCES usuario(id)
 // Table: equipes
 //   CHECK chk_equipes_status: CHECK (((status)::text = ANY ((ARRAY['ativo'::character varying, 'inativo'::character varying])::text[])))
 //   FOREIGN KEY equipes_created_by_fkey: FOREIGN KEY (created_by) REFERENCES usuarios(id)
@@ -1463,14 +1607,22 @@ export const Constants = {
 //   FOREIGN KEY estoque_equipe_id_fkey: FOREIGN KEY (equipe_id) REFERENCES equipes(id)
 //   UNIQUE estoque_numero_patrimonio_key: UNIQUE (numero_patrimonio)
 //   PRIMARY KEY estoque_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY estoque_produto_id_fkey: FOREIGN KEY (produto_id) REFERENCES produto(id)
+// Table: estoque_item
+//   PRIMARY KEY estoque_item_pkey: PRIMARY KEY (id)
+//   CHECK estoque_item_status_check: CHECK (((status)::text = ANY ((ARRAY['ESTOQUE'::character varying, 'USO'::character varying, 'REPARO'::character varying, 'TRANSFERIDO'::character varying, 'DESCARTADO'::character varying, 'PERDIDO'::character varying])::text[])))
+//   FOREIGN KEY fk8vfwii3vj9g0k7uv5435kamoe: FOREIGN KEY (equipe_id) REFERENCES equipe(id)
+//   FOREIGN KEY fkdpi9opvfhuymmfcnhuqt86pve: FOREIGN KEY (responsavel_id) REFERENCES usuario(id)
+//   FOREIGN KEY fktopobkkocr2ckp8wi8ql147s2: FOREIGN KEY (produto_id) REFERENCES produto(id)
 // Table: fornecedor
 //   PRIMARY KEY fornecedor_pkey: PRIMARY KEY (id)
 // Table: historico_config_global
 //   PRIMARY KEY historico_config_global_pkey: PRIMARY KEY (id)
 // Table: imagem_produto
 //   PRIMARY KEY imagem_produto_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY imagem_produto_produto_id_fkey: FOREIGN KEY (produto_id) REFERENCES produto(id) ON DELETE CASCADE
+// Table: item_consumivel
+//   FOREIGN KEY fkpcp04241ui580s0flemovbb7m: FOREIGN KEY (id) REFERENCES estoque_item(id)
+//   PRIMARY KEY item_consumivel_pkey: PRIMARY KEY (id)
+//   CHECK item_consumivel_quantidade_check: CHECK ((quantidade >= 0))
 // Table: linha
 //   FOREIGN KEY linha_categoria_id_fkey: FOREIGN KEY (categoria_id) REFERENCES categoria(id) ON DELETE CASCADE
 //   FOREIGN KEY linha_departamento_id_fkey: FOREIGN KEY (departamento_id) REFERENCES departamento(id) ON DELETE CASCADE
@@ -1496,26 +1648,17 @@ export const Constants = {
 // Table: perfil_acesso
 //   PRIMARY KEY perfil_acesso_pkey: PRIMARY KEY (id)
 // Table: produto
-//   CHECK chk_produto_status: CHECK (((status)::text = ANY ((ARRAY['ativo'::character varying, 'inativo'::character varying])::text[])))
-//   FOREIGN KEY produto_categoria_id_fkey: FOREIGN KEY (categoria_id) REFERENCES categoria(id)
-//   FOREIGN KEY produto_created_by_fkey: FOREIGN KEY (created_by) REFERENCES usuarios(id)
-//   FOREIGN KEY produto_departamento_id_fkey: FOREIGN KEY (departamento_id) REFERENCES departamento(id)
-//   FOREIGN KEY produto_linha_id_fkey: FOREIGN KEY (linha_id) REFERENCES linha(id)
-//   FOREIGN KEY produto_marca_id_fkey: FOREIGN KEY (marca_id) REFERENCES marca(id)
+//   FOREIGN KEY fkr8wji70da15v2h84ust4y8pld: FOREIGN KEY (arvore_id) REFERENCES arvore_de_nivel(id)
 //   PRIMARY KEY produto_pkey: PRIMARY KEY (id)
-//   UNIQUE produto_sku_key: UNIQUE (sku)
-//   FOREIGN KEY produto_tipo_id_fkey: FOREIGN KEY (tipo_id) REFERENCES tipo(id)
-//   FOREIGN KEY produto_updated_by_fkey: FOREIGN KEY (updated_by) REFERENCES usuarios(id)
+//   CHECK produto_quantidade_estoque_check: CHECK ((quantidade_estoque >= 0))
+//   UNIQUE uk_j6npst3feop938l4x5h675kyv: UNIQUE (sku)
 // Table: reparo
-//   FOREIGN KEY reparo_estoque_id_fkey: FOREIGN KEY (estoque_id) REFERENCES estoque(id)
-//   FOREIGN KEY reparo_fornecedor_id_fkey: FOREIGN KEY (fornecedor_id) REFERENCES fornecedor(id)
+//   FOREIGN KEY fklcrav3yki1vhg2dvv7uafp7iy: FOREIGN KEY (item_id) REFERENCES ativo_patrimoniado(id)
+//   CHECK reparo_custo_check: CHECK ((custo >= (0)::numeric))
 //   PRIMARY KEY reparo_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY reparo_tipo_reparo_id_fkey: FOREIGN KEY (tipo_reparo_id) REFERENCES tipo_reparo(id)
-//   FOREIGN KEY reparo_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 // Table: saldo_estoque
 //   FOREIGN KEY saldo_estoque_equipe_id_fkey: FOREIGN KEY (equipe_id) REFERENCES equipes(id)
 //   PRIMARY KEY saldo_estoque_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY saldo_estoque_produto_id_fkey: FOREIGN KEY (produto_id) REFERENCES produto(id)
 // Table: saldo_fornecedor
 //   FOREIGN KEY saldo_fornecedor_fornecedor_id_fkey: FOREIGN KEY (fornecedor_id) REFERENCES fornecedor(id) ON DELETE CASCADE
 //   PRIMARY KEY saldo_fornecedor_pkey: PRIMARY KEY (id)
@@ -1525,6 +1668,18 @@ export const Constants = {
 //   PRIMARY KEY tipo_pkey: PRIMARY KEY (id)
 // Table: tipo_reparo
 //   PRIMARY KEY tipo_reparo_pkey: PRIMARY KEY (id)
+// Table: transferencia
+//   FOREIGN KEY fk9jf28oerjsmetpfv1d9vypeub: FOREIGN KEY (destino_equipe_id) REFERENCES equipe(id)
+//   FOREIGN KEY fka8y6x4heiuy43wcu73igc3x3i: FOREIGN KEY (origem_equipe_id) REFERENCES equipe(id)
+//   FOREIGN KEY fkn9kscmopsej96crskf44k26w9: FOREIGN KEY (solicitante_id) REFERENCES usuario(id)
+//   FOREIGN KEY fkp0f8c4bqx6y7ey3a5j1h9dtvv: FOREIGN KEY (item_id) REFERENCES estoque_item(id)
+//   PRIMARY KEY transferencia_pkey: PRIMARY KEY (id)
+//   CHECK transferencia_status_check: CHECK (((status)::text = ANY ((ARRAY['PENDENTE'::character varying, 'APROVADO'::character varying, 'REJEITADO'::character varying, 'EM_TRANSITO'::character varying, 'CONCLUIDO'::character varying, 'CANCELADO'::character varying])::text[])))
+// Table: usuario
+//   FOREIGN KEY fkpfi75i61qxklywrex8k0ufoi0: FOREIGN KEY (equipe_id) REFERENCES equipe(id)
+//   UNIQUE uk_5171l57faosmj8myawaucatdw: UNIQUE (email)
+//   CHECK usuario_perfil_check: CHECK (((perfil)::text = ANY ((ARRAY['GESTOR'::character varying, 'ENCARREGADO'::character varying, 'ANALISTA'::character varying, 'VISUALIZADOR'::character varying])::text[])))
+//   PRIMARY KEY usuario_pkey: PRIMARY KEY (id)
 // Table: usuarios
 //   CHECK chk_usuarios_status: CHECK (((status)::text = ANY ((ARRAY['ativo'::character varying, 'inativo'::character varying])::text[])))
 //   FOREIGN KEY usuarios_created_by_fkey: FOREIGN KEY (created_by) REFERENCES usuarios(id)
@@ -1727,37 +1882,6 @@ export const Constants = {
 //   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (is_admin() OR true)
 //     WITH CHECK: (is_admin() OR true)
-// Table: produto
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-//   Policy "delete_admin" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//   Policy "insert_authenticated" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
-//   Policy "select_all_authenticated" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "tree_all_produto" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: is_gestor()
-//     WITH CHECK: is_gestor()
-//   Policy "tree_select_produto" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "update_admin" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: (is_admin() OR true)
-//     WITH CHECK: (is_admin() OR true)
-// Table: reparo
-//   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-//   Policy "reparo_delete" (DELETE, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "reparo_insert" (INSERT, PERMISSIVE) roles={authenticated}
-//     WITH CHECK: true
-//   Policy "reparo_select" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
-//   Policy "reparo_update" (UPDATE, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
 // Table: saldo_estoque
 //   Policy "allow_all_authenticated" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -2028,13 +2152,12 @@ export const Constants = {
 // Table: movimento_estoque
 //   trg_audit_movimento_estoque: CREATE TRIGGER trg_audit_movimento_estoque AFTER INSERT OR DELETE OR UPDATE ON public.movimento_estoque FOR EACH ROW EXECUTE FUNCTION trigger_audit_log()
 //   trg_set_movimento_updated_at: CREATE TRIGGER trg_set_movimento_updated_at BEFORE UPDATE ON public.movimento_estoque FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at()
-// Table: produto
-//   trg_audit_produto: CREATE TRIGGER trg_audit_produto AFTER INSERT OR DELETE OR UPDATE ON public.produto FOR EACH ROW EXECUTE FUNCTION trigger_audit_log()
-//   trg_set_produto_updated_at: CREATE TRIGGER trg_set_produto_updated_at BEFORE UPDATE ON public.produto FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at()
 // Table: usuarios
 //   trg_set_usuarios_updated_at: CREATE TRIGGER trg_set_usuarios_updated_at BEFORE UPDATE ON public.usuarios FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at()
 
 // --- INDEXES ---
+// Table: ativo_patrimoniado
+//   CREATE UNIQUE INDEX uk_iw6y887371yfhbnba1dvfxe72 ON public.ativo_patrimoniado USING btree (numero_patrimonio)
 // Table: config_global
 //   CREATE UNIQUE INDEX config_global_chave_key ON public.config_global USING btree (chave)
 // Table: danificado
@@ -2048,11 +2171,9 @@ export const Constants = {
 //   CREATE INDEX idx_movimento_estoque_data ON public.movimento_estoque USING btree (data_hora DESC)
 //   CREATE INDEX idx_movimento_estoque_usuario_id ON public.movimento_estoque USING btree (usuario_id)
 // Table: produto
-//   CREATE INDEX idx_produto_nome ON public.produto USING btree (nome)
-//   CREATE INDEX idx_produto_status ON public.produto USING btree (status) WHERE ((status)::text = 'ativo'::text)
-//   CREATE UNIQUE INDEX produto_sku_key ON public.produto USING btree (sku)
-// Table: reparo
-//   CREATE INDEX idx_reparo_status ON public.reparo USING btree (status)
+//   CREATE UNIQUE INDEX uk_j6npst3feop938l4x5h675kyv ON public.produto USING btree (sku)
+// Table: usuario
+//   CREATE UNIQUE INDEX uk_5171l57faosmj8myawaucatdw ON public.usuario USING btree (email)
 // Table: usuarios
 //   CREATE INDEX idx_usuarios_email ON public.usuarios USING btree (email)
 //   CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)
