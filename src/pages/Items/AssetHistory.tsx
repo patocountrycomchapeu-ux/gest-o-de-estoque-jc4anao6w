@@ -17,7 +17,7 @@ export default function AssetHistory() {
   if (!item) return <Navigate to="/itens" replace />
 
   const path = getNodePath(item.treeNodeId)
-  const itemName = path.find((n) => n.level === 'item' || n.level === 'produto')?.name || 'Item'
+  const itemName = path.find((n) => n.level === 'linha' || n.level === 'produto')?.name || 'Item'
 
   // Cálculos para Gestão Inteligente de Reparos
   const totalRepairCost = item.repairCost || 0

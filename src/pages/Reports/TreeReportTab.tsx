@@ -13,7 +13,7 @@ export function TreeReportTab() {
       counts[item.treeNodeId] = (counts[item.treeNodeId] || 0) + (item.quantity || 1)
     })
 
-    const levels = ['marca', 'item', 'especificacao', 'funcao', 'tipo'] as const
+    const levels = ['marca', 'linha', 'tipo', 'categoria', 'departamento'] as const
     levels.forEach((level) => {
       const levelNodes = nodes.filter((n) => n.level === level)
       levelNodes.forEach((node) => {
@@ -34,7 +34,7 @@ export function TreeReportTab() {
           const count = treeData[node.id] || 0
           if (count === 0 && depth > 0) return null
           let imageSrc = undefined
-          if (node.level === 'marca' || node.level === 'item') {
+          if (node.level === 'marca' || node.level === 'linha') {
             const sample = inventory.find(
               (i) =>
                 (i.treeNodeId === node.id ||

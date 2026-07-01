@@ -21,11 +21,12 @@ export default function ItemsPage() {
   const { teams, createFullItemAndAllocate, currentUser } = useAppStore()
   const { toast } = useToast()
 
+  const [departamento, setDepartamento] = useState('')
+  const [categoria, setCategoria] = useState('')
   const [tipo, setTipo] = useState('')
-  const [funcao, setFuncao] = useState('')
-  const [especificacao, setEspecificacao] = useState('')
-  const [item, setItem] = useState('')
+  const [linha, setLinha] = useState('')
   const [marca, setMarca] = useState('')
+  const [produto, setProduto] = useState('')
 
   const [teamId, setTeamId] = useState('')
   const [hasAssetNumber, setHasAssetNumber] = useState(true)
@@ -47,10 +48,10 @@ export default function ItemsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!tipo || !funcao || !especificacao || !item || !marca) {
+    if (!departamento || !categoria || !tipo || !linha || !marca) {
       toast({
         title: 'Atenção',
-        description: 'Preencha todos os níveis da árvore.',
+        description: 'Preencha todos os níveis da árvore mercadológica.',
         variant: 'destructive',
       })
       return
@@ -85,11 +86,12 @@ export default function ItemsPage() {
     }
 
     createFullItemAndAllocate({
+      departamento,
+      categoria,
       tipo,
-      funcao,
-      especificacao,
-      item,
+      linha,
       marca,
+      produto,
       teamId,
       qty: nQty,
       price: nPrice,
@@ -99,11 +101,12 @@ export default function ItemsPage() {
       condition: 'good',
     })
 
+    setDepartamento('')
+    setCategoria('')
     setTipo('')
-    setFuncao('')
-    setEspecificacao('')
-    setItem('')
+    setLinha('')
     setMarca('')
+    setProduto('')
     setTeamId('')
     setQty('1')
     setPrice('')
@@ -126,59 +129,67 @@ export default function ItemsPage() {
             <PackagePlus className="w-5 h-5 text-primary" /> Novo Item e Alocação
           </CardTitle>
           <CardDescription>
-            Defina a classificação mercadológica e os detalhes do inventário.
+            Defina a classificação mercadológica (6 níveis) e os detalhes do inventário.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                1. Árvore Mercadológica
+                1. Árvore Mercadológica (6 Níveis)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
+                  <Label>Departamento</Label>
+                  <Input
+                    placeholder="Ex: Ferramentas Elétricas"
+                    value={departamento}
+                    onChange={(e) => setDepartamento(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Categoria</Label>
+                  <Input
+                    placeholder="Ex: Furadeiras"
+                    value={categoria}
+                    onChange={(e) => setCategoria(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label>Tipo</Label>
                   <Input
-                    placeholder="Ex: Ferramenta Elétrica"
+                    placeholder="Ex: Bateria"
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Função</Label>
+                  <Label>Linha</Label>
                   <Input
-                    placeholder="Ex: Furar/Parafusar"
-                    value={funcao}
-                    onChange={(e) => setFuncao(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Especificação</Label>
-                  <Input
-                    placeholder="Ex: Bateria 20V"
-                    value={especificacao}
-                    onChange={(e) => setEspecificacao(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Item (Modelo)</Label>
-                  <Input
-                    placeholder="Ex: Parafusadeira Impacto"
-                    value={item}
-                    onChange={(e) => setItem(e.target.value)}
+                    placeholder="Ex: Impacto 12V"
+                    value={linha}
+                    onChange={(e) => setLinha(e.target.value)}
                     required
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Marca</Label>
                   <Input
-                    placeholder="Ex: DeWalt"
+                    placeholder="Ex: Makita"
                     value={marca}
                     onChange={(e) => setMarca(e.target.value)}
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Produto (Modelo)</Label>
+                  <Input
+                    placeholder="Ex: Parafusadeira X100"
+                    value={produto}
+                    onChange={(e) => setProduto(e.target.value)}
                   />
                 </div>
               </div>
@@ -255,7 +266,7 @@ export default function ItemsPage() {
 
             <div className="space-y-4 border-t pt-4">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                3. Imagens do Produto
+                3. Imagens do Produto (Referência)
               </h3>
               <div className="flex gap-2">
                 <Input

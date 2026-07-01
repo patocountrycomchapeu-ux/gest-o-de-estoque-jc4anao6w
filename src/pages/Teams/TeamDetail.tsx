@@ -110,7 +110,7 @@ export default function TeamDetail() {
             {pendingIncoming.map((t) => {
               const item = inventory.find((i) => i.id === t.inventoryId)
               const name = item
-                ? getNodePath(item.treeNodeId).find((n) => n.level === 'item')?.name
+                ? getNodePath(item.treeNodeId).find((n) => n.level === 'linha')?.name
                 : 'Item'
               return (
                 <div key={t.id} className="flex justify-between bg-background border p-3 rounded">
@@ -148,7 +148,7 @@ export default function TeamDetail() {
             {pendingOutgoing.map((t) => {
               const item = inventory.find((i) => i.id === t.inventoryId)
               const name = item
-                ? getNodePath(item.treeNodeId).find((n) => n.level === 'item')?.name
+                ? getNodePath(item.treeNodeId).find((n) => n.level === 'linha')?.name
                 : 'Item'
               return (
                 <div
@@ -220,7 +220,7 @@ export default function TeamDetail() {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {path.find((n) => n.level === 'item')?.name || 'Item'}
+                        {path.find((n) => n.level === 'linha')?.name || 'Item'}
                       </div>
                       <div className="text-[10px] text-muted-foreground">
                         {path.find((n) => n.level === 'marca')?.name}

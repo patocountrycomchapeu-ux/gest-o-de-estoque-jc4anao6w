@@ -502,6 +502,71 @@ export function AppProvider({
     toast({ title: 'Atualizado' })
   }
 
+  const adjustGroupedItem = (
+    id: string,
+    removeQty: number,
+    reason: string,
+    destStatus: ToolStatus | 'removed',
+    destCondition: Condition,
+  ) => {
+    setState((p) => {
+      const it = p.inventory.find((i) => i.id === id)
+      if (!it || !it.quantity) return p
+      const actualRemove = Math.min(removeQty, it.quantity)
+      const newQty = it.quantity - actualRemove
+      const nInv = p.inventory.map((i) => (i.id === id ? { ...i, quantity: newQty } : i))
+
+      if (!it.hasAssetNumber) {
+        sync('saldo_estoque', { id, quantidade: newQty })
+      }
+
+      let nHist = p.history
+
+      if (destStatus !== 'removed' && actualRemove > 0) {
+        const newId = crypto.randomUUID()
+        nInv.push({
+          ...it,
+          id: newId,
+          quantity: actualRemove,
+          status: destStatus as ToolStatus,
+          condition: destCondition,
+          conditionCategory: reason,
+          lastUpdated: new Date().toISOString(),
+        })
+        if (!it.hasAssetNumber) {
+          sync('saldo_estoque', {
+            id: newId,
+            equipe_id: it.teamId,
+            produto_id: it.treeNodeId,
+            quantidade: actualRemove,
+          })
+        }
+        nHist = [
+          logHist(
+            id,
+            false,
+            'status_change',
+            `Ajuste de lote: ${actualRemove} un. marcadas como ${destStatus}. ${reason}`,
+          ) as any,
+          ...nHist,
+        ]
+      } else {
+        nHist = [
+          logHist(
+            id,
+            false,
+            'status_change',
+            `Baixa de ${actualRemove} un. do lote. ${reason}`,
+          ) as any,
+          ...nHist,
+        ]
+      }
+
+      return { ...p, inventory: nInv, history: nHist }
+    })
+    toast({ title: 'Ajuste realizado' })
+  }
+
   const initiateTransfer = (id: string, toTeamId: string, qty?: number) => {
     setState((p) => {
       const it = p.inventory.find((i) => i.id === id)
@@ -796,11 +861,12 @@ export function AppProvider({
   }
 
   const createFullItemAndAllocate = async (data: {
-    tipo: string
-    funcao?: string
-    especificacao?: string
-    item: string
+    departamento: string
+    categoria?: string
+    tipo?: string
+    linha?: string
     marca: string
+    produto?: string
     hasAssetNumber: boolean
     qty: number
     price?: number
@@ -812,7 +878,7 @@ export function AppProvider({
     let currentParentId: string | null = null
     let lastNodeId = ''
     const levels = ['departamento', 'categoria', 'tipo', 'linha', 'marca']
-    const pathValues = [data.tipo, data.funcao, data.especificacao, data.item, data.marca]
+    const pathValues = [data.departamento, data.categoria, data.tipo, data.linha, data.marca]
     let newNodes: any[] = []
 
     let currentNodes = [...state.nodes]
@@ -859,7 +925,7 @@ export function AppProvider({
     const prodId = crypto.randomUUID()
     sync('produto', {
       id: prodId,
-      nome: data.item || 'Item',
+      nome: data.produto || data.marca || 'Item',
       ...parentIds,
       preco_unitario: data.price || 0,
       ativo: true,
@@ -962,6 +1028,7 @@ export function AppProvider({
       addNode,
       addInventoryItem,
       updateInventoryItem,
+      adjustGroupedItem,
       initiateTransfer,
       sendTransfer,
       resolveTransfer,

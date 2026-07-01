@@ -163,7 +163,7 @@ export default function AuditoriaPage() {
             <TableBody>
               {teamInventory.map((item) => {
                 const path = getNodePath(item.treeNodeId)
-                const name = `${path.find((n) => n.level === 'item')?.name}`
+                const name = `${path.find((n) => n.level === 'linha')?.name}`
                 const st = items[item.id]
                 return (
                   <TableRow key={item.id}>

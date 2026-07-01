@@ -75,7 +75,7 @@ export default function RepairsPage() {
             <TableBody>
               {repairItems.map((item) => {
                 const path = getNodePath(item.treeNodeId)
-                const name = path.find((n) => n.level === 'item')?.name || 'Item'
+                const name = path.find((n) => n.level === 'linha')?.name || 'Item'
                 const marca = path.find((n) => n.level === 'marca')?.name || '-'
                 const supplier = suppliers.find((s) => s.id === item.supplierId)
 

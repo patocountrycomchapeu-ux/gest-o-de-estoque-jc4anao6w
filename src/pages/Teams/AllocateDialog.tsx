@@ -31,10 +31,10 @@ export function AllocateDialog({
 }) {
   const { nodes, addInventoryItem } = useAppStore()
 
+  const [departamento, setDepartamento] = useState('')
+  const [categoria, setCategoria] = useState('')
   const [tipo, setTipo] = useState('')
-  const [funcao, setFuncao] = useState('')
-  const [especificacao, setEspec] = useState('')
-  const [item, setItem] = useState('')
+  const [linha, setLinha] = useState('')
   const [marca, setMarca] = useState('')
 
   const [qty, setQty] = useState(1)
@@ -43,26 +43,38 @@ export function AllocateDialog({
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
 
-  const tipos = useMemo(() => nodes.filter((n) => n.level === 'tipo'), [nodes])
-  const funcoes = useMemo(
-    () => nodes.filter((n) => n.level === 'funcao' && n.parentId === tipo),
+  const departamentos = useMemo(() => nodes.filter((n) => n.level === 'departamento'), [nodes])
+  const categorias = useMemo(
+    () => nodes.filter((n) => n.level === 'categoria' && n.parentId === departamento),
+    [nodes, departamento],
+  )
+  const tipos = useMemo(
+    () => nodes.filter((n) => n.level === 'tipo' && n.parentId === categoria),
+    [nodes, categoria],
+  )
+  const linhas = useMemo(
+    () => nodes.filter((n) => n.level === 'linha' && n.parentId === tipo),
     [nodes, tipo],
   )
-  const especificacoes = useMemo(
-    () => nodes.filter((n) => n.level === 'especificacao' && n.parentId === funcao),
-    [nodes, funcao],
-  )
-  const items = useMemo(
-    () => nodes.filter((n) => n.level === 'item' && n.parentId === especificacao),
-    [nodes, especificacao],
-  )
   const marcas = useMemo(
-    () => nodes.filter((n) => n.level === 'marca' && n.parentId === item),
-    [nodes, item],
+    () => nodes.filter((n) => n.level === 'marca' && n.parentId === linha),
+    [nodes, linha],
   )
 
   const selectedMarca = nodes.find((n) => n.id === marca)
-  const isGrouped = selectedMarca?.isGrouped || nodes.find((n) => n.id === item)?.isGrouped
+  const isGrouped = selectedMarca?.isGrouped
+
+  const resetForm = () => {
+    setDepartamento('')
+    setCategoria('')
+    setTipo('')
+    setLinha('')
+    setMarca('')
+    setQty(1)
+    setAssets([''])
+    setPrice('')
+    setFiles([])
+  }
 
   const handleSave = async () => {
     if (!marca) return alert('Selecione todos os 5 níveis da árvore.')
@@ -70,7 +82,7 @@ export function AllocateDialog({
       return alert('Preencha todos os números de patrimônio.')
 
     setUploading(true)
-    const photoUrls = []
+    const photoUrls: string[] = []
     for (const file of files) {
       const url = await uploadPhoto(file)
       if (url) photoUrls.push(url)
@@ -88,15 +100,7 @@ export function AllocateDialog({
     })
 
     setUploading(false)
-    setTipo('')
-    setFuncao('')
-    setEspec('')
-    setItem('')
-    setMarca('')
-    setQty(1)
-    setAssets([''])
-    setPrice('')
-    setFiles([])
+    resetForm()
     onOpenChange(false)
   }
 
@@ -116,14 +120,61 @@ export function AllocateDialog({
         <div className="space-y-4 py-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/20 p-3 rounded border">
             <div className="space-y-1">
-              <Label>1. Tipo</Label>
+              <Label>1. Departamento</Label>
               <Select
+                value={departamento}
+                onValueChange={(v) => {
+                  setDepartamento(v)
+                  setCategoria('')
+                  setTipo('')
+                  setLinha('')
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {departamentos.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>2. Categoria</Label>
+              <Select
+                disabled={!departamento}
+                value={categoria}
+                onValueChange={(v) => {
+                  setCategoria(v)
+                  setTipo('')
+                  setLinha('')
+                  setMarca('')
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map((n) => (
+                    <SelectItem key={n.id} value={n.id}>
+                      {n.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>3. Tipo</Label>
+              <Select
+                disabled={!categoria}
                 value={tipo}
                 onValueChange={(v) => {
                   setTipo(v)
-                  setFuncao('')
-                  setEspec('')
-                  setItem('')
+                  setLinha('')
                   setMarca('')
                 }}
               >
@@ -140,14 +191,12 @@ export function AllocateDialog({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>2. Função</Label>
+              <Label>4. Linha</Label>
               <Select
                 disabled={!tipo}
-                value={funcao}
+                value={linha}
                 onValueChange={(v) => {
-                  setFuncao(v)
-                  setEspec('')
-                  setItem('')
+                  setLinha(v)
                   setMarca('')
                 }}
               >
@@ -155,52 +204,7 @@ export function AllocateDialog({
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {funcoes.map((n) => (
-                    <SelectItem key={n.id} value={n.id}>
-                      {n.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>3. Especificação</Label>
-              <Select
-                disabled={!funcao}
-                value={especificacao}
-                onValueChange={(v) => {
-                  setEspec(v)
-                  setItem('')
-                  setMarca('')
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {especificacoes.map((n) => (
-                    <SelectItem key={n.id} value={n.id}>
-                      {n.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>4. Item</Label>
-              <Select
-                disabled={!especificacao}
-                value={item}
-                onValueChange={(v) => {
-                  setItem(v)
-                  setMarca('')
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {items.map((n) => (
+                  {linhas.map((n) => (
                     <SelectItem key={n.id} value={n.id}>
                       {n.name}
                     </SelectItem>
@@ -210,7 +214,7 @@ export function AllocateDialog({
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>5. Marca</Label>
-              <Select disabled={!item} value={marca} onValueChange={setMarca}>
+              <Select disabled={!linha} value={marca} onValueChange={setMarca}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a marca..." />
                 </SelectTrigger>
@@ -243,10 +247,9 @@ export function AllocateDialog({
                     type="text"
                     inputMode="decimal"
                     value={price}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.')
-                      setPrice(val)
-                    }}
+                    onChange={(e) =>
+                      setPrice(e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.'))
+                    }
                     placeholder="0.00"
                   />
                 </div>
