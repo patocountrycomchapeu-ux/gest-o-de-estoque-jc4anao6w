@@ -1,16 +1,17 @@
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 
 export async function uploadPhoto(file: File): Promise<string | null> {
-  const ext = file.name.split('.').pop()
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+  const formData = new FormData()
+  formData.append('file', file)
 
-  const { data, error } = await supabase.storage.from('asset-photos').upload(fileName, file)
-
-  if (data) {
-    const { data: publicUrlData } = supabase.storage.from('asset-photos').getPublicUrl(fileName)
-    return publicUrlData.publicUrl
+  try {
+    const data = await apiFetch('/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    return data?.url || null
+  } catch (error) {
+    console.error('Upload error:', error)
+    return null
   }
-
-  console.error('Upload error:', error)
-  return null
 }

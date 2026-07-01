@@ -55,11 +55,13 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, reqOptions)
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
     if (response.status === 401) {
       localStorage.removeItem('jwt_token')
-      window.location.href = '/login'
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
-    const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.message || `${response.status} ${response.statusText}`)
   }
 

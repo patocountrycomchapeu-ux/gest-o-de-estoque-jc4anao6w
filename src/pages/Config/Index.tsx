@@ -21,7 +21,7 @@ import {
 import { Role } from '@/types'
 import { canManageUsers } from '@/lib/permissions'
 import { Navigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,63 +29,62 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 
 export default function ConfigPage() {
-  const { users, currentUser, toggleUserStatus, updateUserRole } = useAppStore()
+  const { users, currentUser, toggleUserStatus, updateUserRole, updateProfile } = useAppStore()
   const { theme, setTheme } = useTheme()
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState<string>('Visualizador')
   const [isInviting, setIsInviting] = useState(false)
-
   const [logs, setLogs] = useState<any[]>([])
   const [isLoadingLogs, setIsLoadingLogs] = useState(false)
 
   const fetchLogs = async () => {
     setIsLoadingLogs(true)
-    const { data } = await supabase
-      .from('logs_acesso')
-      .select('*, usuarios(nome, email)')
-      .order('data_hora', { ascending: false })
-      .limit(100)
-    if (data) setLogs(data)
+    try {
+      const data = await apiFetch('/logs-acesso')
+      setLogs(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error('Failed to fetch logs:', err)
+      setLogs([])
+    }
     setIsLoadingLogs(false)
   }
 
   useEffect(() => {
-    if (canManageUsers(currentUser)) {
-      fetchLogs()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (canManageUsers(currentUser)) fetchLogs()
+  }, [currentUser])
 
   if (!canManageUsers(currentUser)) return <Navigate to="/" replace />
 
   const handleThemeChange = async (c: boolean) => {
     const t = c ? 'dark' : 'light'
     setTheme(t)
-    if (currentUser) {
-      await supabase.from('usuarios').update({ tema: t }).eq('id', currentUser.id)
-    }
+    if (currentUser) await updateProfile({ theme: t })
   }
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!inviteEmail || !inviteName) return toast.error('Preencha os campos obrigatórios')
-
     setIsInviting(true)
     try {
-      const { error } = await supabase.functions.invoke('invite-user', {
-        body: { email: inviteEmail, name: inviteName, role: inviteRole },
+      await apiFetch('/auth/invite', {
+        method: 'POST',
+        body: JSON.stringify({ email: inviteEmail, name: inviteName, role: inviteRole }),
       })
-      if (error) throw error
       toast.success('Convite enviado com sucesso!')
       setInviteEmail('')
       setInviteName('')
     } catch (err: any) {
-      console.error(err)
       toast.error('Erro ao enviar convite: ' + err.message)
     } finally {
       setIsInviting(false)
     }
+  }
+
+  const getUserInfo = (userId: string | null) => {
+    if (!userId) return { nome: 'Desconhecido', email: 'N/A' }
+    const u = users.find((u: any) => u.id === userId)
+    return u ? { nome: u.name, email: u.email } : { nome: 'Desconhecido', email: 'N/A' }
   }
 
   return (
@@ -256,36 +255,35 @@ export default function ConfigPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    logs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="text-xs whitespace-nowrap">
-                          {log.data_hora
-                            ? format(new Date(log.data_hora), 'dd/MM/yyyy HH:mm')
-                            : '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium text-sm">
-                            {log.usuarios?.nome || 'Desconhecido'}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {log.usuarios?.email || 'N/A'}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                            {log.acao}
-                          </span>
-                        </TableCell>
-                        <TableCell
-                          className="text-xs text-muted-foreground max-w-[200px] truncate"
-                          title={log.user_agent}
-                        >
-                          <span className="opacity-70">
-                            {log.user_agent?.substring(0, 45) || 'N/A'}...
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    logs.map((log) => {
+                      const userInfo = getUserInfo(log.usuario_id)
+                      return (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-xs whitespace-nowrap">
+                            {log.data_hora
+                              ? format(new Date(log.data_hora), 'dd/MM/yyyy HH:mm')
+                              : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium text-sm">{userInfo.nome}</div>
+                            <div className="text-xs text-muted-foreground">{userInfo.email}</div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                              {log.acao}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            className="text-xs text-muted-foreground max-w-[200px] truncate"
+                            title={log.user_agent}
+                          >
+                            <span className="opacity-70">
+                              {log.user_agent?.substring(0, 45) || 'N/A'}...
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>

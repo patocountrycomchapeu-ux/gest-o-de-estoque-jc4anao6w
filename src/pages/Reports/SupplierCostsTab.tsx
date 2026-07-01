@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api'
 import {
   Table,
   TableBody,
@@ -19,28 +19,26 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { ImageOff } from 'lucide-react'
 
-type Repair = {
+interface RepairData {
   id: string
-  cost: number | null
-  repair_date: string | null
+  cost: number
+  repairDate: string | null
   description: string | null
-  assets: {
-    item: string | null
-    patrimony_number: string | null
-    photos: any
-  } | null
+  itemName: string | null
+  patrimonyNumber: string | null
+  photoUrl: string | null
 }
 
-type SupplierWithRepairs = {
+interface SupplierData {
   id: string
   name: string
   cnpj: string | null
-  current_balance: number | null
-  repairs: Repair[]
+  currentBalance: number
+  repairs: RepairData[]
 }
 
 export function SupplierCostsTab() {
-  const [suppliers, setSuppliers] = useState<SupplierWithRepairs[]>([])
+  const [suppliers, setSuppliers] = useState<SupplierData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,39 +48,47 @@ export function SupplierCostsTab() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('repair_suppliers')
-        .select(`
-          id,
-          name,
-          cnpj,
-          current_balance,
-          repairs (
-            id,
-            cost,
-            repair_date,
-            description,
-            assets (
-              item,
-              patrimony_number,
-              photos
-            )
-          )
-        `)
-        .order('name')
+      const [fornData, sdoFornData, repData, estData, prodData, imgData] = await Promise.all([
+        apiFetch('/fornecedor').catch(() => []),
+        apiFetch('/saldo-fornecedor').catch(() => []),
+        apiFetch('/reparo').catch(() => []),
+        apiFetch('/estoque').catch(() => []),
+        apiFetch('/produto').catch(() => []),
+        apiFetch('/imagem-produto').catch(() => []),
+      ])
 
-      if (error) throw error
-
-      const formattedData = (data as any[]).map((supplier) => ({
-        ...supplier,
-        repairs: (supplier.repairs || []).sort((a: any, b: any) => {
-          const dateA = a.repair_date ? new Date(a.repair_date).getTime() : 0
-          const dateB = b.repair_date ? new Date(b.repair_date).getTime() : 0
-          return dateB - dateA
-        }),
-      }))
-
-      setSuppliers(formattedData)
+      const formatted: SupplierData[] = (fornData as any[]).map((f) => {
+        const balance = (sdoFornData as any[]).find((s) => s.fornecedor_id === f.id)?.saldo || 0
+        const repairs: RepairData[] = (repData as any[])
+          .filter((r) => r.fornecedor_id === f.id)
+          .map((r) => {
+            const est = (estData as any[]).find((e) => e.id === r.estoque_id)
+            const prod = (prodData as any[]).find((p) => p.id === est?.produto_id)
+            const img = (imgData as any[]).find((i) => i.produto_id === prod?.id)
+            return {
+              id: r.id,
+              cost: r.valor_servico || 0,
+              repairDate: r.created_at || null,
+              description: r.descricao || null,
+              itemName: prod?.nome || null,
+              patrimonyNumber: est?.numero_patrimonio || null,
+              photoUrl: img?.url || null,
+            }
+          })
+          .sort((a, b) => {
+            const dA = a.repairDate ? new Date(a.repairDate).getTime() : 0
+            const dB = b.repairDate ? new Date(b.repairDate).getTime() : 0
+            return dB - dA
+          })
+        return {
+          id: f.id,
+          name: f.descricao,
+          cnpj: f.email || null,
+          currentBalance: balance,
+          repairs,
+        }
+      })
+      setSuppliers(formatted)
     } catch (error) {
       console.error('Error fetching supplier costs:', error)
     } finally {
@@ -90,19 +96,8 @@ export function SupplierCostsTab() {
     }
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value)
-  }
-
-  const getPhotoUrl = (photos: any) => {
-    if (Array.isArray(photos) && photos.length > 0 && typeof photos[0] === 'string') {
-      return photos[0]
-    }
-    return null
-  }
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
   if (loading) {
     return (
@@ -117,17 +112,15 @@ export function SupplierCostsTab() {
       <Accordion type="multiple" className="space-y-4">
         {suppliers.map((supplier) => {
           const totalSpent = supplier.repairs.reduce((acc, r) => acc + (r.cost || 0), 0)
-
           const monthlyCosts = supplier.repairs.reduce(
             (acc, repair) => {
-              if (!repair.cost || !repair.repair_date) return acc
-              const month = format(new Date(repair.repair_date), 'MMMM yyyy', { locale: ptBR })
+              if (!repair.cost || !repair.repairDate) return acc
+              const month = format(new Date(repair.repairDate), 'MMMM yyyy', { locale: ptBR })
               acc[month] = (acc[month] || 0) + repair.cost
               return acc
             },
             {} as Record<string, number>,
           )
-
           return (
             <AccordionItem
               value={supplier.id}
@@ -147,12 +140,12 @@ export function SupplierCostsTab() {
                       <span className="text-muted-foreground">Saldo Atual</span>
                       <span
                         className={
-                          (supplier.current_balance || 0) > 0
+                          supplier.currentBalance > 0
                             ? 'text-green-600 font-semibold text-base'
                             : 'font-semibold text-base'
                         }
                       >
-                        {formatCurrency(supplier.current_balance || 0)}
+                        {formatCurrency(supplier.currentBalance)}
                       </span>
                     </div>
                     <div className="flex flex-col items-end">
@@ -184,7 +177,6 @@ export function SupplierCostsTab() {
                     </div>
                   </div>
                 )}
-
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader className="bg-muted/50">
@@ -204,50 +196,47 @@ export function SupplierCostsTab() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        supplier.repairs.map((repair) => {
-                          const photoUrl = getPhotoUrl(repair.assets?.photos)
-                          return (
-                            <TableRow key={repair.id}>
-                              <TableCell>
-                                {photoUrl ? (
-                                  <img
-                                    src={photoUrl}
-                                    alt="Item"
-                                    className="w-12 h-12 object-cover rounded-md border"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 bg-muted rounded-md border flex items-center justify-center">
-                                    <ImageOff className="h-5 w-5 text-muted-foreground/50" />
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium">
-                                  {repair.assets?.item || 'Item Removido'}
+                        supplier.repairs.map((repair) => (
+                          <TableRow key={repair.id}>
+                            <TableCell>
+                              {repair.photoUrl ? (
+                                <img
+                                  src={repair.photoUrl}
+                                  alt="Item"
+                                  className="w-12 h-12 object-cover rounded-md border"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 bg-muted rounded-md border flex items-center justify-center">
+                                  <ImageOff className="h-5 w-5 text-muted-foreground/50" />
                                 </div>
-                                <div className="text-xs text-muted-foreground">
-                                  Patrimônio: {repair.assets?.patrimony_number || 'N/A'}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                {repair.repair_date
-                                  ? format(new Date(repair.repair_date), 'dd/MM/yyyy', {
-                                      locale: ptBR,
-                                    })
-                                  : '-'}
-                              </TableCell>
-                              <TableCell
-                                className="max-w-[200px] truncate"
-                                title={repair.description || ''}
-                              >
-                                {repair.description || '-'}
-                              </TableCell>
-                              <TableCell className="text-right font-medium">
-                                {formatCurrency(repair.cost || 0)}
-                              </TableCell>
-                            </TableRow>
-                          )
-                        })
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {repair.itemName || 'Item Removido'}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Patrimônio: {repair.patrimonyNumber || 'N/A'}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {repair.repairDate
+                                ? format(new Date(repair.repairDate), 'dd/MM/yyyy', {
+                                    locale: ptBR,
+                                  })
+                                : '-'}
+                            </TableCell>
+                            <TableCell
+                              className="max-w-[200px] truncate"
+                              title={repair.description || ''}
+                            >
+                              {repair.description || '-'}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {formatCurrency(repair.cost || 0)}
+                            </TableCell>
+                          </TableRow>
+                        ))
                       )}
                     </TableBody>
                   </Table>
@@ -256,7 +245,6 @@ export function SupplierCostsTab() {
             </AccordionItem>
           )
         })}
-
         {suppliers.length === 0 && !loading && (
           <div className="text-center py-12 border rounded-lg bg-card text-muted-foreground">
             Nenhum fornecedor cadastrado.
