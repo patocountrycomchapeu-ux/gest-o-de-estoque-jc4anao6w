@@ -764,6 +764,8 @@ export function AppProvider({
                   condition: 'damaged',
                   conditionCategory: st.notes,
                   photos: newPhotos,
+                  damagedDate: new Date().toISOString(),
+                  damagedUser: leaderName,
                 }
               }
               return i

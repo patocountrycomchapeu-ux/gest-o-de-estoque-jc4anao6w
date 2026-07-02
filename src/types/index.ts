@@ -24,6 +24,7 @@ export interface User {
   role: Role
   teamId?: string
   active: boolean
+  theme?: string
 }
 export type TreeNode =
   | { id: string; name: string; level: 'departamento'; parentId: null; isGrouped?: boolean }
@@ -64,6 +65,7 @@ export interface InventoryItem {
   conditionCategory?: string
   repairSent?: boolean
   expectedReturnDate?: string
+  responsibleId?: string
 }
 
 export interface Team {

@@ -28,7 +28,7 @@ export function RepairReportTab() {
     ]
     const rows = repairItems.map((item) => {
       const path = getNodePath(item.treeNodeId)
-      const name = path.find((n) => n.level === 'item')?.name || 'Item'
+      const name = path.find((n) => n.level === 'linha')?.name || 'Item'
       const supplier = suppliers.find((s) => s.id === item.supplierId)
       const date = item.repairDate ? format(new Date(item.repairDate), 'dd/MM/yyyy HH:mm') : '-'
       return `"${item.hasAssetNumber ? item.assetNumber : 'S/N'}","${name}","${item.repairCost || 0}","${supplier?.name || '-'}","${date}","${item.repairUser || '-'}"`
@@ -75,7 +75,7 @@ export function RepairReportTab() {
           <TableBody>
             {repairItems.map((item) => {
               const path = getNodePath(item.treeNodeId)
-              const name = path.find((n) => n.level === 'item')?.name || 'Item'
+              const name = path.find((n) => n.level === 'linha')?.name || 'Item'
               const marca = path.find((n) => n.level === 'marca')?.name || '-'
               const supplier = suppliers.find((s) => s.id === item.supplierId)
               return (

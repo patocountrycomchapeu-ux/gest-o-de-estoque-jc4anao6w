@@ -230,6 +230,19 @@ export default function TeamDetail() {
                       <Badge variant="outline" className="text-[10px]">
                         {statusMap[item.condition].label}
                       </Badge>
+                      {item.conditionCategory && (
+                        <div
+                          className="text-[10px] text-muted-foreground mt-1 max-w-[150px] truncate"
+                          title={item.conditionCategory}
+                        >
+                          {item.conditionCategory}
+                        </div>
+                      )}
+                      {item.condition === 'repair' && item.expectedReturnDate && (
+                        <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
+                          Retorno: {new Date(item.expectedReturnDate).toLocaleDateString('pt-BR')}
+                        </div>
+                      )}
                     </TableCell>
                     {canManage && (
                       <TableCell className="text-right">

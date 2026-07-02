@@ -21,7 +21,7 @@ export function DamagedTab() {
     const headers = ['Patrimonio', 'Item', 'Marca', 'Data do Registro', 'Responsavel']
     const rows = damagedItems.map((item) => {
       const path = getNodePath(item.treeNodeId)
-      const name = path.find((n) => n.level === 'item')?.name || 'Item'
+      const name = path.find((n) => n.level === 'linha')?.name || 'Item'
       const marca = path.find((n) => n.level === 'marca')?.name || '-'
       const date = item.damagedDate ? format(new Date(item.damagedDate), 'dd/MM/yyyy') : '-'
       return `"${item.hasAssetNumber ? item.assetNumber : 'S/N'}","${name}","${marca}","${date}","${item.damagedUser || '-'}"`
@@ -70,7 +70,7 @@ export function DamagedTab() {
           <TableBody>
             {damagedItems.map((item) => {
               const path = getNodePath(item.treeNodeId)
-              const name = path.find((n) => n.level === 'item')?.name || 'Item'
+              const name = path.find((n) => n.level === 'linha')?.name || 'Item'
               const marca = path.find((n) => n.level === 'marca')?.name || '-'
               return (
                 <TableRow key={item.id} className="print:border-b-gray-300">

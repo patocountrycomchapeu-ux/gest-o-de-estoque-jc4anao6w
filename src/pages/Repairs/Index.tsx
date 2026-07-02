@@ -109,6 +109,12 @@ export default function RepairsPage() {
                           </span>
                         )}
                       </div>
+                      {item.expectedReturnDate && (
+                        <div className="text-[10px] text-muted-foreground mt-1">
+                          Retorno prev.:{' '}
+                          {new Date(item.expectedReturnDate).toLocaleDateString('pt-BR')}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="text-xs bg-muted px-2 py-1 rounded inline-block mb-1 border border-border/50">

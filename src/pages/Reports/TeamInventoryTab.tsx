@@ -54,7 +54,7 @@ export function TeamInventoryTab() {
         const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
         const path = getNodePath(item.treeNodeId)
         const marca = path.find((n) => n.level === 'marca')?.name || '-'
-        const itemName = path.find((n) => n.level === 'item')?.name || 'Item'
+        const itemName = path.find((n) => n.level === 'linha')?.name || 'Item'
         const qtyStr = isGrouped
           ? `Lote: ${item.quantity} un.`
           : item.hasAssetNumber
@@ -136,7 +136,7 @@ export function TeamInventoryTab() {
                   const isGrouped = nodes.find((n) => n.id === item.treeNodeId)?.isGrouped
                   const path = getNodePath(item.treeNodeId)
                   const marca = path.find((n) => n.level === 'marca')?.name || '-'
-                  const itemName = path.find((n) => n.level === 'item')?.name || 'Item'
+                  const itemName = path.find((n) => n.level === 'linha')?.name || 'Item'
                   const photoUrl = item.photos?.[0]
 
                   return (

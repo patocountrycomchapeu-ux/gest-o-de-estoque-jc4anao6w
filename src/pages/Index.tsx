@@ -1,253 +1,187 @@
 import { useMemo } from 'react'
 import { useAppStore } from '@/store/AppStore'
-import { canManageUsers } from '@/lib/permissions'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Activity, Package, DollarSign, TrendingDown, Wrench, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Link } from 'react-router-dom'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Package, DollarSign, Wrench, AlertTriangle, TrendingUp } from 'lucide-react'
 import { ConditionChart } from './Dashboard/ConditionChart'
 import { DepartmentChart } from './Dashboard/DepartmentChart'
-import { formatDistanceToNow } from 'date-fns'
+import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Link } from 'react-router-dom'
 
 export default function Index() {
-  const { inventory, activities, currentUser, checklists, getNodePath, transfers } = useAppStore()
+  const { kpis, inventory, activities, currentUser, nodes, teams } = useAppStore()
 
-  const kpis = useMemo(() => {
-    let value = 0
-    let maint = 0
-    let itemsInRepair = 0
-
-    inventory.forEach((i) => {
-      value += (i.price || 0) * (i.quantity || 1)
-      maint += i.repairCost || 0
-      if (i.condition === 'repair' || i.status === 'in_maintenance') {
-        itemsInRepair += i.quantity || 1
-      }
-    })
-
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    const recentChecklists = checklists.filter((c) => new Date(c.date) >= thirtyDaysAgo)
-
-    let totalDisc = 0
-    let totalChecked = 0
-    recentChecklists.forEach((c) => {
-      totalDisc += c.discrepancies || 0
-      totalChecked += c.totalChecked || 0
-    })
-
-    const lossRate = totalChecked > 0 ? (totalDisc / totalChecked) * 100 : 0
-
-    const recentTransfers = transfers.filter((t) => new Date(t.initiatedAt) >= thirtyDaysAgo).length
-
-    return { value, maint, lossRate, itemsInRepair, recentTransfers }
-  }, [inventory, checklists, transfers])
-
-  const inventoryByDepartment = useMemo(() => {
-    const deptTotals: Record<string, number> = {}
-
-    inventory.forEach((item) => {
-      const path = getNodePath(item.treeNodeId)
-      const dept = path.find((n: any) => n.level === 'departamento')
-      if (dept) {
-        deptTotals[dept.name] = (deptTotals[dept.name] || 0) + (item.quantity || 1)
-      } else {
-        deptTotals['Outros'] = (deptTotals['Outros'] || 0) + (item.quantity || 1)
-      }
-    })
-
-    return Object.entries(deptTotals)
-      .map(([name, value]) => ({ name, value }))
+  const deptData = useMemo(() => {
+    const deptNodes = nodes.filter((n) => n.level === 'departamento')
+    return deptNodes
+      .map((d) => {
+        const count = inventory
+          .filter((item) => {
+            let cid: string | null = item.treeNodeId
+            while (cid) {
+              const node = nodes.find((n) => n.id === cid)
+              if (!node) return false
+              if (node.id === d.id) return true
+              cid = node.parentId
+            }
+            return false
+          })
+          .reduce((sum, i) => sum + (i.quantity || 1), 0)
+        return { name: d.name, value: count }
+      })
+      .filter((d) => d.value > 0)
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5)
-  }, [inventory, getNodePath])
+      .slice(0, 8)
+  }, [nodes, inventory])
 
-  // Critical stock alerts (e.g. low quantity items)
-  const criticalItems = useMemo(() => {
-    return inventory
-      .filter((i) => !i.hasAssetNumber && (i.quantity || 0) > 0 && (i.quantity || 0) < 5)
-      .slice(0, 5)
-  }, [inventory])
+  const recentActivities = activities.slice(0, 8)
+
+  const fmtBRL = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+
+  const kpiCards = [
+    {
+      label: 'Total de Ativos',
+      value: kpis.totalAssets.toString(),
+      icon: Package,
+      color: 'text-blue-600',
+      bg: 'bg-blue-500/10',
+    },
+    {
+      label: 'Valor Patrimonial',
+      value: fmtBRL(kpis.totalValue),
+      icon: DollarSign,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-500/10',
+    },
+    {
+      label: 'Custo de Reparos',
+      value: fmtBRL(kpis.totalRepairCost),
+      icon: Wrench,
+      color: 'text-amber-600',
+      bg: 'bg-amber-500/10',
+    },
+    {
+      label: 'Itens Danificados',
+      value: kpis.damagedItems.toString(),
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      bg: 'bg-red-500/10',
+    },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Visão geral e indicadores de desempenho do seu inventário.
-          </p>
-        </div>
+    <div className="space-y-6 animate-fade-in pb-8">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
+        <p className="text-muted-foreground">
+          Bem-vindo, {currentUser?.name}. Visão geral do inventário e operações.
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Valor do Inventário"
-          value={`R$ ${kpis.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={DollarSign}
-          trend="Capital alocado em estoque"
-        />
-        <StatCard
-          title="Itens em Manutenção"
-          value={kpis.itemsInRepair}
-          icon={Wrench}
-          trend="Aguardando reparo"
-          warning={kpis.itemsInRepair > 0}
-        />
-        <StatCard
-          title="Taxa de Perda (30d)"
-          value={`${kpis.lossRate.toFixed(1)}%`}
-          icon={TrendingDown}
-          critical={kpis.lossRate > 5}
-          trend="Discrepâncias em auditorias"
-        />
-        <StatCard
-          title="Rotatividade (30d)"
-          value={kpis.recentTransfers}
-          icon={Package}
-          trend="Transferências realizadas"
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpiCards.map((kpi) => (
+          <Card key={kpi.label} className="overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium">{kpi.label}</p>
+                  <p className="text-2xl font-bold mt-1 tabular-nums">{kpi.value}</p>
+                </div>
+                <div className={`p-2.5 rounded-lg ${kpi.bg}`}>
+                  <kpi.icon className={`h-5 w-5 ${kpi.color}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-1 lg:col-span-3 flex flex-col">
-          <CardHeader>
-            <CardTitle>Distribuição de Estado</CardTitle>
-            <CardDescription>Visão geral das condições físicas dos itens.</CardDescription>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Distribuição por Condição</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 pb-2">
+          <CardContent>
             <ConditionChart inventory={inventory} />
           </CardContent>
         </Card>
-
-        <Card className="col-span-1 lg:col-span-4 flex flex-col">
-          <CardHeader>
-            <CardTitle>Ativos por Departamento</CardTitle>
-            <CardDescription>Top 5 departamentos com maior volume de itens.</CardDescription>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Itens por Departamento</CardTitle>
           </CardHeader>
-          <CardContent className="flex-1">
-            <DepartmentChart data={inventoryByDepartment} />
+          <CardContent>
+            <DepartmentChart data={deptData} />
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
-        <Card className="col-span-1 flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="space-y-1">
-              <CardTitle>Atividade Recente</CardTitle>
-              <CardDescription>Últimas movimentações e alterações.</CardDescription>
-            </div>
-            {canManageUsers(currentUser) && (
-              <div className="space-x-2">
-                <Button size="sm" asChild variant="outline">
-                  <Link to="/arvore-mercadologica">Nova Ferramenta</Link>
-                </Button>
-              </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" /> Atividades Recentes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {recentActivities.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-4 text-center">
+                Nenhuma atividade recente.
+              </p>
+            ) : (
+              recentActivities.map((act) => (
+                <div key={act.id} className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`inline-flex h-2 w-2 rounded-full ${
+                        act.type === 'allocation'
+                          ? 'bg-blue-500'
+                          : act.type === 'status_change'
+                            ? 'bg-amber-500'
+                            : 'bg-slate-400'
+                      }`}
+                    />
+                    <span className="text-sm">{act.description}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
+                    {act.date
+                      ? format(new Date(act.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })
+                      : '-'}
+                  </span>
+                </div>
+              ))
             )}
-          </CardHeader>
-          <CardContent className="flex-1">
-            <div className="space-y-4 pt-4">
-              {activities.slice(0, 5).map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 text-sm group animate-slide-up"
-                >
-                  <div
-                    className={`mt-0.5 rounded-full p-1.5 ${activity.type === 'status_change' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}
-                  >
-                    <Activity className="h-3 w-3" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-foreground leading-snug font-medium">
-                      {activity.description}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {formatDistanceToNow(new Date(activity.date), {
-                        addSuffix: true,
-                        locale: ptBR,
-                      })}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {activities.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhuma atividade recente.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="col-span-1 flex flex-col">
-          <CardHeader>
-            <CardTitle>Alertas de Estoque Crítico</CardTitle>
-            <CardDescription>
-              Lotes com quantidade muito baixa (abaixo de 5 unidades).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <div className="space-y-4 pt-4">
-              {criticalItems.map((item) => {
-                const path = getNodePath(item.treeNodeId)
-                const itemName = path[path.length - 1]?.name || 'Item desconhecido'
-                return (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between gap-4 text-sm group animate-slide-up bg-destructive/5 p-3 rounded-md border border-destructive/10"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-destructive/20 text-destructive p-1.5 rounded-full">
-                        <AlertTriangle className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{itemName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Nó: {item.treeNodeId.substring(0, 8)}...
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-destructive text-lg">{item.quantity} un</p>
-                    </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {teams.slice(0, 3).map((team) => {
+          const teamItems = inventory.filter((i) => i.teamId === team.id)
+          const teamValue = teamItems.reduce(
+            (acc, i) => acc + (i.price || 0) * (i.quantity || 1),
+            0,
+          )
+          return (
+            <Card key={team.id} className="hover:shadow-elevation transition-shadow">
+              <CardContent className="p-5">
+                <Link to={`/equipes/${team.id}`} className="block">
+                  <p className="font-semibold text-sm group-hover:text-primary">{team.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{team.description}</p>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                    <span className="text-xs text-muted-foreground">
+                      {teamItems.length} instâncias
+                    </span>
+                    <span className="text-sm font-bold text-emerald-600 tabular-nums">
+                      {fmtBRL(teamValue)}
+                    </span>
                   </div>
-                )
-              })}
-              {criticalItems.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground space-y-2">
-                  <div className="bg-success/10 text-success p-3 rounded-full">
-                    <Package className="h-6 w-6" />
-                  </div>
-                  <p>
-                    Estoque estabilizado.
-                    <br />
-                    Nenhum alerta crítico no momento.
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </Link>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
     </div>
-  )
-}
-
-function StatCard({ title, value, icon: Icon, trend, critical, warning }: any) {
-  return (
-    <Card
-      className={`overflow-hidden transition-all duration-300 ${critical ? 'border-destructive/50 bg-destructive/5' : warning ? 'border-amber-500/50 bg-amber-500/5 dark:border-amber-500/30 dark:bg-amber-500/10' : ''}`}
-    >
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon
-          className={`h-4 w-4 ${critical ? 'text-destructive' : warning ? 'text-amber-500' : 'text-muted-foreground'}`}
-        />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {trend && <p className="text-xs text-muted-foreground mt-1">{trend}</p>}
-      </CardContent>
-    </Card>
   )
 }

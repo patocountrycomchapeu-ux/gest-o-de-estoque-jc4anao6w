@@ -18,8 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { InventoryItem } from '@/types'
-import { ArrowRightLeft, ShieldAlert } from 'lucide-react'
+import { ArrowRightLeft, ShieldAlert, AlertTriangle } from 'lucide-react'
 
 export function TransferDialog({
   item,
@@ -35,13 +36,17 @@ export function TransferDialog({
   const { teams, initiateTransfer } = useAppStore()
   const [toTeamId, setToTeamId] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [confirmRepair, setConfirmRepair] = useState(false)
 
   const isGrouped = !item?.hasAssetNumber
+  const isDamaged = item?.condition === 'damaged'
+  const isRepair = item?.condition === 'repair'
 
   useEffect(() => {
     if (open && item) {
       setQuantity(item.quantity || 1)
       setToTeamId('')
+      setConfirmRepair(false)
     }
   }, [open, item])
 
@@ -57,7 +62,7 @@ export function TransferDialog({
   const otherTeams = teams.filter((t) => t.id !== teamId)
   const isInvalidQuantity = isGrouped && (quantity < 1 || quantity > (item?.quantity || 1))
 
-  if (item && item.condition !== 'good') {
+  if (item && isDamaged) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
@@ -67,8 +72,8 @@ export function TransferDialog({
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 text-sm text-muted-foreground">
-            Ativos marcados como "Danificado" ou "Para Reparo" não podem ser transferidos. Eles
-            devem retornar ao status "Bom Estado" antes de serem movimentados para outra equipe.
+            Ativos marcados como "Danificado" não podem ser transferidos. Eles devem retornar ao
+            status "Bom Estado" antes de serem movimentados para outra equipe.
           </div>
           <DialogFooter>
             <Button onClick={() => onOpenChange(false)}>Fechar</Button>
@@ -102,6 +107,35 @@ export function TransferDialog({
               </p>
             )}
           </div>
+
+          {isRepair && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-md space-y-3 dark:bg-amber-950/30 dark:border-amber-800/50">
+              <div className="flex items-start gap-2 text-amber-800 dark:text-amber-400">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div className="text-xs font-medium">
+                  Este item está em reparo. A transferência só é permitida com confirmação
+                  explícita.
+                  {item?.expectedReturnDate && (
+                    <span className="block mt-1">
+                      Previsão de retorno:{' '}
+                      {new Date(item.expectedReturnDate).toLocaleDateString('pt-BR')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="confirm-repair"
+                  checked={confirmRepair}
+                  onCheckedChange={(c) => setConfirmRepair(c as boolean)}
+                />
+                <Label htmlFor="confirm-repair" className="text-xs cursor-pointer">
+                  Confirmo que este item em reparo pode ser transferido
+                </Label>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Equipe de Destino</Label>
             <Select value={toTeamId} onValueChange={setToTeamId}>
@@ -140,7 +174,10 @@ export function TransferDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={!toTeamId || isInvalidQuantity}>
+          <Button
+            onClick={handleSave}
+            disabled={!toTeamId || isInvalidQuantity || (isRepair && !confirmRepair)}
+          >
             Iniciar Transferência
           </Button>
         </DialogFooter>

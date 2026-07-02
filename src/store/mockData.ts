@@ -1,4 +1,4 @@
-import { AppState, User } from '@/types'
+import { AppState, User, RepairSupplier } from '@/types'
 
 const initialUsers: User[] = [
   {
@@ -63,6 +63,16 @@ const initialTeams = [
   { id: 't2', name: 'Equipe Alpha', description: 'Reparos Rápidos', location: 'Setor Sul' },
 ] as const
 
+const initialSuppliers: RepairSupplier[] = [
+  {
+    id: 's1',
+    name: 'Assistência Técnica Oficial',
+    cnpj: '12.345.678/0001-90',
+    currentBalance: 5000,
+  },
+  { id: 's2', name: 'Reparos Express', cnpj: '98.765.432/0001-10', currentBalance: 2500 },
+]
+
 const initialInventory = [
   {
     id: 'inv1',
@@ -121,6 +131,7 @@ const initialInventory = [
     lastUpdated: new Date().toISOString(),
     price: 520.0,
     repairCost: 150.0,
+    supplierId: 's1',
     repairLocation: 'Assistência Técnica Oficial',
     repairDescription: 'Troca de escovas e lubrificação do motor',
     repairUser: 'Ana (Líder Alpha)',
@@ -199,4 +210,5 @@ export const initialData: AppState = {
     },
   ],
   checklists: [],
+  suppliers: initialSuppliers,
 }
